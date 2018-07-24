@@ -1,0 +1,149 @@
+@startuml
+
+' FWRunners - different instances of runner class
+FWRunners.Runnable o--> "1" FWRunners.Runner
+abstract FWRunners.Runnable {
+      -Runner runner
+      run()
+}
+
+FWRunners.ClusterRunnable --|> FWRunners.Runnable
+class FWRunners.ClusterRunnable {
+set_number_of_nodes(int n)
+set_mirror_directory(string dir)
+}
+
+FWRunners.Running "0.." <--o FWRunners.Runner
+FWRunners.Runner ..> FWRunners.Runnable : instantiate
+class FWRunners.Running {
+- Runner runner
+cancel()
+label()
+started()
+submitted()
+fields()
+}
+
+' FW - framework classes
+InputSpecification "1" --* "1" RunType
+InputSpecification *-- "1.." TextField
+RunValidationException <.. RunType : throws (create_run)
+class RunType {
+      -func<InputData, Runner> create_run
+      InputSpecificationClass config_class
+      init(func create_run,\n       dict config_dict,\n        Rynner[] runners = None,\n        QConfigManagerClass manager_class=None)
+      add_action(string label, func action)
+      Running[] running()
+      QConfigManager config_manager()
+}
+
+Qt.QConfigManager --|> ConfigManager
+abstract ConfigManager {
+         init(InputSpecification config)
+         bool is_valid()
+}
+
+RunType ..> Qt.QConfigManager : instantiates
+Qt.QConfigManager *--> InputSpecification
+class Qt.QConfigManager {
+      void draw()
+}
+
+abstract FWRunners.Runner {
+         Runnable runnable()
+         Running[] running()
+}
+
+FWRunners.Runner <|-- FWRunners.SlurmRunner
+FWRunners.SlurmSerialRunner --|> FWRunners.SlurmRunner
+FWRunners.PBSSerialRunner --|> FWRunners.PBSRunner
+FWRunners.SlurmRunner <|-- UserRunner.SunbirdRunner
+class FWRunners.SlurmRunner {
+}
+
+FWRunners.Runner <|-- FWRunners.PBSRunner
+FWRunners.PBSRunner <|-- UserRunner.HawkRunner
+class FWRunners.PBSRunner
+
+class UserRunner.SunbirdRunner
+
+class UserRunner.HawkRunner
+
+UserRunner.SunbirdRunner <|-- UserRunner.SunbirdCellProfileRunner
+class UserRunner.SunbirdCellProfileRunner {
+      any_plug_functionality()
+}
+
+UserRunner.SunbirdRunner <|-- UserRunner.SunbirdAerOptRunner
+class UserRunner.SunbirdAerOptRunner {
+      any_instance_methods
+      any_plug_functionality()
+}
+
+RunType ..> InputData : create_run argument
+
+note "coupled" as ConfigNote
+InputSpecification <. ConfigNote
+ConfigNote .> InputData
+
+class InputSpecification {
+      -func<InputData> validator
+      init(dict config_dict)
+      validate(InputData)
+      set_validator(func<InputData> validator)
+}
+class InputData
+
+Qt.QRunningIndex *-- Qt.QRunningIndexModel
+Qt.QConfigRunnable *-- Qt.QConfigRunModel
+Qt.QConfigRunnable "1" o-- "1" InputSpecification
+class Qt.QConfigRunnable {
+      init(InputSpecification spec)
+}
+
+Qt.QRunningIndexModel "1" o- "1.." RunTypeManager
+class Qt.QRunningIndexModel {
+      init(Runner[] runners, RunType[] run_types)
+}
+Qt.QConfigRunModel "1" o- "1" RunType
+
+class Qt.QConfigRunModel {
+      init(RunType run_type)
+}
+
+Qt.QResultsDialog <|-- Qt.QResultsModel
+
+RunTypeManager  "1" *--> "1.." RunType
+class RunTypeManager {
+-RunType[] run_types
+load()
+}
+
+RunType "1" *--- "1.." FWRunners.Runner
+
+abstract RunInputField {
+         -func<value> is_valid
+         init(func<value> is_valid)
+         QTextInputField qwidget()
+}
+
+QTextInputField --|> QInputField
+class QTextInputField {
+      +signal value_changed
+      value()
+}
+note top of QTextInputField : "value_changed only emitted on valid value"
+abstract QInputField
+
+class RunValidationException
+
+TextField --|> RunInputField
+TextField .. QTextInputField : builds
+
+note "strongly coupled: needs to preserve interface for all compatible runners" as FWRunners.N5
+FWRunners.SlurmRunner .. FWRunners.N5
+FWRunners.PBSRunner .. FWRunners.N5
+FWRunners.ClusterRunnable .. FWRunners.N5
+
+note right of InputSpecification : "can it make dynamic decisions?"
+@enduml

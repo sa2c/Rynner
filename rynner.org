@@ -1,0 +1,11 @@
+* ConfigManager
+** validation logic for 
+
+interface between runner and runnable
+
+* Runner
+abstracts the cluster or generic runner which will run the job
+Runner.config returns a new Runnable object, which points to an instance of Runner
+
+
+Runnable should throw a known errors if API is violated (i.e. non-existant methods are called)

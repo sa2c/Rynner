@@ -6,7 +6,7 @@ from ssh import SSHAdapter
 class TestSSH(unittest.TestCase):
     def setUp(self):
         self.cluster_host = 'example.cluster.com'
-        self.cluster_user = 's.mark.dawson@swansea.ac.uk'
+        self.cluster_user = 'user'
 
         self.patcher = patch('ssh.Connection')
         self.ConnMock = self.patcher.start()
@@ -25,7 +25,8 @@ class TestSSH(unittest.TestCase):
 
     def test_run_command_creates_connection(self):
         self.ssh.run_command("ls")
-        assert self.ConnMock.called_once_with(host=self.cluster_host, user=self.cluster_user)
+        assert self.ConnMock.called_once_with(
+            host=self.cluster_host, user=self.cluster_user)
 
     def test_run_command_calls_run(self):
         cmd = "ls"
@@ -34,7 +35,7 @@ class TestSSH(unittest.TestCase):
 
     def test_run_command_calls_sets_dir(self):
         cmd = "ls"
-        pwd="/some/working/dir"
+        pwd = "/some/working/dir"
         self.ssh.run_command(cmd, pwd=pwd)
         self.ConnMock().cd.assert_called_once_with(pwd)
 
@@ -58,6 +59,6 @@ class TestSSH(unittest.TestCase):
         self.ssh.get_file(remote, local)
         assert self.ConnMock().get().called_once_with(remote, local)
 
+
 if __name__ == '__main__':
     unittest.main()
-

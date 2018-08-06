@@ -137,6 +137,27 @@ class TestRunOptions(TestRun):
         with self.assertRaises(Exception):
             self.run.options['invalid_option'] = 'invalid'
 
+    def test_bandwidth_option(self):
+        arg = MagicMock
+        self.run.bandwidth(arg)
+        assert self.run.options['bandwidth'] == arg
+
+    def test_num_nodes_option(self):
+        arg = MagicMock
+        self.run.num_nodes(arg)
+        assert self.run.options['num_nodes'] == arg
+
+    def test_memory_option(self):
+        arg = MagicMock
+        self.run.memory(arg)
+        assert self.run.options['memory'] == arg
+
+    def test_memory_option(self):
+        arg = MagicMock
+        self.run.memory(kb=5, mb=10, gb=25)
+        assert self.run.options[
+            'memory'] == 5 + (10 * 1025) + (25 * 1025 * 1025)
+
 
 class TestRunInterfaces(unittest.TestCase):
     def test_template_parses_args(self):

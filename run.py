@@ -16,7 +16,9 @@ class RunnerNotSpecifiedException(AttributeError):
 class Run:
     __valid_download_arguments = ['interval']
     __valid_upload_arguments = []
-    __allowed_options = {'walltime', 'jobcard'}
+    __allowed_options = {
+        'walltime', 'jobcard', 'memory', 'num_nodes', 'bandwidth'
+    }
 
     def __init__(self, options=None, runner=None, template=None):
         '''options should be None or an object of type dict, these options are intended to be used to configure the runner'''
@@ -48,6 +50,15 @@ class Run:
 
     def jobcard(self, string):
         self.options['jobcard'] = self.jobcard
+
+    def memory(self, mb, kb, gb):
+        self.options['memory'] = kb + mb * 1025 + gb * 1025**2
+
+    def bandwidth(self, bandwidth):
+        self.options['bandwidth'] = bandwidth
+
+    def num_nodes(self, num_nodes):
+        self.options['num_nodes'] = num_nodes
 
     ############################# Private methods #############################
 

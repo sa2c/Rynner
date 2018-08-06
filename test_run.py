@@ -6,8 +6,6 @@ from run import *
 class TestRun(unittest.TestCase):
     def setUp(self):
         self.run = Run()
-        #self.patcher = patch('runnable.SSHAdapter')
-        #self.ConnMock = self.patcher.start()
 
 
 class TestRunDownload(TestRun):
@@ -138,6 +136,20 @@ class TestRunOptions(TestRun):
         self.run = Run()
         with self.assertRaises(Exception):
             self.run.options['invalid_option'] = 'invalid'
+
+
+class TestRunRunning(unittest.TestCase):
+    def test_run_can_run(self):
+        runner_inst = MagicMock()
+        run = Run(runner=runner_inst)
+        run.run()
+        runner_inst.run.assert_called_once_with(run.options, run.downloads,
+                                                run.uploads)
+
+    def test_run_errors_without_runner(self):
+        run = Run()
+        with self.assertRaises(RunnerNotSpecifiedException):
+            run.run()
 
 
 if __name__ == '__main__':

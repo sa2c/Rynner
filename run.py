@@ -9,16 +9,21 @@ class InvalidUploadOptionException(ValueError):
     pass
 
 
+class RunnerNotSpecifiedException(AttributeError):
+    pass
+
+
 class Run:
     __valid_download_arguments = ['interval']
     __valid_upload_arguments = []
     __allowed_options = {'walltime'}
 
-    def __init__(self, options=None):
+    def __init__(self, options=None, runner=None):
         '''options should be None or an object of type dict, these options are intended to be used to configure the runner'''
         self.__downloads = []
         self.__uploads = []
         self.options = RestrictedDict(options, allowed=self.__allowed_options)
+        self.runner = runner
 
     ########################### File Upload/Download lists ############################
 
@@ -62,6 +67,13 @@ class Run:
 
         # add downloads to downloads list
         filelist.extend(downloads)
+
+    ################################# Actions #################################
+
+    def run(self):
+        if self.runner is None:
+            raise RunnerNotSpecifiedException
+        self.runner.run(self.options, self.downloads, self.uploads)
 
     ############################# Property Lists ##############################
 

@@ -1,7 +1,6 @@
-from unittest.mock import MagicMock
 import unittest
-from unittest.mock import patch
-from runnable import *
+from unittest.mock import patch, MagicMock
+from run import *
 
 
 class TestRun(unittest.TestCase):
@@ -103,33 +102,42 @@ class TestRunUploads(TestRun):
 
 
 class TestRunOptions(TestRun):
-    def test_default_options_empty(self):
-        assert self.run.options == {}
+    def test_walltime_adds_to_options(self):
+        walltime = 10000  # walltime in seconds
+        self.run.walltime(walltime)
+        assert self.run.options['walltime'] == walltime
+
+    def test_walltime_minutes(self):
+        walltime = 10000  # walltime in seconds
+        self.run.walltime(minutes=walltime)
+        assert self.run.options['walltime'] == walltime * 60
+
+    def test_walltime_hours(self):
+        walltime = 10000  # walltime in seconds
+        self.run.walltime(hours=walltime)
+        assert self.run.options['walltime'] == walltime * 60 * 60
+
+    def test_walltime_compound_time(self):
+        sec = 123  # walltime in seconds
+        minute = 456
+        hour = 789
+        self.run.walltime(seconds=sec, minutes=minute, hours=hour)
+        assert self.run.options[
+            'walltime'] == sec + (minute * 60) + (hour * 60 * 60)
 
     def test_set_custom_default_options(self):
         opts = {'walltime': '12000'}
         self.run = Run(opts)
         assert self.run.options == opts
 
-    def test_custom_default_options_not_iterable(self):
-        with self.assertRaises(TypeError) as context:
-            self.run = Run(1)
+    def test_options_fail_invalid_opts(self):
+        with self.assertRaises(Exception):
+            self.run = Run({'invalid_options': 'invalid'})
 
-        assert 'options argument should be a dict' in str(context.exception)
-
-    def test_walltime_adds_to_options(self):
-        walltime = 10000  # walltime in seconds
-        self.run.walltime(walltime)
-        assert self.run.options['walltime'] == walltime
-
-    def test_invalid_options_not_added_on_create(self):
-        with self.assertRaises(InvalidOptionException) as context:
-            self.run = Run({'invalid_option': 'invalid'})
-
-        assert 'invalid_option' in str(context.exception)
-
-    def test_cannot_add_to_named_tuple(self):
-        pass
+    def test_modifying_options_raises_exception(self):
+        self.run = Run()
+        with self.assertRaises(Exception):
+            self.run.options['invalid_option'] = 'invalid'
 
 
 if __name__ == '__main__':

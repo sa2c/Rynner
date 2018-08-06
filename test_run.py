@@ -160,21 +160,21 @@ class TestRunOptions(TestRun):
 
 
 class TestRunInterfaces(unittest.TestCase):
-    def test_template_parses_args(self):
+    def test_template_render_args(self):
         template = MagicMock()
         args = MagicMock()
         self.run = Run(template=template)
         self.run.from_template(args)
 
-        template.parse.assert_called_once_with(args)
+        template.render.assert_called_once_with(args)
 
-    def test_jobcard_set_from_template_parse_output(self):
+    def test_jobcard_set_from_template_render_output(self):
         template = MagicMock()
         args = MagicMock()
         self.run = Run(template=template)
         self.run.from_template(args)
 
-        assert self.run.options['jobcard'] == template.parse()
+        assert self.run.options['jobcard'] == template.render()
 
     def test_jobcard_set_from_template_raises_exception_when_no_template(self):
         self.run = Run()

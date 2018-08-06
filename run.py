@@ -46,7 +46,7 @@ class Run:
         self.options['walltime'] = seconds + minutes * 60 + hours * 60 * 60
 
     def from_template(self, args):
-        self.options['jobcard'] = self.template.parse(args)
+        self.options['jobcard'] = self.template.render(args)
 
     def jobcard(self, string):
         self.options['jobcard'] = self.jobcard

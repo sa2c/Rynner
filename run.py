@@ -45,11 +45,13 @@ class Run:
     def walltime(self, seconds=0, minutes=0, hours=0):
         self.options['walltime'] = seconds + minutes * 60 + hours * 60 * 60
 
-    def from_template(self, args):
-        self.options['jobcard'] = self.template.render(args)
+    def from_template(self, args, template=None):
+        if template is None:
+            template = self.template
+        self.options['jobcard'] = template.render(args)
 
     def jobcard(self, string):
-        self.options['jobcard'] = self.jobcard
+        self.options['jobcard'] = string
 
     def memory(self, mb, kb, gb):
         self.options['memory'] = kb + mb * 1025 + gb * 1025**2

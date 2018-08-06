@@ -182,11 +182,22 @@ class TestRunInterfaces(unittest.TestCase):
         with self.assertRaises(Exception):
             self.run.from_template(args)
 
+    def test_from_template_takes_template_argument(self):
+        self.run = Run()
+        template = MagicMock()
+        args = MagicMock()
+        self.run = Run(template=template)
+        self.run.from_template(args)
+
+        template.render.assert_called_once_with(args)
+
     def test_jobcard_set_from_string_if_provided(self):
         template = MagicMock()
         string = MagicMock()
-        self.run = Run(template=template)
-        self.run.jobcard(string)
+        run = Run(template=template)
+        run.jobcard(string)
+
+        assert run.options['jobcard'] == string
 
     def test_run_can_run(self):
         runner_inst = MagicMock()

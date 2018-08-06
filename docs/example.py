@@ -48,7 +48,7 @@ def setup(data):
     job.memory(1)                                            # used for selecting nodes on AWS
     job.bandwidth(1000)
 
-    job.params({
+    job.from_template({
         'dimensions': 2,
         'cmd': executable.path(commit=data['commitID'])
     })

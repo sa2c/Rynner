@@ -93,7 +93,7 @@ class Run:
     def run(self):
         if self.runner is None:
             raise RunnerNotSpecifiedException
-        self.runner.run(self.options, self.downloads, self.uploads)
+        return self.runner.run(self.options, self.downloads, self.uploads)
 
     ############################# Property Lists ##############################
 

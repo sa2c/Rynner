@@ -55,7 +55,7 @@ def setup(data):
 
     if runner.is(SlurmRunner):
         job.options('time', '23432', 'dependents', 1)
-        if runner.is(PBSRunner):
+    if runner.is(PBSRunner):
         job.options('time', '23432', 'dependents', 1)
     if runner.is(AWSRunner):
         job.options('time', '23432', 'dependents', 1)

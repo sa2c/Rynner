@@ -202,9 +202,16 @@ class TestRunInterfaces(unittest.TestCase):
     def test_run_can_run(self):
         runner_inst = MagicMock()
         run = Run(runner=runner_inst)
-        run.run()
+        jobID = run.run()
         runner_inst.run.assert_called_once_with(run.options, run.downloads,
                                                 run.uploads)
+
+    def test_run_run_returns_return_value_of_runner(self):
+        runner_inst = MagicMock()
+        run = Run(runner=runner_inst)
+        jobID = run.run()
+
+        assert jobID == runner_inst.run()
 
     def test_run_errors_without_runner(self):
         run = Run()

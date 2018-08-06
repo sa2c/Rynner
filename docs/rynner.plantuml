@@ -4,28 +4,23 @@ RunClasses.Runnable o--> "1" RunClasses.Runner
 abstract RunClasses.Runnable {
       -Runner runner
       run()
+      cancel()
+      label()
+      started()
+      submitted()
+      fields()
 }
 
 RunClasses.ClusterRunnable -|> RunClasses.Runnable
 class RunClasses.ClusterRunnable {
-set_number_of_nodes(int n)
-set_num_cores_per_node(int)
-set_mirror_directory(string dir)
-set_sync(string dir)
+      set_template(string path)
+      set_mirror_directory(string dir)
+      set_sync(string dir)
 }
 note left of RunClasses.ClusterRunnable : "user-written plugins are\n coupled to this API. Need to specify the API that you can support?"
 
 RunClasses.PBSHostLogic -|> RunClasses.HostLogic
-RunClasses.Running <.. RunClasses.Runner : builds
 RunClasses.Runner ..> RunClasses.Runnable : instantiates
-class RunClasses.Running {
-- Runner runner
-cancel()
-label()
-started()
-submitted()
-fields()
-}
 
 InputSpecification "1" --* "1" RunType
 InputSpecification *-- "1.." InputFieldBase
@@ -36,7 +31,7 @@ class RunType {
       -dict{label, Runner[],dict{runner_data}>} runners
       init(func create_run,\n       dict|InputSpecification input_spec,\n        Runner[] runners = None,\n        <Runner> supported_runnners=[abstract_base_class, abc_for_custom_class])
       add_action(string label, func action)
-      Running[] running()
+      Runnable[] running()
       QConfigManager config_manager()
       InputSpecification input_specification()
 }
@@ -48,7 +43,7 @@ class Qt.QRunningView {
 
 abstract RunClasses.Runner {
          __init__(runner_config_file)
-         Runnable new_runnable()
+         Runnable runnable()
 }
 
 abstract RunClasses.ClusterRunner {
@@ -63,7 +58,7 @@ RunClasses.HawkRunner o-- RunClasses.SlurmHostLogic
 RunClasses.SlurmHostLogic -|> RunClasses.HostLogic
 RunClasses.ClusterRunner <|-- RunClasses.SunbirdRunner
 class RunClasses.SlurmHostLogic {
-      create_jobcard(filename, contents, directory)
+      run(runnable)
 }
 
 RunClasses.HostLogic o-- RunClasses.RemoteFileManager

@@ -138,7 +138,35 @@ class TestRunOptions(TestRun):
             self.run.options['invalid_option'] = 'invalid'
 
 
-class TestRunRunning(unittest.TestCase):
+class TestRunInterfaces(unittest.TestCase):
+    def test_template_parses_args(self):
+        template = MagicMock()
+        args = MagicMock()
+        self.run = Run(template=template)
+        self.run.from_template(args)
+
+        template.parse.assert_called_once_with(args)
+
+    def test_jobcard_set_from_template_parse_output(self):
+        template = MagicMock()
+        args = MagicMock()
+        self.run = Run(template=template)
+        self.run.from_template(args)
+
+        assert self.run.options['jobcard'] == template.parse()
+
+    def test_jobcard_set_from_template_raises_exception_when_no_template(self):
+        self.run = Run()
+        args = MagicMock()
+        with self.assertRaises(Exception):
+            self.run.from_template(args)
+
+    def test_jobcard_set_from_string_if_provided(self):
+        template = MagicMock()
+        string = MagicMock()
+        self.run = Run(template=template)
+        self.run.jobcard(string)
+
     def test_run_can_run(self):
         runner_inst = MagicMock()
         run = Run(runner=runner_inst)

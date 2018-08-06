@@ -16,14 +16,15 @@ class RunnerNotSpecifiedException(AttributeError):
 class Run:
     __valid_download_arguments = ['interval']
     __valid_upload_arguments = []
-    __allowed_options = {'walltime'}
+    __allowed_options = {'walltime', 'jobcard'}
 
-    def __init__(self, options=None, runner=None):
+    def __init__(self, options=None, runner=None, template=None):
         '''options should be None or an object of type dict, these options are intended to be used to configure the runner'''
         self.__downloads = []
         self.__uploads = []
         self.options = RestrictedDict(options, allowed=self.__allowed_options)
         self.runner = runner
+        self.template = template
 
     ########################### File Upload/Download lists ############################
 
@@ -41,6 +42,12 @@ class Run:
 
     def walltime(self, seconds=0, minutes=0, hours=0):
         self.options['walltime'] = seconds + minutes * 60 + hours * 60 * 60
+
+    def from_template(self, args):
+        self.options['jobcard'] = self.template.parse(args)
+
+    def jobcard(self, string):
+        self.options['jobcard'] = self.jobcard
 
     ############################# Private methods #############################
 

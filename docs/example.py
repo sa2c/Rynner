@@ -60,7 +60,7 @@ def setup(data):
     if runner.is(AWSRunner):
         job.options('time', '23432', 'dependents', 1)
 
-    jobID = job.run()                                      # Freeze job object, any setters after this point have no effect
+    return job # return job, so that parent can do the running
 
 
 def plot_results(data):

@@ -13,95 +13,41 @@ class TestRun(unittest.TestCase):
         self.rcontext = self.mock_runner.get_context()
 
 
-class TestRunDownload(TestRun):
+class TestRunFileTransfers(TestRun):
     def test_instansiation(self):
         assert isinstance(self.run, Run)
 
-    def test_downloads_empty_initially(self):
-        assert self.run.downloads == []
-
-    def test_stores_single_download(self):
+    def test_notifies_download(self):
         ''' stores a single download '''
-        self.run.download(local='local1', remote='remote1')
-        assert self.run.downloads[0] == ('local1', 'remote1')
-        assert len(self.run.downloads) == 1
-
-    def test_stores_single_download_without_keywords(self):
-        ''' stores a single download '''
-        self.run.download('remote1', 'local1')
-        assert self.run.downloads[0] == ('local1', 'remote1')
-        assert len(self.run.downloads) == 1
-
-    def test_stores_multiple_downloads(self):
-        ''' stores a single download '''
-        local = ('local1', 'local2')
-        remote = ('remote1', 'remote2')
+        local = MagicMock()
+        remote = MagicMock()
         self.run.download(local=local, remote=remote)
-        assert self.run.downloads == list(zip(local, remote))
-        assert len(self.run.downloads) == 2
+        self.mock_runner.download.assert_called_once_with(
+            self.rcontext, remote, local)
 
-    def test_stores_downloads_with_interval(self):
-        ''' stores a single download with interval '''
-        self.run.download(local='local1', remote='remote1', interval=3)
-        assert self.run.downloads == [('local1', 'remote1', {'interval': 3})]
-        assert len(self.run.downloads) == 1
-
-    def test_stores_downloads_with_interval_on_one_file(self):
-        ''' stores a single download with interval and single download with no interval'''
-        self.run.download(local='local1', remote='remote1')
-        self.run.download(local='local2', remote='remote2', interval=3)
-        assert self.run.downloads == [('local1', 'remote1'), ('local2',
-                                                              'remote2', {
-                                                                  'interval': 3
-                                                              })]
-        assert len(self.run.downloads) == 2
-
-    def test_stores_downloads_filters_keywords(self):
-        with self.assertRaises(InvalidDownloadOptionException):
-            self.run.download(local='local2', remote='remote2', some_keyword=3)
-
-
-class TestRunUploads(TestRun):
-    def test_instansiation(self):
-        assert isinstance(self.run, Run)
-
-    def test_downloads_empty_initially(self):
-        assert self.run.uploads == []
-
-    def test_stores_single_download(self):
+    def test_notifies_download_with_arguments(self):
         ''' stores a single download '''
-        self.run.upload(local='local1', remote='remote1')
-        assert self.run.uploads[0] == ('local1', 'remote1')
-        assert len(self.run.uploads) == 1
+        local = MagicMock()
+        remote = MagicMock()
+        self.run.download(local=local, remote=remote, some_keyword='a')
+        self.mock_runner.download.assert_called_once_with(
+            self.rcontext, remote, local, some_keyword='a')
 
-    def test_stores_multiple_uploads(self):
+    def test_notifies_upload(self):
         ''' stores a single upload '''
-        local = ('local1', 'local2')
-        remote = ('remote1', 'remote2')
+        local = MagicMock()
+        remote = MagicMock()
         self.run.upload(local=local, remote=remote)
-        assert self.run.uploads == list(zip(local, remote))
-        assert len(self.run.uploads) == 2
+        self.mock_runner.upload.assert_called_once_with(
+            self.rcontext, local, remote)
 
-    def test_stores_uploads_doesnt_accept_interval(self):
-        ''' stores a single upload with interval '''
-        with self.assertRaises(InvalidUploadOptionException):
-            self.run.upload(local='local1', remote='remote1', interval=3)
-
-        # assert upload not added
-        assert self.run.uploads == []
-
-    def test_stores_multiple_uploads(self):
-        ''' stores a single upload with interval and single upload with no interval'''
-        self.run.upload(local='local1', remote='remote1')
-        self.run.upload(local='local2', remote='remote2')
-        assert self.run.uploads == [('local1', 'remote1'), ('local2',
-                                                            'remote2')]
-        assert len(self.run.uploads) == 2
-
-    def test_stores_uploads_filters_keywords(self):
-        with self.assertRaises(InvalidUploadOptionException):
-            self.run.upload(
-                local='local2', remote='remote2', some_keyword='test')
+    def test_notifies_upload_with_arguments(self):
+        ''' stores a single upload '''
+        local = MagicMock()
+        remote = MagicMock()
+        self.run.upload(local=local, remote=remote, some_keyword='a')
+        self.mock_runner.upload.assert_called_once_with(
+            self.rcontext, local, remote, some_keyword='a')
 
 
 class TestRunOptions(TestRun):
@@ -160,10 +106,10 @@ class TestRunOptions(TestRun):
         self.run.bandwidth(arg)
         self.mock_runner.bandwidth.assert_called_once_with(self.rcontext, arg)
 
-    def test_num_nodes_option(self):
+    def test_num_cores_option(self):
         arg = MagicMock
-        self.run.num_nodes(arg)
-        self.mock_runner.behaviour.num_nodes.assert_called_once_with(
+        self.run.num_cores(arg)
+        self.mock_runner.behaviour.num_cores.assert_called_once_with(
             self.bcontext, arg)
 
     def test_memory_option(self):

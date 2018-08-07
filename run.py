@@ -1,9 +1,7 @@
 class Run:
+    '''mostly holds the context and delegates settings and behaviour to either runner or runner.behaviour, passing the context.'''
 
     # TODO support additional options for runners (via a call to behaviour?)
-
-    __valid_download_arguments = ['interval']
-    __valid_upload_arguments = []
 
     def __init__(self, data, runner=None, options={}, template=None):
         self.__downloads = []
@@ -25,14 +23,10 @@ class Run:
     ########################### File Upload/Download lists ############################
 
     def download(self, remote, local, **kwargs):
-        self.__add_to_file_list(local, remote, self.__downloads,
-                                self.__valid_download_arguments,
-                                InvalidDownloadOptionException, **kwargs)
+        self.runner.download(self.__runner_context, remote, local, **kwargs)
 
     def upload(self, local, remote, **kwargs):
-        self.__add_to_file_list(local, remote, self.__uploads,
-                                self.__valid_upload_arguments,
-                                InvalidUploadOptionException, **kwargs)
+        self.runner.upload(self.__runner_context, local, remote, **kwargs)
 
     ########################## Runner Option Setters ##########################
 
@@ -50,8 +44,8 @@ class Run:
         self.runner.behaviour.memory(self.__behaviour_context,
                                      kb + mb * 1024 + gb * 1024**2)
 
-    def num_nodes(self, num_nodes):
-        self.runner.behaviour.num_nodes(self.__behaviour_context, num_nodes)
+    def num_cores(self, num_cores):
+        self.runner.behaviour.num_cores(self.__behaviour_context, num_cores)
 
     def script(self, script):
         self.runner.behaviour.script(self.__behaviour_context, script)
@@ -63,42 +57,10 @@ class Run:
             template = self.template
         self.script(template.render(args))
 
-    ############################# Private methods #############################
-
-    def __add_to_file_list(self, first, second, filelist, valid_args,
-                           exception, **kwargs):
-        if type(first) is str and type(second) is str:
-            first = [first]
-            second = [second]
-
-        downloads = list(zip(first, second))
-
-        # raise an exception if not a valid keyword
-        for key in kwargs.keys():
-            if not key in valid_args:
-                raise exception()
-
-        # append kwargs as dict to each relevant file
-        if len(kwargs) > 0:
-            downloads = [(*d, kwargs) for d in downloads]
-
-        # add downloads to downloads list
-        filelist.extend(downloads)
-
     ################################# Actions #################################
 
     def run(self):
         return self.runner.run(self.__runner_context, self.__behaviour_context)
-
-    ############################# Property Lists ##############################
-
-    @property
-    def downloads(self):
-        return self.__downloads
-
-    @property
-    def uploads(self):
-        return self.__uploads
 
 
 class InvalidDownloadOptionException(ValueError):

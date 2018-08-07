@@ -167,19 +167,19 @@ class TestRunInterfaces(TestRun):
             self.bcontext, string)
 
     def test_run_can_run(self):
-        run = Run(self.mock_data, runner=self.mock_runner)
+        run = Run(self.mock_data, host=self.mock_runner)
         jobID = run.run()
         self.mock_runner.run.assert_called_once_with(self.rcontext,
                                                      self.bcontext)
 
     def test_run_run_returns_return_value_of_runner(self):
-        run = Run(self.mock_data, runner=self.mock_runner)
+        run = Run(self.mock_data, host=self.mock_runner)
         jobID = run.run()
 
         assert jobID == self.mock_runner.run()
 
     def test_run_errors_without_runner(self):
-        with self.assertRaises(RunnerNotSpecifiedException):
+        with self.assertRaises(HostNotSpecifiedException):
             run = Run(self.mock_data)
 
     def test_stores_data_in_datastore(self):

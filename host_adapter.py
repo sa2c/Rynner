@@ -1,6 +1,7 @@
 from fabric import Connection
 
-class SSHAdapter():
+
+class HostAdapter():
     def connect(self, host, user):
         self.conn = Connection(host=host, user=user)
 

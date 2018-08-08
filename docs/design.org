@@ -1,0 +1,227 @@
+
+CLUSTER DEFINTION:
+   * an option parser (e.g. SLURM/PBS) or a custom subclass
+   * par
+   * more stuff...?
+
+context = {}
+# => default action is to call format on the context, a third colon specifies a formatter...which could be plugin-loaed?
+
+#+BEGIN_SOURCE python
+option_config=[
+    'slurm:time' : '--time 0:0:%s',
+    'pbs:time' : '-l walltime=%s',
+    'pbs:email' : '-m %s',
+    'slurm:email' : formatting_function
+    'pbs:num_nodes,num_tasks,num_tasks_per_node,...' : slurm_resource_formatter
+    'slurm:slurm': format
+    'pbs:pbs': None
+
+    # keys which are not present in either
+    'slurm:pbs': None
+    'pbs:slurm': None
+]
+
+option_formatter = {
+    'slurm' : {
+        'num_nodes:num_tasks:num_tasks_per_node' : slurm_resource_formatter # only called once
+        'time' : '--time %s'
+        'email' : '--email %s'
+    },
+    'test-type' : {
+        'time' : raise_not_implmented
+    }
+}
+#+END_SOURCE python
+* Problems
+- I need to define the host subclasses that I support somehow...
+
+* Run
+- initialised with cluster arguments
+- Generates a UUID (abstracts away jobID)
+- Host should be the first argument (and/or present as a kwarg) [either collected from user or specified here]
+- the arguments download, upload and sync are "eaten" by run
+- Arguments pertaining to all known schedulers/types are removed and passed to the host "inline"
+- Parses arguments with runnable = host.parse(args, host_args)
+- Stores dict (based on UUID) using host.store(dict) - must remember to download the store later
+- Uploads files --> synchronously
+- Run "caches" input arguments on the cluster host.store(uid, key, value)
+- Run handles uploads/downloads (needs to store these "locally" ? Or maybe gobally? Allow for both)
+- Runs with host.run(runnable)
+- Run now garbage-collectable...?
+
+note: default setup could be:
+def setup(data):
+    Run(data)
+config is defined as:
+{ 'identifier:GUI Label' : ... }
+
+* Host (i.e. one per cluster)
+- initialised with connection, behaviour and datastore
+- host.parse() -> runnable = behaviour.parse(data)
+- host.run() -> behaviour.run(connection, runnable)
+- host.store(id, field, value) -> delegate to datastore
+- host.fetch(id, field, value) -> delegate to datastore
+- behaviour needs to be compatible with connection interface...!
+
+* Datastore?
+- contains store and fetch methods
+- handles local/remote copies and caching etc somehow
+- initialised with connection to cluster (if required)
+
+* RunHandler (i.e. scheduler behaviour)
+- __init__(names, argument_mappings, defaults_arguments, default_formatter=format_and_append)
+  - argument_mappings are strings passed to format, or functions which take context objects
+- context = self.parse(data)
+  - Generates a context
+  - Eats arguments, raising exception if any left
+     => each cluster type has a named formatter, which reads the string and does something to context
+       => WHAT DOES THIS MEAN??
+- self.run(connection, context)
+- names
+
+- context is (usually) just a list of strings
+
+- default mappings stored in a package variable
+- can be subclassed to change parse and run methods (e.g. change commands etc)
+# can add additional keys to the list at runtime...?
+* Example code:
+arguments:
+num tasks
+num tasks per node
+num threads per task
+#+BEGIN_SRC python
+def setup(data, context):
+    # context allows access to the plugin etc
+
+    run = Run(
+        # Options
+        name='my-job-name'
+        time=time_delta, # seconds
+        memory_per_cpu=Memory(20), # kb
+        cores=1,
+        number_nodes=1,
+        ntasks=10,
+        tasks_per_node=,
+        threads_per_task=,
+        output='file_to_output'
+        email='person@email.com' # => interesting, is maybe a PLUGIN-LEVEL config....! Should there be a hierarchy of logic here??
+        shell='/bin/bash',
+        queue='myqueue',
+        script='echo "Hello World"',
+        download=[('remote', 'local'), ('remote', 'local')],
+        upload= [('local', 'remote)'), ('local)', 'remote)')],
+        sync=[('local', 'remote)'), ('local)', 'remote)'), interval=5 ],
+
+        dependency=run_prev.id,
+
+        queue....??
+        shell...??)
+
+    run.slurm(
+            '--time',
+            '--money',
+            '--nodes')
+
+        pbs=[
+            '--money'
+        ]
+
+
+run_type = RunType(setup)
+#+END_SRC python
+
+the default code could be:
+#+BEGIN_SRC python
+config = {'name:Job Name' : InputString(), 'cores:Number of Cores' : InputString(10), 'memory_per_cpu:Memory' : 1, }
+
+def setup(data):
+    Run(data)
+#+END_SRC python
+* Config Specification:
+
+#+BEGIN_SRC python
+interface = [
+    ( 'job_name', 'Local Job Name', TextField() ),
+    ( 'plot_type': 'Line Plot Type', OptionField({'Line': lib.plot_line, 'Bar': lib.plot_bar, 'Pie', 'PlotType': OptionField({'Line': lib.plot_line, 'Bar': lib.plot_bar, 'Pie', lib.plot_pie}) ),
+    ( 'velocity', 'Local Numeric Field', NumericField(10) ),
+    ( 'working_dir', 'Local Working Directory', Directory() ),
+    ( 'local_data_file', 'Local Data File', File(default=lib.local_data_default) ),
+    ( 'local_config_file', 'Local Configuration File', File(default='path/to/local/file') ),
+    ( 'config_date', None, HiddenField(datetime.datetime.now, on=HiddenField.ACCEPT) ),
+    ( 'commit', 'Select Commit', GitCommitField(git_repo_url) ),
+    ( 'cluster', 'Select Cluster', SelectRunner() )
+]
+
+     # plot_type How to serialise arbitrary objects as options? Option name? Pickle?
+    # Select runner specifies types of runners? ..but the ACTUAL list is elsewhere...?
+#+END_SRC
+
+#+BEGIN_SRC python
+interface = [
+    ( 'job_name', TextField('Local Job Name', ) ),
+    ( 'plot_type', OptionField('Line Plot Type', [('Line', 'line'), ('Bar', 'bar'), ('Pie', 'pie')]),
+    ( 'velocity', NumericField('Local Numeric Field', 10) ),
+    ( 'working_dir', Directory('Local Working Directory') ),
+    ( 'local_data_file', File('Local Data File', default=lib.local_data_default) ),
+    ( 'local_config_file', File('Local Configuration File', default='path/to/local/file') ),
+    ( 'config_date', None, HiddenField(datetime.datetime.now, on=HiddenField.ACCEPT) ),
+    ( 'commit', GitCommitField('Select Commit', git_repo_url) ),
+    ( 'cluster', SelectRunner('Select Cluster') )
+]
+#+END_SRC
+
+#+BEGIN_SRC python
+interface = [
+    'job_name',            TextField('Local Job Name', ),
+    'plot_type',           OptionField('Line Plot Type', [('Line', 'line'), ('Bar', 'bar'), ('Pie', 'pie')],
+    'velocity',            NumericField('Local Numeric Field', 10),
+    'working_dir',         Directory('Local Working Directory'),
+    'local_data_file',     File('Local Data File', default=lib.local_data_default),
+    'local_config_file',   File('Local Configuration File', default='path/to/local/file'),
+    'config_date',         HiddenField(datetime.datetime.now, on=HiddenField.ACCEPT),
+    'commit',              GitCommitField('Select Commit', git_repo_url),
+    'cluster',             SelectRunner('Select Cluster')
+]
+#+END_SRC
+
+#+BEGIN_SRC python
+InterfaceConfig(
+    job_name=TextField('Local Job Name'),
+    plot_type=OptionField('Line Plot Type', [('Line', 'line'), ('Bar', 'bar'),
+                                             ('Pie', 'pie')]),
+    velocity=NumericField('Local Numeric Field', 10),
+    working_dir=Directory('Local Working Directory'),
+    local_data_file=File('Local Data File', default=lib.local_data_default),
+    local_config_file=File(
+        'Local Configuration File', default='path/to/local/file'),
+    config_date=HiddenField(datetime.datetime.now, on=HiddenField.ACCEPT),
+    commit=GitCommitField('Select Commit', git_repo_url),
+    cluster=SelectRunner('Select Cluster'))
+#+END_SRC
+
+#+BEGIN_SRC python
+interface = {
+    'JobName': TextField(),
+    'PlotType': OptionField({
+        # How to serialise arbitrary objects as options? Option name? Pickle?
+        'Line': lib.plot_line,
+        'Bar': lib.plot_bar,
+        'Pie': lib.plot_pie
+    }).set_label('Plot Type'),
+    'Velocity': NumericField(10),
+    'WorkingDir': Directory(),  # maybe camel case in directory is auto-parsed?
+    'localDataFile': File(default=lib.local_data_default),
+    'localConfigFile': File(default='path/to/local/file'),
+    'config_date': HiddenField(datetime.datetime.now, on=HiddenField.ACCEPT),
+    'commitID': GitCommitField(git_repo_url),
+    'cluster': SelectRunner()  # specifies types of runners...but the ACTUAL list is elsewhere...
+}
+
+#+END_SRC
+
+* TODO Host Manager
+- need somewhere to build hosts
+- How do I know what hosts a job type is allowed?
+- How can a job type tell the application what hosts it wants to work with?
+- Hosts should be rebuild on restart, and need to be identifiable by the run -> manage this by storing stuff on the cluster, each host should always have the same datastore

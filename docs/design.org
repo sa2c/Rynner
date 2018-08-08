@@ -77,11 +77,12 @@ config is defined as:
   - Eats arguments, raising exception if any left
      => each cluster type has a named formatter, which reads the string and does something to context
        => WHAT DOES THIS MEAN??
+  - Does "inverted" search that (Ed)
+- What does it do when an error is found?
+- Can it throw errors back at the UI?
 - self.run(connection, context)
 - names
-
 - context is (usually) just a list of strings
-
 - default mappings stored in a package variable
 - can be subclassed to change parse and run methods (e.g. change commands etc)
 # can add additional keys to the list at runtime...?
@@ -225,3 +226,20 @@ interface = {
 - How do I know what hosts a job type is allowed?
 - How can a job type tell the application what hosts it wants to work with?
 - Hosts should be rebuild on restart, and need to be identifiable by the run -> manage this by storing stuff on the cluster, each host should always have the same datastore
+* REFINE
+# TODO - read and delete me
+# build the job as Run(data['host']) => this is just a tuple of behaviour and connection...?
+# or Run(HostAdapter(host, behaviour='slurm', connection))
+# host adapter => ssh_connection (easy)
+
+# HostAdapter
+#    Behaviour manipulates connection as well??
+#    HostAdapter can tell us its behaviour
+#     * behaviour == 'slurm' (i.e. override behaviour equality)
+#    HostAdapter can construct/submit jobcards (behaviour)
+#    HostAdapter can upload/download files (itself)
+#    HostAdapter(Behaviour, Connection)
+#    HostAdapter persistent state is things like the files and stuff..
+* TODO Conference
+- a plugin example repo ?
+- UI exception handling

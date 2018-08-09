@@ -63,13 +63,13 @@ config is defined as:
 - host.store(id, field, value) -> delegate to datastore
 - host.fetch(id, field, value) -> delegate to datastore
 - behaviour needs to be compatible with connection interface...!
-
+- should know about files?? Should this be in another object? There needs to be some persistent state somewhere...
 * Datastore?
 - contains store and fetch methods
 - handles local/remote copies and caching etc somehow
 - initialised with connection to cluster (if required)
 
-* RunHandler (i.e. scheduler behaviour)
+* Behaviour (i.e. scheduler behaviour)
 - __init__(names, argument_mappings, defaults_arguments, default_formatter=format_and_append)
   - argument_mappings are strings passed to format, or functions which take context objects
 - context = self.parse(data)
@@ -79,6 +79,7 @@ config is defined as:
        => WHAT DOES THIS MEAN??
   - Does "inverted" search that (Ed)
 - What does it do when an error is found?
+- Behaviour manipulates connection as well?? Can I have these two more loosely coupled?
 - Can it throw errors back at the UI?
 - self.run(connection, context)
 - names
@@ -227,19 +228,10 @@ interface = {
 - How can a job type tell the application what hosts it wants to work with?
 - Hosts should be rebuild on restart, and need to be identifiable by the run -> manage this by storing stuff on the cluster, each host should always have the same datastore
 * REFINE
-# TODO - read and delete me
-# build the job as Run(data['host']) => this is just a tuple of behaviour and connection...?
-# or Run(HostAdapter(host, behaviour='slurm', connection))
-# host adapter => ssh_connection (easy)
-
 # HostAdapter
-#    Behaviour manipulates connection as well??
-#    HostAdapter can tell us its behaviour
-#     * behaviour == 'slurm' (i.e. override behaviour equality)
 #    HostAdapter can construct/submit jobcards (behaviour)
 #    HostAdapter can upload/download files (itself)
 #    HostAdapter(Behaviour, Connection)
-#    HostAdapter persistent state is things like the files and stuff..
 * TODO Conference
 - a plugin example repo ?
 - UI exception handling

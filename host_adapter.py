@@ -27,7 +27,6 @@ class Connection():
 
 
 # TODO implement download. API: def download(id, uploads):
-# TODO behaviour should check that upload completed before end
 class HostAdapter:
     def __init__(self, behaviour, connection, datastore):
         self.connection = connection

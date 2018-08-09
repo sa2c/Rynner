@@ -19,7 +19,7 @@ class Run:
             for k in data.keys() if k not in self.key_filter
         }
 
-        context = options['host'].parse(host_dict)
+        context = options['host'].parse(self.id, host_dict)
 
         # TODO uploads should be handled in the run method of the host rather than in the run?
         if 'uploads' in data.keys():

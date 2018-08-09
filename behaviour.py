@@ -1,4 +1,6 @@
 # TODO behaviour should check that upload completed before end
+# TODO behaviour implement defaults if they're passed in
+# TODO datastore not implemented
 
 # __init__(names, argument_mappings, defaults_arguments, default_formatter=format_and_append)
 # context = self.behaviour.parse(options)
@@ -14,9 +16,8 @@ class Behaviour:
     def __init__(self, option_map, defaults):
         self.map = option_map
 
-    # TODO why did I put connection here?
-    def parse(self, connection, context):
-        context = context.copy()
+    # TODO by context I actually mean options here! And by options I mean context! or at least part of it.
+    def parse(self, context):
 
         options = []
 
@@ -31,7 +32,9 @@ class Behaviour:
             # if array length is unchanged, then an element has not been consumed
             # and an error should be thrown
             if curr_len == len(context.keys()):
-                raise InvalidContextOption()
+                # TODO message in InvalidContextOption is untested
+                invalid_keys = ', '.join(list(context.keys()))
+                raise InvalidContextOption(f'invalid option(s): {invalid_keys}')
             curr_len = len(context.keys())
             for option in self.map:
                 template = option[0]
@@ -65,5 +68,6 @@ class Behaviour:
 
         return {'options': options, 'script': script}
 
+    # TODO run should return running state as a boolean maybe (for datastore)
     def run(self, connection, context):
         pass

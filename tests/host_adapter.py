@@ -90,6 +90,16 @@ class TestHostAdapter(unittest.TestCase):
         self.host_adapter.upload(self.id, uploads)
         self.mock_connection.put_file.assert_called_once_with(local, remote)
 
+    def test_file_exception_invalid_tuple_length(self):
+        self.instantiate()
+
+        local = MM()
+        remote = MM()
+        uploads = (local, remote, local)
+        with self.assertRaises(InvalidContextOption) as context:
+            self.host_adapter.upload(self.id, uploads)
+        assert 'invalid format for uploads options' in str(context.exception)
+
     def test_file_upload_single_list(self):
         self.instantiate()
 
@@ -115,17 +125,17 @@ class TestHostAdapter(unittest.TestCase):
         self.instantiate()
 
         dict = {}
-        context = self.host_adapter.parse(dict)
+        context = self.host_adapter.parse(MM(), dict)
 
     def test_parse_handled_by_behaviour_method(self):
         self.instantiate()
         options = MM()
-        self.host_adapter.parse(options)
+        self.host_adapter.parse(MM(), options)
         self.mock_behaviour.parse.assert_called_once_with(options)
 
     def test_parse_returns_context_from_behaviour(self):
         self.instantiate()
-        context = self.host_adapter.parse(MM())
+        context = self.host_adapter.parse(MM(), MM())
         assert context == self.mock_behaviour.parse()
 
     def test_run_handled_by_behaviour_method(self):
@@ -157,14 +167,14 @@ class TestHostAdapter(unittest.TestCase):
         self.instantiate()
         options = MM()
         id = MM()
-        self.host_adapter.run(id, options)
+        self.host_adapter.parse(id, options)
         self.mock_datastore.store.assert_called_once_with(id, options)
 
     def test_stores_runstate(self):
         self.instantiate()
-        options = MM()
+        context = MM()
         id = MM()
-        self.host_adapter.run(id, options)
+        self.host_adapter.run(id, context)
         self.mock_datastore.isrunning.assert_called_once_with(
             id, self.mock_behaviour.run())
 

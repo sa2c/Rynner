@@ -166,6 +166,10 @@ class TestBehaviour(unittest.TestCase):
 
         context = self.assert_parse(opt_map, input, output)
 
+    @unittest.skip("classes as cluster config not implemented yet")
+    def test_with_class(self):
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

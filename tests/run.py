@@ -30,7 +30,7 @@ class TestRun(unittest.TestCase):
         self.instantiate()
         data = self.mock_data.copy()
         del data['host']
-        self.mock_host.parse.assert_called_once_with(data)
+        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
 
     def test_filter_uploads(self):
         # prepare data to compare against
@@ -40,7 +40,7 @@ class TestRun(unittest.TestCase):
         # add uploads to mock data
         self.mock_data['uploads'] = MagicMock()
         self.instantiate()
-        self.mock_host.parse.assert_called_once_with(data)
+        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
 
     def test_raises_host_not_specified(self):
         del self.mock_data['host']
@@ -84,7 +84,7 @@ class TestRun(unittest.TestCase):
         data = self.mock_data.copy()
         data['memory'] = 1234
         del data['host']
-        self.mock_host.parse.assert_called_once_with(data)
+        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
 
     def test_converts_string_classes_to_strings(self):
         class SomeStringType:
@@ -98,7 +98,7 @@ class TestRun(unittest.TestCase):
         data = self.mock_data.copy()
         data['memory'] = "Test String"
         del data['host']
-        self.mock_host.parse.assert_called_once_with(data)
+        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
 
     def test_throws_exception_if_object_not_convertable(self):
         class SomeRandomType:

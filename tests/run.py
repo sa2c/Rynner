@@ -17,7 +17,7 @@ class TestRun(unittest.TestCase):
         self.uuid_patch.stop()
 
     def instantiate(self):
-        self.run = Run(self.mock_data)
+        self.run = Run(**self.mock_data)
 
     def test_instantiation(self):
         self.instantiate()
@@ -64,12 +64,12 @@ class TestRun(unittest.TestCase):
     def test_run_called_with_the_output_of_parse(self):
         self.instantiate()
         context = self.mock_host.parse()
-        self.mock_host.run.assert_called_once_with(context)
+        self.mock_host.run.assert_called_once_with(self.run.id, context)
 
     def test_upload_called_before_run(self):
         self.mock_data['uploads'] = MagicMock()
         self.instantiate()
-        calls = [call.upload(ANY, ANY), call.run(ANY)]
+        calls = [call.upload(ANY, ANY), call.run(self.run.id, ANY)]
         self.mock_host.assert_has_calls(calls)
 
     def test_converts_integer_classes_to_integers(self):
@@ -99,6 +99,16 @@ class TestRun(unittest.TestCase):
         data['memory'] = "Test String"
         del data['host']
         self.mock_host.parse.assert_called_once_with(data)
+
+    def test_throws_exception_if_object_not_convertable(self):
+        class SomeRandomType:
+            pass
+
+        self.mock_data['memory'] = SomeRandomType()
+        with self.assertRaises(UnconvertableOptionType) as context:
+            self.instantiate()
+
+        assert 'no __rynner_value__ method' in str(context.exception)
 
 
 if __name__ == '__main__':

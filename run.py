@@ -5,7 +5,7 @@ class Run:
     allowed_types = [int, str]
     key_filter = ['host', 'uploads']
 
-    def __init__(self, options):
+    def __init__(self, **options):
         self.id = uuid.uuid1().int
 
         data = options.copy()
@@ -21,10 +21,12 @@ class Run:
 
         context = options['host'].parse(host_dict)
 
+        # TODO uploads should be handled in the run method of the host rather than in the run?
         if 'uploads' in data.keys():
             options['host'].upload(self.id, data['uploads'])
 
-        options['host'].run(context)
+        # this has changed, should also pass id
+        options['host'].run(self.id, context)
 
 
 #       TODO - queue downloads on the host for instance finishing - and store by jobID
@@ -37,7 +39,15 @@ class Run:
         if type(value) in self.allowed_types:
             return value
         else:
-            return value.__rynner_value__()
+            try:
+                return value.__rynner_value__()
+            except:
+                raise UnconvertableOptionType(
+                    f'no __rynner_value__ method on {value}')
+
+
+class UnconvertableOptionType(AttributeError):
+    pass
 
 
 class HostNotSpecifiedException(AttributeError):

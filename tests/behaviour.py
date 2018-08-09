@@ -16,7 +16,7 @@ class TestBehaviour(unittest.TestCase):
 
     def assert_parse(self, opt_map, input, output):
         self.instantiate(opt_map)
-        context = self.behaviour.parse(self.mock_conn, input)
+        context = self.behaviour.parse(input)
         self.assertEqual(context['options'], output)
         return context
 
@@ -25,7 +25,7 @@ class TestBehaviour(unittest.TestCase):
 
     def test_behaviour_can_call_run(self):
         self.instantiate()
-        self.behaviour.run(self.mock_conn, {})
+        self.behaviour.run({}, {})
 
     def test_behaviour_single_string_opt_map_parsed(self):
         opt_map = [
@@ -106,8 +106,11 @@ class TestBehaviour(unittest.TestCase):
         }
 
         self.instantiate(opt_map)
-        with self.assertRaises(InvalidContextOption):
-            context = self.behaviour.parse(self.mock_conn, input)
+        with self.assertRaises(InvalidContextOption) as context:
+            context = self.behaviour.parse(input)
+
+        assert 'invalid option(s): ' in str(context.exception)
+        assert 'another-var' in str(context.exception)
 
     def test_reverse_argument_order(self):
         opt_map = [
@@ -133,8 +136,8 @@ class TestBehaviour(unittest.TestCase):
             ('#FAKE --cpus={}', 'cpus'),
         ]
         self.instantiate(opt_map)
-        self.behaviour.parse(self.mock_conn, input)
-        assert input == input_copy
+        self.behaviour.parse(input)
+        self.assertEqual(input, input_copy)
 
     def test_script_returned_seperately(self):
         opt_map = [
@@ -151,8 +154,8 @@ class TestBehaviour(unittest.TestCase):
         assert context['script'] == 'my script'
 
     def test_with_function(self):
-        def parsing_function(context, keys):
-            return {'function-return': [context.copy(), keys]}
+        def parsing_function(a, k):
+            return {'function-return': [a.copy(), k]}
 
         opt_map = [
             (parsing_function, ('cpus', 'memory')),

@@ -1,13 +1,3 @@
-# TODO behaviour should check that upload completed before end
-# TODO behaviour implement defaults if they're passed in
-# TODO datastore not implemented
-
-# __init__(names, argument_mappings, defaults_arguments, default_formatter=format_and_append)
-# context = self.behaviour.parse(options)
-# isrunning = self.behaviour.run(self.connection, options)
-# bool = self.behaviour.type(string)
-
-
 class InvalidContextOption(Exception):
     pass
 
@@ -16,26 +6,29 @@ class Behaviour:
     def __init__(self, option_map, defaults):
         self.map = option_map
 
-    # TODO by context I actually mean options here! And by options I mean context! or at least part of it.
-    def parse(self, context):
+    def parse(self, options):
+        options = options.copy()
 
-        options = []
+        # create a new context, this will later get passed to the run method
+        context = []
 
-        if 'script' in context.keys():
-            script = context.pop('script')
+        # script is handled differently, it lives in a seperate key
+        if 'script' in options.keys():
+            script = options.pop('script')
         else:
             script = None
 
-        curr_len = len(context.keys()) + 1
+        curr_len = len(options.keys()) + 1
 
-        while len(context.keys()) > 0:
-            # if array length is unchanged, then an element has not been consumed
-            # and an error should be thrown
-            if curr_len == len(context.keys()):
-                # TODO message in InvalidContextOption is untested
-                invalid_keys = ', '.join(list(context.keys()))
-                raise InvalidContextOption(f'invalid option(s): {invalid_keys}')
-            curr_len = len(context.keys())
+        # parse the options based on the option map, whilst there are still elements left
+        while len(options.keys()) > 0:
+            # array length unchanged implies elements which are not in the map
+            if curr_len == len(options.keys()):
+                invalid_keys = ', '.join(list(options.keys()))
+                raise InvalidContextOption(
+                    'invalid option(s): {}'.format(invalid_keys))
+            curr_len = len(options.keys())
+
             for option in self.map:
                 template = option[0]
                 keys = option[1]
@@ -45,29 +38,26 @@ class Behaviour:
                 if isinstance(keys, str):
                     keys = (keys, )
 
-                # match if all keys in tuple are context keys
-                if set(keys) <= set(context.keys()):
+                # match if all keys in tuple are options keys
+                if set(keys) <= set(options.keys()):
                     # format the template string using the list of keys (in order)
-                    value_list = (context[key] for key in keys)
+                    value_list = (options[key] for key in keys)
                     if callable(template):
-                        # TODO - template can't currently decide that it will defer keys to a later function
-                        # this could be useful, but could also be a source of errors if users forget to delete
-                        # keys within the function
-                        out = template(context, keys)
+
+                        out = template(options, keys)
                     else:
                         out = template.format(*value_list)
 
                     # append formatted string to output
-                    options.append(out)
+                    context.append(out)
 
                     # remove consumed keys from dict to avoid repetition
                     for key in keys:
-                        del context[key]
+                        del options[key]
 
                     break
 
-        return {'options': options, 'script': script}
+        return {'options': context, 'script': script}
 
-    # TODO run should return running state as a boolean maybe (for datastore)
     def run(self, connection, context):
         pass

@@ -1,12 +1,5 @@
 import fabric
-#TODO exceptions should live in their own file?
 from behaviour import InvalidContextOption
-
-# TODO HostAdapter.create_directory(string) => creates directory relative to base
-# TODO init should take host,user, BASEDIR (i.e. directory every relative path is translated to)
-# TODO connect should be deferred until required...
-# TODO all paths should be relative to BASEDIR
-# TODO put_file should have a relative=True default...and be absolute if specified
 
 
 class Connection():
@@ -28,7 +21,6 @@ class Connection():
         raise NotImplementedError()
 
 
-# TODO implement download. API: def download(id, uploads):
 class HostAdapter:
     def __init__(self, behaviour, connection, datastore):
         self.connection = connection
@@ -36,7 +28,6 @@ class HostAdapter:
         self.datastore = datastore
 
     def upload(self, id, uploads):
-        # TODO should I be making remote paths relative here? what about local ones?
         for upload in uploads:
             if len(upload) != 2:
                 raise InvalidContextOption(

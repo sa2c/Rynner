@@ -1,0 +1,33 @@
+* integration:
+- options (e.g. walltime) don't have any concept of a type, e.g. 10:0:00 should have some defined type/format (e.g. time delta) and some cluster-specific conversion to the correct data type. There should be some validation on user input here. And some errors thrown if it's wrong.
+* Run
+- uploads should be handled in the run method of the host rather than in the run?
+- implement downloads on the host and call them from the Run
+#       self.host.queue_downloads(self.runid, self.downloads)
+- implement sync, host, or maybe something in the action mechanism?
+#       self.host.sync(self.runid, self.downloads)
+- starts uploading without creating a base directory! lazy created?
+* Template
+- doesn't really do anything - and not integration tested
+* Host
+- rename to simply Host?
+- should I be making remote paths relative for upload/download here? what about local ones? Encoding them with id? Or should that be in behaviour?
+- should BASEDIR (i.e. id) be passed in when Host initialised?
+- how do I specify global files for upload/download?
+- implement download as: def download(id, downloads):
+- id is passed around a lot here for u/l and d/l, maybe there is another way?
+* General
+- move exceptions to their own file
+* Behaviour
+- behaviour should implement default options if they're passed in
+- behaviour should check that upload completed before starting run!
+- how can I override/subclass this for radiacally different behaviour
+- "template" functions can't currently decide that it will defer keys to a later function,
+this could be useful, but could also be a source of errors if users forget to delete keys within the function
+- run method should return running state as a boolean (maybe?) (for datastore)
+* Datastore
+- not implemented!
+
+
+
+* Need way of testing files created easily

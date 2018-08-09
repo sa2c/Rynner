@@ -29,7 +29,6 @@ class TestBehaviour(unittest.TestCase):
         self.instantiate()
         run = Run(host=self.host_adapter, walltime='10:0:00')
 
-    # TODO options (e.g. walltime) don't have any concept of a type, e.g. 10:0:00 should have some defined type/format (e.g. time delta) and some cluster-specific conversion to the correct data type. There should be some validation on user input here. And some errors thrown if it's wrong.
     def test_instantiate_run_with_walltime(self):
         self.instantiate()
         self.host_adapter.run = MM()

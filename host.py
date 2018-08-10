@@ -21,7 +21,7 @@ class Connection():
         raise NotImplementedError()
 
 
-class HostAdapter:
+class Host:
     def __init__(self, behaviour, connection, datastore):
         self.connection = connection
         self.behaviour = behaviour

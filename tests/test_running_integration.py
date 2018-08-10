@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock as MM
 from behaviour import Behaviour, InvalidContextOption
-from host_adapter import HostAdapter
+from host import Host
 from run import Run
 from template import Template
 
@@ -19,21 +19,20 @@ class TestBehaviour(unittest.TestCase):
         self.behaviour = Behaviour(option_map, defaults)
         self.connection = MM()
         self.datastore = MM()
-        self.host_adapter = HostAdapter(self.behaviour, self.connection,
-                                        self.datastore)
+        self.host = Host(self.behaviour, self.connection, self.datastore)
 
     def test_instantiation(self):
         self.instantiate()
 
     def test_instantiate_run(self):
         self.instantiate()
-        run = Run(host=self.host_adapter, walltime='10:0:00')
+        run = Run(host=self.host, walltime='10:0:00')
 
     def test_instantiate_run_with_walltime(self):
         self.instantiate()
-        self.host_adapter.run = MM()
+        self.host.run = MM()
         run = Run(
-            host=self.host_adapter,
+            host=self.host,
             walltime='10:0:00',
             num_nodes=10,
             script='this is my script')
@@ -41,15 +40,15 @@ class TestBehaviour(unittest.TestCase):
             'options': ['#FAKE --walltime=10:0:00', '#FAKE --num-nodes=10'],
             'script': 'this is my script'
         }
-        self.host_adapter.run.assert_called_once_with(run.id, context)
+        self.host.run.assert_called_once_with(run.id, context)
 
     def test_throw_exception_on_invalid_option(self):
         self.instantiate()
-        self.host_adapter.run = MM()
+        self.host.run = MM()
         with self.assertRaises(InvalidContextOption):
             run = Run(
                 # script, uploads and downloads are "special" and are handled differently
-                host=self.host_adapter,
+                host=self.host,
                 script='this is my script',
                 walltime='10:0:00',
                 num_nodes=10,
@@ -58,14 +57,14 @@ class TestBehaviour(unittest.TestCase):
 
     def test_upload_incorrect_formats(self):
         self.instantiate()
-        self.host_adapter.run = MM()
+        self.host.run = MM()
         with self.assertRaises(InvalidContextOption):
-            run = Run(host=self.host_adapter, uploads=['throw an error'])
+            run = Run(host=self.host, uploads=['throw an error'])
 
     def test_uploads_correct_format(self):
         self.instantiate()
-        self.host_adapter.run = MM()
-        run = Run(host=self.host_adapter, uploads=[('local', 'remote')])
+        self.host.run = MM()
+        run = Run(host=self.host, uploads=[('local', 'remote')])
         self.connection.put_file.assert_called_once_with('local', 'remote')
 
     @unittest.skip("running implemented yet")

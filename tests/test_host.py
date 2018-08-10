@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
-from host_adapter import *
+from host import *
 
 
 class TestConnection(unittest.TestCase):
@@ -10,7 +10,7 @@ class TestConnection(unittest.TestCase):
         self.cluster_user = 'user'
         self.context = MM()
 
-        self.patcher = patch('host_adapter.fabric.Connection')
+        self.patcher = patch('host.fabric.Connection')
         self.FabricMock = self.patcher.start()
 
         self.connection = Connection(
@@ -59,9 +59,9 @@ class TestConnection(unittest.TestCase):
         self.FabricMock().get.assert_called_once_with(remote, local)
 
 
-class TestHostAdapter(unittest.TestCase):
+class TestHost(unittest.TestCase):
     def setUp(self):
-        self.conn_patch = patch('host_adapter.Connection')
+        self.conn_patch = patch('host.Connection')
         MockConnection = self.conn_patch.start()
         self.mock_connection = MockConnection()
 
@@ -69,12 +69,12 @@ class TestHostAdapter(unittest.TestCase):
         self.conn_patch.stop()
 
     def instantiate(self):
-        # instantiate HostAdapter
+        # instantiate Host
         self.mock_behaviour = MM()
         self.mock_connection = MM()
         self.mock_datastore = MM()
-        self.host_adapter = HostAdapter(
-            self.mock_behaviour, self.mock_connection, self.mock_datastore)
+        self.host = Host(self.mock_behaviour, self.mock_connection,
+                         self.mock_datastore)
 
         self.context = MM()
 
@@ -87,7 +87,7 @@ class TestHostAdapter(unittest.TestCase):
         local = MM()
         remote = MM()
         uploads = ((local, remote), )
-        self.host_adapter.upload(self.id, uploads)
+        self.host.upload(self.id, uploads)
         self.mock_connection.put_file.assert_called_once_with(local, remote)
 
     def test_file_exception_invalid_tuple_length(self):
@@ -97,7 +97,7 @@ class TestHostAdapter(unittest.TestCase):
         remote = MM()
         uploads = (local, remote, local)
         with self.assertRaises(InvalidContextOption) as context:
-            self.host_adapter.upload(self.id, uploads)
+            self.host.upload(self.id, uploads)
         assert 'invalid format for uploads options' in str(context.exception)
 
     def test_file_upload_single_list(self):
@@ -106,7 +106,7 @@ class TestHostAdapter(unittest.TestCase):
         local = MM()
         remote = MM()
         uploads = [(local, remote)]
-        self.host_adapter.upload(self.id, uploads)
+        self.host.upload(self.id, uploads)
         self.mock_connection.put_file.assert_called_once_with(local, remote)
 
     def test_file_upload_multiple_list(self):
@@ -117,7 +117,7 @@ class TestHostAdapter(unittest.TestCase):
         local2 = MM()
         remote2 = MM()
         uploads = [(local, remote), (local2, remote2)]
-        self.host_adapter.upload(self.id, uploads)
+        self.host.upload(self.id, uploads)
         calls = [call.put_file(local, remote), call.put_file(local2, remote2)]
         self.mock_connection.assert_has_calls(calls)
 
@@ -125,41 +125,41 @@ class TestHostAdapter(unittest.TestCase):
         self.instantiate()
 
         dict = {}
-        context = self.host_adapter.parse(MM(), dict)
+        context = self.host.parse(MM(), dict)
 
     def test_parse_handled_by_behaviour_method(self):
         self.instantiate()
         options = MM()
-        self.host_adapter.parse(MM(), options)
+        self.host.parse(MM(), options)
         self.mock_behaviour.parse.assert_called_once_with(options)
 
     def test_parse_returns_context_from_behaviour(self):
         self.instantiate()
-        context = self.host_adapter.parse(MM(), MM())
+        context = self.host.parse(MM(), MM())
         assert context == self.mock_behaviour.parse()
 
     def test_run_handled_by_behaviour_method(self):
         self.instantiate()
         context = MM()
-        self.host_adapter.run(MM(), context)
+        self.host.run(MM(), context)
         self.mock_behaviour.run.assert_called_once_with(ANY, context)
 
     def test_type_handled_by_behaviour(self):
         self.instantiate()
         string = MM()
-        self.host_adapter.type(string)
+        self.host.type(string)
         self.mock_behaviour.type.assert_called_once_with(string)
 
     def test_returns_value_of_behaviour(self):
         self.instantiate()
-        ret = self.host_adapter.type(MM())
+        ret = self.host.type(MM())
         assert ret == self.mock_behaviour.type()
 
     def test_run_passes_connection(self):
         self.instantiate()
         options = MM()
         id = MM()
-        self.host_adapter.run(id, options)
+        self.host.run(id, options)
         self.mock_behaviour.run.assert_called_once_with(
             self.mock_connection, options)
 
@@ -167,14 +167,14 @@ class TestHostAdapter(unittest.TestCase):
         self.instantiate()
         options = MM()
         id = MM()
-        self.host_adapter.parse(id, options)
+        self.host.parse(id, options)
         self.mock_datastore.store.assert_called_once_with(id, options)
 
     def test_stores_runstate(self):
         self.instantiate()
         context = MM()
         id = MM()
-        self.host_adapter.run(id, context)
+        self.host.run(id, context)
         self.mock_datastore.isrunning.assert_called_once_with(
             id, self.mock_behaviour.run())
 

@@ -24,7 +24,7 @@
 (spacemacs/set-leader-keys "d" '(lambda ()
                                   (interactive)
                                   (let ((my-test-command
-                                         "pipenv run python -m unittest discover"))
+                                         "pipenv run -- python -m unittest discover -v"))
                                     (projectile-save-project-buffers)
                                     (projectile-with-default-dir (projectile-project-root)
                                       (async-shell-command my-test-command "*testing*"))

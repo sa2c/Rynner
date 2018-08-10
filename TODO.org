@@ -4,6 +4,8 @@
 - How do we do multi-cluster configurations? a host each? how are they identified? [by name? domain? both?]
 * Run
 - OK FOR NOW: uploads should be handled in the run method of the host rather than in the run? Note: should this be added to the context first, then uploaded when run is called?
+- Could make Run a method on Host actually? Since parse and run are all called at once.
+- Are there cases where I might want to parse and THEN run?
 - starts uploading without creating a base directory! create directories lazily in the connection?
 - implement downloads on the host and call them from the Run
 #       self.host.queue_downloads(self.runid, self.downloads)

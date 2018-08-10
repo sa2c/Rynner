@@ -1,4 +1,16 @@
-(setq python-current-test "running_integration")
+(require 'cl) 
+
+(defun rynner-get-all-test-files ()
+  (remove-if-not '(lambda (file)
+                    (and (string-match ".py" file)
+                         (not (string-match "__init__.py" file))))
+                 (directory-files
+                  (concat
+                   (projectile-project-root)
+                   "/tests/"))))
+
+(setq python-current-test "test_running_integration")
+
 (spacemacs/set-leader-keys "d" '(lambda ()
                                   (interactive)
                                   (let ((my-test-command (concat "pipenv run python -m tests."
@@ -7,6 +19,13 @@
                                     (projectile-with-default-dir (projectile-project-root)
                                       (async-shell-command my-test-command "*testing*")))))
 
+(spacemacs/set-leader-keys "D" '(lambda ()
+                                  (interactive)
+                                  (let ((my-test-command
+                                         "pipenv run python -m unittest discover"))
+                                    (projectile-save-project-buffers)
+                                    (projectile-with-default-dir (projectile-project-root)
+                                      (async-shell-command my-test-command "*testing*")))))
 
 ;; Set python env manually
 (progn

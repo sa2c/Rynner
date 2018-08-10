@@ -52,7 +52,7 @@ def setup(data):
 
     # data['runner'] is a SPECIFIC RUNNER INSTANCE, which is associated with the cluster we specify...
 
-    run = Run(data['cluster'])  # or Run(HostAdapter(scheduler='slurm'))
+    run = Run(data['cluster'])  # or Run(Host(scheduler='slurm'))
     # job interface is FIXED for everyone
     # runner is a string key for data, or an object instance with a run method
     # runner can be an instance of anything on which we can call run with the job for submission

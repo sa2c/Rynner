@@ -228,10 +228,10 @@ interface = {
 - How can a job type tell the application what hosts it wants to work with?
 - Hosts should be rebuild on restart, and need to be identifiable by the run -> manage this by storing stuff on the cluster, each host should always have the same datastore
 * REFINE
-# HostAdapter
-#    HostAdapter can construct/submit jobcards (behaviour)
-#    HostAdapter can upload/download files (itself)
-#    HostAdapter(Behaviour, Connection)
+# Host
+#    Host can construct/submit jobcards (behaviour)
+#    Host can upload/download files (itself)
+#    Host(Behaviour, Connection)
 * TODO Conference
 - a plugin example repo ?
 - UI exception handling

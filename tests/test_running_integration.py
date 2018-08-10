@@ -67,7 +67,7 @@ class TestBehaviour(unittest.TestCase):
         run = Run(host=self.host, uploads=[('local', 'remote')])
         self.connection.put_file.assert_called_once_with('local', 'remote')
 
-    @unittest.skip("running implemented yet")
+    @unittest.skip("running not implemented yet")
     def test_files_run(self):
         pass
 

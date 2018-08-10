@@ -42,6 +42,22 @@ class TestBehaviour(unittest.TestCase):
         }
         self.host.run.assert_called_once_with(run.id, context)
 
+    def test_instantiate_run_with_walltime(self):
+        self.instantiate()
+        self.host.run = MM()
+        run = Run(
+            host=self.host,
+            walltime='10:0:00',
+            num_nodes=10,
+            script=Template('this is my {{ var }}').render({
+                'var': 'script'
+            }))
+        context = {
+            'options': ['#FAKE --walltime=10:0:00', '#FAKE --num-nodes=10'],
+            'script': 'this is my script'
+        }
+        self.host.run.assert_called_once_with(run.id, context)
+
     def test_throw_exception_on_invalid_option(self):
         self.instantiate()
         self.host.run = MM()

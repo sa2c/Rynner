@@ -29,7 +29,9 @@
                                     (projectile-with-default-dir (projectile-project-root)
                                       (async-shell-command my-test-command "*testing*"))
                                     (with-current-buffer "*testing*"
-                                      (evil-normal-state)))))
+                                      (compilation-shell-minor-mode)
+                                      (evil-normal-state)
+                                      ))))
 
 ;; Set python env manually
 (progn

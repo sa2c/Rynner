@@ -11,21 +11,25 @@
 
 (setq python-current-test "test_running_integration")
 
-(spacemacs/set-leader-keys "d" '(lambda ()
+(spacemacs/set-leader-keys "D" '(lambda ()
                                   (interactive)
                                   (let ((my-test-command (concat "pipenv run python -m tests."
                                                                  python-current-test)))
                                     (projectile-save-project-buffers)
                                     (projectile-with-default-dir (projectile-project-root)
-                                      (async-shell-command my-test-command "*testing*")))))
+                                      (async-shell-command my-test-command "*testing*"))
+                                    (with-current-buffer "*testing*"
+                                        (evil-normal-state)))))
 
-(spacemacs/set-leader-keys "D" '(lambda ()
+(spacemacs/set-leader-keys "d" '(lambda ()
                                   (interactive)
                                   (let ((my-test-command
                                          "pipenv run python -m unittest discover"))
                                     (projectile-save-project-buffers)
                                     (projectile-with-default-dir (projectile-project-root)
-                                      (async-shell-command my-test-command "*testing*")))))
+                                      (async-shell-command my-test-command "*testing*"))
+                                    (with-current-buffer "*testing*"
+                                      (evil-normal-state)))))
 
 ;; Set python env manually
 (progn

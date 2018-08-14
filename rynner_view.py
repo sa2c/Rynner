@@ -1,74 +1,35 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QApplication, QTextEdit, QVBoxLayout
+from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QApplication, QLineEdit, QVBoxLayout
 from PySide2.QtCore import QSize
 
 
 # an empty/blank QWidget wrapper?
+# TODO : validation
 class TextInput(QWidget):
-    def __init__(self, key, label, parent=None, validation=None, default=None):
+    def __init__(self, key, label, parent=None, default=None, reset=False):
         super().__init__(parent)
-        self.input = QTextEdit()
-        self.validation = validation
+        self.input = QLineEdit(self)
+        self.label = QLabel(label, self)
         self.key = key
-        self.default = default
+        self.default_value = default
 
         self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self.label)
+        self.layout().addWidget(self.input)
 
-        self.init()
+        self.input.setText(self.default_value)
 
     def value(self):
-        return self.input.toPlainText()
+        return self.input.text()
 
-    def valid(self):
-        if self.validation is not None:
-            return self.validation(self.value())
-        else:
-            return True
+    def set_value(self, value):
+        return self.input.setText(value)
 
-    def init(self):
-        self.input.setText("tet")
-        #self.addWidget(self.input)
-        #self.label = QLabel("My Label")
-        #self.addWidget(self.label)
+    def reset(self):
+        raise NotImplemented()
+        if self.default_value is not None:
+            self.input.setText(self.default_value)
 
-    def addWidget(self, widget):
-        self.layout().addWidget(widget)
-
-
-#     def __init__(self,
-#                  key,
-#                  label,
-#                  *args,
-#                  parent=None,
-#                  validation=None,
-#                  **kwargs):
-
-#         super().__init__(parent)
-#         self.key = key
-#         self.label = label
-#         self.input = None
-
-#     # This is called by the parent, if there is one, setting "parent"
-
-#     def init(self, *args, **kwargs):
-#         # override this function if necessary
-#         # NEED TO ENSURE THIS IS OVERRIDEN...This creates examples
-#         self.input = QTextEdit(self)
-#         self.label = QLabel("My Label")
-#         self.addWidget(self.label)
-#         self.addWidget(self.input)
-
-#     def valid(self):
-#         ## stores and returns validation (so the QWidget does not need to)
-#         if validation is not None:
-#             return self.validation(self.value())
-
-#     def value(self):
-#         #if leaf
-#         return self.input.value()
-
-#         #if parent
-#         return [child.value for child in self.children]
 
 #     def cli(self):
 #         valid = False

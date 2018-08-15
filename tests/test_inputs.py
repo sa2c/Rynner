@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock as MM
 from unittest.mock import patch
 from PySide2.QtTest import QTest
-from rynner_view import *
+from inputs import *
 
 app = QApplication(sys.argv)
 
@@ -29,33 +29,16 @@ class TestTextInput(unittest.TestCase):
         self.type_text("some input")
         self.assertEqual(self.input.value(), "some input")
 
-    def test_input_knows_its_key(self):
-        key = MM()
-        input = TextInput(key, 'label')
-        self.assertEqual(input.key, key)
-
     def test_show_qwidget(self):
         input = TextInput('key', 'label')
-        input.show()
-
-    def test_show_call_init_with_parent(self):
-        mock_parent = QWidget()
-
-        input = TextInput('key', 'label', parent=mock_parent)
-        self.assertEqual(input.parent(), mock_parent)
-
-    def test_show_call_init_with_none_by_default(self):
-        mock_parent = None
-
-        input = TextInput('key', 'label', parent=mock_parent)
-        self.assertEqual(input.parent(), mock_parent)
+        input.init()
 
     def test_has_adds_widgets_as_child(self):
 
         input = TextInput('key', 'label')
 
-        assert QLineEdit not in input.children()
-        assert QLabel not in input.children()
+        assert QLineEdit not in input.widget.children()
+        assert QLabel not in input.widget.children()
 
     def test_sets_default_text_in_text_edit(self):
         input = TextInput('key', 'label', default='default string')
@@ -64,55 +47,73 @@ class TestTextInput(unittest.TestCase):
     def test_result_contains_children(self):
         input = TextInput('key', 'label')
 
-        types = [type(child) for child in input.children()]
+        types = [type(child) for child in input.widget.children()]
         self.assertIn(QLineEdit, types)
         self.assertIn(QLabel, types)
 
     def test_label_contains_text(self):
         input = TextInput('key', 'My label')
-        qlabel_text = next(child.text() for child in input.children()
+        qlabel_text = next(child.text() for child in input.widget.children()
                            if type(child) == QLabel)
 
         self.assertEqual(qlabel_text, "My label")
 
     def test_input_added_to_layout(self):
         input = TextInput('key', 'My label')
-        self.assertEqual(input.layout().itemAt(1).widget(), input.input)
+        self.assertEqual(input.widget.layout().itemAt(1).widget(), input.input)
 
     def test_label_added_to_layout(self):
         input = TextInput('key', 'My label')
 
-        self.assertEqual(input.layout().itemAt(0).widget(), input.label)
+        self.assertEqual(
+            type(input.widget.layout().itemAt(0).widget()), QLabel)
 
     def test_reset_leaves_value_by_default(self):
         input = TextInput('key', 'My label')
-        input.show()
+        input.init()
 
         QTest.keyClicks(input.input, "My Input Text")
 
-        self.assertEqual(input.input.text(), "My Input Text")
+        self.assertEqual(input.value(), "My Input Text")
 
-        input.reset()
+        input.init()
 
-        self.assertEqual(input.input.text(), "My Input Text")
+        self.assertEqual(input.value(), "My Input Text")
 
-    def test_resets_uses_default_as_initial(self):
+    def test_uses_default_as_initial(self):
         input = TextInput('key', 'My label', default="default value")
 
-        input.show()
+        input.init()
 
-        self.assertEqual(input.input.text(), "default value")
+        self.assertEqual(input.value(), "default value")
 
-    def test_resets_if_reset_true(self):
-        input = TextInput(
-            'key', 'My label', default="default value", reset=True)
-
-        input.show()
+    def test_no_reset_as_default(self):
+        input = TextInput('key', 'My label', default="default value")
 
         QTest.keyClicks(input.input, " and some more text")
 
-        self.assertEqual(input.input.text(), "My Input Text")
+        value = input.value()
+        self.assertNotEqual(input.value(), "default value")
 
-        input.reset()
+        input.init()
 
-        self.assertEqual(input.input.text(), "default value")
+        # input value remains the same on calls to init
+        self.assertEqual(input.value(), value)
+
+    def test_resets_if_reset_true(self):
+        input = TextInput(
+            'key', 'My label', default="default value", remember=False)
+
+        QTest.keyClicks(input.input, " and some more text")
+
+        self.assertNotEqual(input.value(), "default value")
+
+        input.init()
+
+        self.assertEqual(input.value(), "default value")
+
+    def test_stores_key(self):
+        mock_key = MM()
+        input = TextInput(mock_key, 'label')
+
+        self.assertEqual(input.key(), mock_key)

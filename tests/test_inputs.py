@@ -136,3 +136,83 @@ class TestTextInput(unittest.TestCase):
 
         value = input.cli()
         mock_input.assert_called_once_with('Test Label')
+
+    def test_default_TextInput_is_valid(self):
+        self.instance()
+        self.assertTrue(self.input.valid())
+
+
+class InterfaceTestInput(unittest.TestCase):
+    def setUp(self):
+        self.children = [
+            TextInput('key1', 'label1'),
+            TextInput('key2', 'label2'),
+            TextInput('key3', 'label3')
+        ]
+
+    def instance(self):
+        self.interface = Interface(self.children)
+
+    def test_instance(self):
+        self.instance()
+
+    def test_create_dialog(self):
+        self.instance()
+        self.assertIs(type(self.interface.dialog), QDialog)
+
+    def test_widgets_added_as_children_of_dialog(self):
+        self.instance()
+
+        dialog_children = self.interface.dialog.children()
+        for child in self.children:
+            self.assertIn(child.widget(), dialog_children)
+
+    def test_all_keys_must_be_unique(self):
+
+        first = self.children[0]
+
+        self.children.append(TextInput(first.key(), first.label))
+
+        with self.assertRaises(DuplicateKeyException) as context:
+            self.instance()
+
+        self.assertIn(first.key(), str(context.exception))
+
+    def test_widgets_added_to_layout(self):
+        self.instance()
+
+        for index, child in enumerate(self.children):
+            in_layout = self.interface.dialog.layout().itemAt(index).widget()
+            in_field = child.widget()
+
+            self.assertEqual(in_layout, in_field)
+
+    def test_exec_calls_dialog_exec(self):
+        self.instance()
+        self.interface.dialog.exec = MM()
+        self.interface.exec()
+        self.assertTrue(self.interface.dialog.exec.called)
+
+    def test_data_returns_data_from_children(self):
+        self.children = [
+            TextInput('key1', 'Label', default='default1'),
+            TextInput('key2', 'Label', default='default2')
+        ]
+        self.instance()
+        self.assertEqual(self.interface.data(), {
+            'key1': 'default1',
+            'key2': 'default2'
+        })
+
+    def test_valid_returns_empty_if_no_invalid_children(self):
+        self.instance()
+        invalid = self.interface.invalid()
+        self.assertEqual(len(invalid), 0)
+
+    def test_valid_true_if_children_valid(self):
+
+        self.children[0].valid = lambda: False
+
+        self.instance()
+
+        self.assertEqual(self.interface.invalid(), [self.children[0]])

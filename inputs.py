@@ -8,38 +8,48 @@ from PySide2.QtCore import QSize, Signal
 # TODO some reset method to reset the value to default (so it doesn't maintain previous value)
 
 
+class DuplicateKeyException(Exception):
+    pass
+
+
 class Interface:
     def __init__(self, children):
         self.dialog = QDialog()
-        self.children = children
+
+        # check for duplicate keys
+
+        # store children as a dictionary
+        self.children = {}
 
         self.dialog.setLayout(QVBoxLayout())
-        for child in self.children:
-            self.dialog.layout().addWidget(child.widget())
 
-    def show(self):
-        self.dialog.show()
+        for child in children:
+            key = child.key()
+            value = child
+
+            if key in self.children:
+                raise DuplicateKeyException(
+                    "duplicate entries for key '{}'".format(key))
+            else:
+                self.children[key] = value
+                child.widget().setParent(self.dialog)
+                self.dialog.layout().addWidget(child.widget())
+
+    def exec(self):
+        self.dialog.exec()
 
     def data(self):
-        data = []
-        for child in self.children:
-            key = child.key()
+        data = {}
+        for key, child in self.children.items():
+
             value = child.value()
 
             data[key] = value
 
         return data
 
-    def valid(self):
-        raise Exception("TESTING THIS")
-        invalid_children = [
-            child for child in self.children if not child.valid
-        ]
-
-        if len(invalid_children) == 0:
-            return True
-        else:
-            return False, invalid_children
+    def invalid(self):
+        return [child for child in self.children.values() if not child.valid()]
 
 
 class TextInput:
@@ -81,13 +91,5 @@ class TextInput:
     def cli(self):
         return input(self.label)
 
-    # TODO : implement validation and test return result
     def valid(self):
-        True
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    widget = TextInput('key', 'Test Input')
-    widget.show()
-    sys.exit(app.exec_())
+        return True

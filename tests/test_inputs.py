@@ -3,6 +3,7 @@ from unittest.mock import MagicMock as MM
 from unittest.mock import patch
 from PySide2.QtTest import QTest
 from inputs import *
+import inputs
 
 app = QApplication(sys.argv)
 
@@ -117,3 +118,20 @@ class TestTextInput(unittest.TestCase):
         input = TextInput(mock_key, 'label')
 
         self.assertEqual(input.key(), mock_key)
+
+    def test_cli_asks_for_input(self):
+        input = TextInput('key', 'Test Label')
+
+        input_data = "Test Input Data"
+
+        with patch.object(
+                inputs, "input", create=True, return_value=input_data):
+            value = input.cli()
+            self.assertEqual(value, input_data)
+
+    @patch('inputs.input')
+    def test_cli_correct_label(self, mock_input):
+        input = TextInput('key', 'Test Label')
+
+        value = input.cli()
+        mock_input.assert_called_once_with('Test Label')

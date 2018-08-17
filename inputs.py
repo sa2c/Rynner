@@ -2,9 +2,12 @@ import sys
 from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QApplication, QLineEdit, QVBoxLayout
 from PySide2.QtCore import QSize, Signal
 
-
 # an empty/blank QWidget wrapper?
 # TODO : validation
+# TODO : clis should do something sensible on exception (e.g. loop)
+# TODO some reset method to reset the value to default (so it doesn't maintain previous value)
+
+
 class TextInput:
     def __init__(self, key, label, default=None, remember=True):
 
@@ -38,16 +41,9 @@ class TextInput:
         if not self.remember:
             self.set_value(self.default_value)
 
-    # TODO some reset method to reset the value to default (so it doesn't maintain previous value)
+    def cli(self):
+        return input(self.label)
 
-
-#     def cli(self):
-#         valid = False
-#         while not valid:
-#             print("Label: {}".format(self.label))
-#             # read from command line
-
-#         return value
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

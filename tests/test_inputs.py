@@ -38,8 +38,8 @@ class TestTextInput(unittest.TestCase):
 
         input = TextInput('key', 'label')
 
-        assert QLineEdit not in input.widget.children()
-        assert QLabel not in input.widget.children()
+        assert QLineEdit not in input.widget().children()
+        assert QLabel not in input.widget().children()
 
     def test_sets_default_text_in_text_edit(self):
         input = TextInput('key', 'label', default='default string')
@@ -48,26 +48,27 @@ class TestTextInput(unittest.TestCase):
     def test_result_contains_children(self):
         input = TextInput('key', 'label')
 
-        types = [type(child) for child in input.widget.children()]
+        types = [type(child) for child in input.widget().children()]
         self.assertIn(QLineEdit, types)
         self.assertIn(QLabel, types)
 
     def test_label_contains_text(self):
         input = TextInput('key', 'My label')
-        qlabel_text = next(child.text() for child in input.widget.children()
+        qlabel_text = next(child.text() for child in input.widget().children()
                            if type(child) == QLabel)
 
         self.assertEqual(qlabel_text, "My label")
 
     def test_input_added_to_layout(self):
         input = TextInput('key', 'My label')
-        self.assertEqual(input.widget.layout().itemAt(1).widget(), input.input)
+        self.assertEqual(input.widget().layout().itemAt(1).widget(),
+                         input.input)
 
     def test_label_added_to_layout(self):
         input = TextInput('key', 'My label')
 
         self.assertEqual(
-            type(input.widget.layout().itemAt(0).widget()), QLabel)
+            type(input.widget().layout().itemAt(0).widget()), QLabel)
 
     def test_reset_leaves_value_by_default(self):
         input = TextInput('key', 'My label')

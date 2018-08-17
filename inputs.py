@@ -15,6 +15,22 @@ class DuplicateKeyException(Exception):
 class RunnerConfigDialog:
     pass
 
+    #MockConfigDialog().
+
+    #dialog_exec_return = MockConfigDialog().exec()
+    #self.assertEqual(accepted, dialog_exec_return)
+
+    # dialog = QDialog()
+    # dialog.setWindowTitle("Title")
+    # dialog.setLayout(QVBoxLayout())
+    # dialog.layout().addWidget(self.widget)
+    # buttons = QDialogButtonBox(QDialogButtonBox.Ok
+    #                            | QDialogButtonBox.Cancel)
+    # dialog.layout().addWidget(buttons)
+
+    # accepted = dialog.exec()
+    # return accepted
+
 
 class Interface:
     def __init__(self, children):

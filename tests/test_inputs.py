@@ -256,3 +256,11 @@ class InterfaceTestInput(unittest.TestCase):
             'key1': 'default',
             'key2': 'default some text'
         })
+
+
+class TestRunnerConfigDialogClass(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_fail(self):
+        assert False

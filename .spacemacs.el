@@ -21,10 +21,16 @@
                                     (with-current-buffer "*testing*"
                                         (evil-normal-state)))))
 
+(setq my-tests-to-run "test_run_type_integration")
+
+(spacemacs/set-leader-keys "D" '(lambda ()
+                                  (interactive)
+                                  (setq my-tests-to-run (read-string "test module: " ))))
+
 (spacemacs/set-leader-keys "d" '(lambda ()
                                   (interactive)
                                   (let ((my-test-command
-                                         "pipenv run -- python -m unittest discover -v"))
+                                         (concat "pipenv run -- python -m unittest tests." my-tests-to-run)))
                                     (projectile-save-project-buffers)
                                     (projectile-with-default-dir (projectile-project-root)
                                       (async-shell-command my-test-command "*testing*"))

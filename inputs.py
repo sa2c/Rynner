@@ -1,5 +1,5 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QApplication, QLineEdit, QVBoxLayout, QDialog
+from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QApplication, QLineEdit, QVBoxLayout, QDialog, QDialogButtonBox
 from PySide2.QtCore import QSize, Signal
 
 # an empty/blank QWidget wrapper?
@@ -12,16 +12,20 @@ class DuplicateKeyException(Exception):
     pass
 
 
+class RunnerConfigDialog:
+    pass
+
+
 class Interface:
     def __init__(self, children):
-        self.dialog = QDialog()
+        self.widget = QWidget()
 
         # check for duplicate keys
 
         # store children as a dictionary
         self.children = {}
 
-        self.dialog.setLayout(QVBoxLayout())
+        self.widget.setLayout(QVBoxLayout())
 
         for child in children:
             key = child.key()
@@ -32,11 +36,19 @@ class Interface:
                     "duplicate entries for key '{}'".format(key))
             else:
                 self.children[key] = value
-                child.widget().setParent(self.dialog)
-                self.dialog.layout().addWidget(child.widget())
+                child.widget().setParent(self.widget)
+                self.widget.layout().addWidget(child.widget())
 
-    def exec(self):
-        self.dialog.exec()
+    def show(self):
+        # reset values
+        [child.init() for child in self.children.values()]
+
+        # show dialog
+        config_dialog = RunnerConfigDialog("Configure Run", self.widget)
+
+        accepted = config_dialog.exec()
+
+        return accepted
 
     def data(self):
         data = {}

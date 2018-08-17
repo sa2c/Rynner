@@ -145,9 +145,9 @@ class TestTextInput(unittest.TestCase):
 class InterfaceTestInput(unittest.TestCase):
     def setUp(self):
         self.children = [
-            TextInput('key1', 'label1'),
-            TextInput('key2', 'label2'),
-            TextInput('key3', 'label3')
+            TextInput('key1', 'My label 1'),
+            TextInput('key2', 'My label 2'),
+            TextInput('key3', 'My label 3')
         ]
 
     def instance(self):
@@ -158,14 +158,14 @@ class InterfaceTestInput(unittest.TestCase):
 
     def test_create_dialog(self):
         self.instance()
-        self.assertIs(type(self.interface.dialog), QDialog)
+        self.assertIs(type(self.interface.widget), QWidget)
 
     def test_widgets_added_as_children_of_dialog(self):
         self.instance()
 
-        dialog_children = self.interface.dialog.children()
+        widget_children = self.interface.widget.children()
         for child in self.children:
-            self.assertIn(child.widget(), dialog_children)
+            self.assertIn(child.widget(), widget_children)
 
     def test_all_keys_must_be_unique(self):
 
@@ -182,16 +182,10 @@ class InterfaceTestInput(unittest.TestCase):
         self.instance()
 
         for index, child in enumerate(self.children):
-            in_layout = self.interface.dialog.layout().itemAt(index).widget()
+            in_layout = self.interface.widget.layout().itemAt(index).widget()
             in_field = child.widget()
 
             self.assertEqual(in_layout, in_field)
-
-    def test_exec_calls_dialog_exec(self):
-        self.instance()
-        self.interface.dialog.exec = MM()
-        self.interface.exec()
-        self.assertTrue(self.interface.dialog.exec.called)
 
     def test_data_returns_data_from_children(self):
         self.children = [
@@ -216,3 +210,49 @@ class InterfaceTestInput(unittest.TestCase):
         self.instance()
 
         self.assertEqual(self.interface.invalid(), [self.children[0]])
+
+    @patch('inputs.RunnerConfigDialog')
+    def test_exec_not_called_before_show(self, MockConfigDialog):
+        self.instance()
+        self.assertFalse(MockConfigDialog().called)
+
+    @patch('inputs.RunnerConfigDialog')
+    def test_exec_calls_shows_dialog(self, MockConfigDialog):
+        self.instance()
+        self.interface.show()
+        MockConfigDialog.assert_called_once_with("Configure Run",
+                                                 self.interface.widget)
+
+    @patch('inputs.RunnerConfigDialog')
+    def test_exec_calls_exec_on_dialog(self, MockConfigDialog):
+        self.instance()
+        self.interface.show()
+        MockConfigDialog().exec.assert_called_once()
+
+    @patch('inputs.RunnerConfigDialog')
+    def test_exec_returns_the_output_of_exec(self, MockConfigDialog):
+        self.instance()
+        accepted = self.interface.show()
+        dialog_exec_return = MockConfigDialog().exec()
+        self.assertEqual(accepted, dialog_exec_return)
+
+    @patch('inputs.RunnerConfigDialog')
+    def test_resets_children(self, MockConfigDialog):
+        input1 = TextInput("key1", "label", default="default", remember=False)
+        input2 = TextInput("key2", "label", default="default", remember=True)
+
+        self.children = [input1, input2]
+        self.instance()
+
+        # type into inputs
+        for child in self.children:
+            QTest.keyClicks(child.input, " some text")
+
+        self.interface.show()
+
+        values = self.interface.data()
+
+        self.assertEqual(values, {
+            'key1': 'default',
+            'key2': 'default some text'
+        })

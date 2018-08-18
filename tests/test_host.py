@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
-from host import *
+from rynner.host import *
 
 
 class TestConnection(unittest.TestCase):
@@ -10,7 +10,7 @@ class TestConnection(unittest.TestCase):
         self.cluster_user = 'user'
         self.context = MM()
 
-        self.patcher = patch('host.fabric.Connection')
+        self.patcher = patch('rynner.host.fabric.Connection')
         self.FabricMock = self.patcher.start()
 
         self.connection = Connection(
@@ -61,7 +61,7 @@ class TestConnection(unittest.TestCase):
 
 class TestHost(unittest.TestCase):
     def setUp(self):
-        self.conn_patch = patch('host.Connection')
+        self.conn_patch = patch('rynner.host.Connection')
         MockConnection = self.conn_patch.start()
         self.mock_connection = MockConnection()
 

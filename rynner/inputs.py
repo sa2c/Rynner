@@ -12,8 +12,9 @@ class DuplicateKeyException(Exception):
     pass
 
 
-class RunnerConfigDialog:
-    pass
+class RunnerConfigDialog(QDialog):
+    def __init__(self, dialog_title, widget):
+        super().__init__(None)
 
     #MockConfigDialog().
 

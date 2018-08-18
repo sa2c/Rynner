@@ -1,10 +1,8 @@
 import unittest
 from unittest.mock import MagicMock as MM
-from run_type import RunType, RunAction
-from inputs import Interface, TextInput
+from rynner.run_type import RunType, RunAction
+from rynner.inputs import Interface, TextInput
 from PySide2.QtWidgets import QApplication
-
-app = QApplication()
 
 
 class TestRunTypeIntegration(unittest.TestCase):

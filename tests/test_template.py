@@ -1,7 +1,7 @@
 import unittest
 import os
 from unittest.mock import patch, MagicMock
-from template import *
+from rynner.template import *
 
 
 class TestTemplate(unittest.TestCase):

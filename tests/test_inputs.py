@@ -2,8 +2,8 @@ import unittest
 from unittest.mock import MagicMock as MM
 from unittest.mock import patch
 from PySide2.QtTest import QTest
-from inputs import *
-import inputs
+import rynner
+from rynner.inputs import *
 
 app = QApplication(sys.argv)
 
@@ -126,11 +126,11 @@ class TestTextInput(unittest.TestCase):
         input_data = "Test Input Data"
 
         with patch.object(
-                inputs, "input", create=True, return_value=input_data):
+                rynner.inputs, "input", create=True, return_value=input_data):
             value = input.cli()
             self.assertEqual(value, input_data)
 
-    @patch('inputs.input')
+    @patch('rynner.inputs.input')
     def test_cli_correct_label(self, mock_input):
         input = TextInput('key', 'Test Label')
 
@@ -211,32 +211,32 @@ class InterfaceTestInput(unittest.TestCase):
 
         self.assertEqual(self.interface.invalid(), [self.children[0]])
 
-    @patch('inputs.RunnerConfigDialog')
+    @patch('rynner.inputs.RunnerConfigDialog')
     def test_exec_not_called_before_show(self, MockConfigDialog):
         self.instance()
         self.assertFalse(MockConfigDialog().called)
 
-    @patch('inputs.RunnerConfigDialog')
+    @patch('rynner.inputs.RunnerConfigDialog')
     def test_exec_calls_shows_dialog(self, MockConfigDialog):
         self.instance()
         self.interface.show()
         MockConfigDialog.assert_called_once_with("Configure Run",
                                                  self.interface.widget)
 
-    @patch('inputs.RunnerConfigDialog')
+    @patch('rynner.inputs.RunnerConfigDialog')
     def test_exec_calls_exec_on_dialog(self, MockConfigDialog):
         self.instance()
         self.interface.show()
-        MockConfigDialog().exec.assert_called_once()
+        MockConfigDialog(). exec .assert_called_once()
 
-    @patch('inputs.RunnerConfigDialog')
+    @patch('rynner.inputs.RunnerConfigDialog')
     def test_exec_returns_the_output_of_exec(self, MockConfigDialog):
         self.instance()
         accepted = self.interface.show()
-        dialog_exec_return = MockConfigDialog().exec()
+        dialog_exec_return = MockConfigDialog(). exec ()
         self.assertEqual(accepted, dialog_exec_return)
 
-    @patch('inputs.RunnerConfigDialog')
+    @patch('rynner.inputs.RunnerConfigDialog')
     def test_resets_children(self, MockConfigDialog):
         input1 = TextInput("key1", "label", default="default", remember=False)
         input2 = TextInput("key2", "label", default="default", remember=True)

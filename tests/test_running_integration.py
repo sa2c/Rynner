@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import MagicMock as MM
-from behaviour import Behaviour, InvalidContextOption
-from host import Host
-from run import Run
-from template import Template
+from rynner.behaviour import Behaviour, InvalidContextOption
+from rynner.host import Host
+from rynner.run import Run
+from rynner.template import Template
 
 
 class TestBehaviour(unittest.TestCase):

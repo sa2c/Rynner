@@ -1,5 +1,5 @@
 import fabric
-from behaviour import InvalidContextOption
+from rynner.behaviour import InvalidContextOption
 
 
 class Connection():

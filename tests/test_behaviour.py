@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock as MM
-from behaviour import *
+from rynner.behaviour import *
 
 
 class TestBehaviour(unittest.TestCase):

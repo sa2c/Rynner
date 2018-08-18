@@ -5,9 +5,10 @@ name = "pypi"
 
 [packages]
 fabric = "*"
-pytest = "*"
 paramiko = "*"
 pystache = "*"
+"pyside2" = "*"
+nose = "*"
 
 [dev-packages]
 

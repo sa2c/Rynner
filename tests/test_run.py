@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock, call, ANY
-from run import *
+from rynner.run import *
 
 
 class TestRun(unittest.TestCase):
@@ -9,7 +9,7 @@ class TestRun(unittest.TestCase):
         self.mock_data = {'host': self.mock_host, 'memory': 100}
 
         # patch uuid
-        self.uuid_patch = patch('run.uuid')
+        self.uuid_patch = patch('rynner.run.uuid')
         uuid = self.uuid_patch.start()
         self.mock_uuid = uuid.uuid1().int
 

@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock as MM
-from run_type import RunType, RunAction
+from rynner.run_type import RunType, RunAction
 
 
 class TestRunType(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestRunType(unittest.TestCase):
         self.instance()
         self.assertFalse(self.interface.show.called)
         self.run_type.create()
-        self.assertTrue(self.interface.exec.called)
+        self.assertTrue(self.interface. exec .called)
 
     def test_can_add_action(self):
         def an_action(data):
@@ -64,7 +64,7 @@ class TestRunType(unittest.TestCase):
     def test_call_runner_if_interface_valid_and_accepted(self):
         # runner is called on create when interface is valid
         self.interface.valid.return_value = True
-        self.interface.exec.return_value = True
+        self.interface. exec .return_value = True
         self.instance()
         self.run_type.create()
         self.assertTrue(self.runner.called)
@@ -72,7 +72,7 @@ class TestRunType(unittest.TestCase):
     def test_doesnt_call_runner_if_interface_is_invalid(self):
         # runner is not called when invalid
         self.interface.valid.return_value = False
-        self.interface.exec.return_value = True
+        self.interface. exec .return_value = True
         self.instance()
         self.run_type.create()
         self.assertTrue(self.interface.valid.called)
@@ -81,8 +81,8 @@ class TestRunType(unittest.TestCase):
     def test_doesnt_call_runner_if_exec_is_invalid(self):
         # runner is not called when invalid
         self.interface.valid.return_value = True
-        self.interface.exec.return_value = False
+        self.interface. exec .return_value = False
         self.instance()
         self.run_type.create()
-        self.assertTrue(self.interface.exec.called)
+        self.assertTrue(self.interface. exec .called)
         self.assertFalse(self.runner.called)

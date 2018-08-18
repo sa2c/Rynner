@@ -1,2 +1,4 @@
-.pytest_cache
-tests/.pytest_cache
+/tests/__pycache__
+/rynner/__pycache__/
+/tests/.pytest_cache/
+/.pytest_cache/

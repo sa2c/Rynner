@@ -227,13 +227,13 @@ class InterfaceTestInput(unittest.TestCase):
     def test_exec_calls_exec_on_dialog(self, MockConfigDialog):
         self.instance()
         self.interface.show()
-        MockConfigDialog(). exec .assert_called_once()
+        MockConfigDialog().open.assert_called_once()
 
     @patch('rynner.inputs.RunnerConfigDialog')
     def test_exec_returns_the_output_of_exec(self, MockConfigDialog):
         self.instance()
         accepted = self.interface.show()
-        dialog_exec_return = MockConfigDialog(). exec ()
+        dialog_exec_return = MockConfigDialog().open()
         self.assertEqual(accepted, dialog_exec_return)
 
     @patch('rynner.inputs.RunnerConfigDialog')

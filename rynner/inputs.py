@@ -63,7 +63,7 @@ class Interface:
         # show dialog
         config_dialog = RunnerConfigDialog("Configure Run", self.widget)
 
-        accepted = config_dialog.exec()
+        accepted = config_dialog.open()
 
         return accepted
 

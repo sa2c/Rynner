@@ -12,7 +12,7 @@ class RunType:
 
     def create(self):
         # display configuration
-        accepted = self.interface.exec()
+        accepted = self.interface.show()
 
         if accepted and self.interface.valid():
             #if self.interface.valid_input():

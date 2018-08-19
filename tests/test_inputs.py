@@ -149,6 +149,9 @@ class InterfaceTestInput(QTestCase):
             TextInput('key3', 'My label 3')
         ]
 
+    def children_widgets(self):
+        return [child.widget() for child in self.children]
+
     def instance(self):
         self.interface = Interface(self.children)
 
@@ -163,6 +166,7 @@ class InterfaceTestInput(QTestCase):
         self.assertIsInstance(self.interface.dialog, QDialog)
 
     def test_widgets_added_as_children_of_dialog(self):
+        self.instance()
 
         widget_children = self.interface_widget().children()
         for child in self.children:
@@ -215,9 +219,13 @@ class InterfaceTestInput(QTestCase):
 
     def test_creates_and_shows_dialog(self):
         self.instance()
+        self.assertNotQVisible(self.children_widgets())
         self.interface.show()
+        self.assertQVisible(self.children_widgets())
 
         assert self.interface.dialog.isVisible()
+        for child in self.children:
+            assert child.widget().isVisible()
 
     @patch('rynner.inputs.RunnerConfigDialog')
     def test_show_returns_the_output_of_dialog_show(self, MockConfigDialog):

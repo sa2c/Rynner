@@ -1,5 +1,5 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox
+from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox
 from PySide2.QtCore import QSize, Signal
 
 # an empty/blank QWidget wrapper?
@@ -25,46 +25,46 @@ class RunnerConfigDialog(QDialog):
 
 class Interface:
     def __init__(self, children):
-        widget = QWidget()
+        # store children in instance
+        self.children = children
 
         # check for duplicate keys
-
-        # store children as a dictionary
-        self.children = {}
-
-        widget.setLayout(QVBoxLayout())
-
+        seen = set()
         for child in children:
-            if child.key in self.children:
+            if child.key in seen:
+                # raise an error if a duplicate key found
                 raise DuplicateKeyException(
                     "duplicate entries for key '{}'".format(child.key))
             else:
-                self.children[child.key] = child
-                child.widget.setParent(widget)
-                widget.layout().addWidget(child.widget)
+                # collect seen keys, to check for duplicates
+                seen.add(child.key)
 
-        self.dialog = RunnerConfigDialog("Configure Run", widget)
+        # layout children
+        container = self.container()
+
+        # intialise dialog with container
+        self.dialog = RunnerConfigDialog("Configure Run", container)
+
+    def container(self):
+        widget = QWidget()
+        widget.setLayout(QFormLayout())
+        for child in self.children:
+            widget.layout().addRow(child.label, child.widget)
+        return widget
 
     def show(self):
         # reset values
-        [child.init() for child in self.children.values()]
+        [child.init() for child in self.children]
 
         accepted = self.dialog.open()
 
         return accepted
 
     def data(self):
-        data = {}
-        for key, child in self.children.items():
-
-            value = child.value()
-
-            data[key] = value
-
-        return data
+        return {child.key: child.value() for child in self.children}
 
     def invalid(self):
-        return [child for child in self.children.values() if not child.valid()]
+        return [child for child in self.children if not child.valid()]
 
 
 class TextInput:

@@ -127,9 +127,9 @@ class TestTextInput(unittest.TestCase):
 class InterfaceTestInput(QTestCase):
     def setUp(self):
         self.children = [
-            TextInput('key1', 'My label 1'),
-            TextInput('key2', 'My label 2'),
-            TextInput('key3', 'My label 3')
+            TextInput('key1', 'My label 1', default="My Value 1"),
+            TextInput('key2', 'My label 2', default="My Value 2"),
+            TextInput('key3', 'My label 3', default="My Value 3")
         ]
 
     def children_widgets(self):
@@ -169,12 +169,20 @@ class InterfaceTestInput(QTestCase):
     def test_widgets_added_to_layout(self):
         self.instance()
 
-        for index, child in enumerate(self.children):
-            interface_widget = self.interface_widget()
-            in_layout = interface_widget.layout().itemAt(index).widget()
-            in_field = child.widget
+        layout = self.interface_widget().layout()
+        count = layout.count()
+        widgets = (layout.itemAt(idx).widget() for idx in range(count))
 
-            self.assertEqual(in_layout, in_field)
+        for index, child in enumerate(self.children):
+            # Type and content of QLabel
+            qlabel = next(widgets)
+            self.assertEqual(type(qlabel), QLabel)
+            self.assertEqual(qlabel.text(), f"My label {index + 1}")
+
+            # Type and content of QLineEdit
+            qfield = next(widgets)
+            self.assertEqual(type(qfield), QLineEdit)
+            self.assertEqual(qfield.text(), f"My Value {index + 1}")
 
     def test_data_returns_data_from_children(self):
         self.children = [

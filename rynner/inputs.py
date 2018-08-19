@@ -15,7 +15,7 @@ class DuplicateKeyException(Exception):
 class RunnerConfigDialog(QDialog):
     def __init__(self, dialog_title, widget):
         super().__init__(None)
-        self.setWindowTitle("Title")
+        self.setWindowTitle(dialog_title)
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(widget)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok

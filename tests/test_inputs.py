@@ -260,7 +260,37 @@ class InterfaceTestInput(unittest.TestCase):
 
 class TestRunnerConfigDialogClass(unittest.TestCase):
     def setUp(self):
-        pass
+        self.dialog_title = "Title"
+        self.widget = QWidget()
 
-    def test_fail(self):
-        assert False
+    def instance(self):
+        self.dialog = RunnerConfigDialog(self.dialog_title, self.widget)
+
+    def instance_items(self):
+        layout = self.dialog.layout()
+        return [layout.itemAt(i).widget() for i in range(layout.count())]
+
+    def test_instance(self):
+        self.instance()
+
+    def test_title(self):
+        self.instance()
+        self.assertEqual(self.dialog.windowTitle(), self.dialog_title)
+
+    def test_widget_in_layout(self):
+        self.instance()
+        items = self.instance_items()
+
+        self.assertIn(self.widget, items)
+
+    def test_buttons_in_layout(self):
+        self.instance()
+        type_items = list(map(type, self.instance_items()))
+
+        self.assertIn(QDialogButtonBox, type_items)
+
+    def test_instantiate_twice_same_widget(self):
+        self.instance()
+        self.assertEqual(self.widget.parent(), self.dialog)
+        self.instance()
+        self.assertEqual(self.widget.parent(), self.dialog)

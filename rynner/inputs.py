@@ -15,22 +15,12 @@ class DuplicateKeyException(Exception):
 class RunnerConfigDialog(QDialog):
     def __init__(self, dialog_title, widget):
         super().__init__(None)
-
-    #MockConfigDialog().
-
-    #dialog_exec_return = MockConfigDialog().exec()
-    #self.assertEqual(accepted, dialog_exec_return)
-
-    # dialog = QDialog()
-    # dialog.setWindowTitle("Title")
-    # dialog.setLayout(QVBoxLayout())
-    # dialog.layout().addWidget(self.widget)
-    # buttons = QDialogButtonBox(QDialogButtonBox.Ok
-    #                            | QDialogButtonBox.Cancel)
-    # dialog.layout().addWidget(buttons)
-
-    # accepted = dialog.exec()
-    # return accepted
+        self.setWindowTitle("Title")
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(widget)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok
+                                   | QDialogButtonBox.Cancel)
+        self.layout().addWidget(buttons)
 
 
 class Interface:

@@ -25,14 +25,14 @@ class RunnerConfigDialog(QDialog):
 
 class Interface:
     def __init__(self, children):
-        self.widget = QWidget()
+        widget = QWidget()
 
         # check for duplicate keys
 
         # store children as a dictionary
         self.children = {}
 
-        self.widget.setLayout(QVBoxLayout())
+        widget.setLayout(QVBoxLayout())
 
         for child in children:
             key = child.key()
@@ -43,17 +43,16 @@ class Interface:
                     "duplicate entries for key '{}'".format(key))
             else:
                 self.children[key] = value
-                child.widget().setParent(self.widget)
-                self.widget.layout().addWidget(child.widget())
+                child.widget().setParent(widget)
+                widget.layout().addWidget(child.widget())
+
+        self.dialog = RunnerConfigDialog("Configure Run", widget)
 
     def show(self):
         # reset values
         [child.init() for child in self.children.values()]
 
-        # show dialog
-        config_dialog = RunnerConfigDialog("Configure Run", self.widget)
-
-        accepted = config_dialog.open()
+        accepted = self.dialog.open()
 
         return accepted
 

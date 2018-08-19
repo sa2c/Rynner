@@ -152,17 +152,19 @@ class InterfaceTestInput(unittest.TestCase):
     def instance(self):
         self.interface = Interface(self.children)
 
+    def interface_widget(self):
+        return self.interface.dialog.layout().itemAt(0).widget()
+
     def test_instance(self):
         self.instance()
 
     def test_create_dialog(self):
         self.instance()
-        self.assertIs(type(self.interface.widget), QWidget)
+        self.assertIsInstance(self.interface.dialog, QDialog)
 
     def test_widgets_added_as_children_of_dialog(self):
-        self.instance()
 
-        widget_children = self.interface.widget.children()
+        widget_children = self.interface_widget().children()
         for child in self.children:
             self.assertIn(child.widget(), widget_children)
 
@@ -181,7 +183,8 @@ class InterfaceTestInput(unittest.TestCase):
         self.instance()
 
         for index, child in enumerate(self.children):
-            in_layout = self.interface.widget.layout().itemAt(index).widget()
+            interface_widget = self.interface_widget()
+            in_layout = interface_widget.layout().itemAt(index).widget()
             in_field = child.widget()
 
             self.assertEqual(in_layout, in_field)
@@ -210,33 +213,20 @@ class InterfaceTestInput(unittest.TestCase):
 
         self.assertEqual(self.interface.invalid(), [self.children[0]])
 
-    @patch('rynner.inputs.RunnerConfigDialog')
-    def test_exec_not_called_before_show(self, MockConfigDialog):
-        self.instance()
-        self.assertFalse(MockConfigDialog().called)
-
-    @patch('rynner.inputs.RunnerConfigDialog')
-    def test_exec_calls_shows_dialog(self, MockConfigDialog):
+    def test_creates_and_shows_dialog(self):
         self.instance()
         self.interface.show()
-        MockConfigDialog.assert_called_once_with("Configure Run",
-                                                 self.interface.widget)
+
+        assert self.interface.dialog.isVisible()
 
     @patch('rynner.inputs.RunnerConfigDialog')
-    def test_exec_calls_exec_on_dialog(self, MockConfigDialog):
-        self.instance()
-        self.interface.show()
-        MockConfigDialog().open.assert_called_once()
-
-    @patch('rynner.inputs.RunnerConfigDialog')
-    def test_exec_returns_the_output_of_exec(self, MockConfigDialog):
+    def test_show_returns_the_output_of_dialog_show(self, MockConfigDialog):
         self.instance()
         accepted = self.interface.show()
         dialog_exec_return = MockConfigDialog().open()
         self.assertEqual(accepted, dialog_exec_return)
 
-    @patch('rynner.inputs.RunnerConfigDialog')
-    def test_resets_children(self, MockConfigDialog):
+    def test_resets_children(self):
         input1 = TextInput("key1", "label", default="default", remember=False)
         input2 = TextInput("key2", "label", default="default", remember=True)
 
@@ -293,3 +283,29 @@ class TestRunnerConfigDialogClass(unittest.TestCase):
         self.assertEqual(self.widget.parent(), self.dialog)
         self.instance()
         self.assertEqual(self.widget.parent(), self.dialog)
+
+    def test_shows_dialog_with_title(self):
+        input = TextInput("key", "label")
+        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget())
+        self.assertFalse(input.widget().isVisible())
+        dialog.show()
+        self.assertTrue(input.widget().isVisible())
+        self.assertEqual(dialog.windowTitle(), "MY WINDOW TITLE")
+
+    def test_shows_dialog_twice(self):
+        input = TextInput("key", "label")
+        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget())
+
+        # Show once
+        self.assertFalse(input.widget().isVisible())
+        dialog.show()
+        self.assertTrue(input.widget().isVisible())
+        dialog.close()
+        self.assertFalse(input.widget().isVisible())
+
+        # Show again
+        self.assertFalse(input.widget().isVisible())
+        dialog.show()
+        self.assertTrue(input.widget().isVisible())
+        dialog.close()
+        self.assertFalse(input.widget().isVisible())

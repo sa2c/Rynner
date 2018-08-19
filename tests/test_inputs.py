@@ -15,7 +15,7 @@ class TestTextInput(unittest.TestCase):
         self.input = TextInput('key', 'Label', **kwargs)
 
     def type_text(self, text):
-        QTest.keyClicks(self.input.input, text)
+        QTest.keyClicks(self.input.widget, text)
 
     def test_instance(self):
         self.instance()
@@ -34,46 +34,29 @@ class TestTextInput(unittest.TestCase):
         input.init()
 
     def test_has_adds_widgets_as_child(self):
-
         input = TextInput('key', 'label')
 
-        assert QLineEdit not in input.widget().children()
-        assert QLabel not in input.widget().children()
+        self.assertIsInstance(input.widget, QLineEdit)
 
     def test_sets_default_text_in_text_edit(self):
         input = TextInput('key', 'label', default='default string')
         self.assertEqual(input.value(), 'default string')
 
-    def test_result_contains_children(self):
-        input = TextInput('key', 'label')
-
-        types = [type(child) for child in input.widget().children()]
-        self.assertIn(QLineEdit, types)
-        self.assertIn(QLabel, types)
-
     def test_label_contains_text(self):
         input = TextInput('key', 'My label')
-        qlabel_text = next(child.text() for child in input.widget().children()
-                           if type(child) == QLabel)
 
-        self.assertEqual(qlabel_text, "My label")
+        self.assertEqual(input.label.text(), "My label")
+        self.assertIsInstance(input.label, QLabel)
 
-    def test_input_added_to_layout(self):
-        input = TextInput('key', 'My label')
-        self.assertEqual(input.widget().layout().itemAt(1).widget(),
-                         input.input)
-
+    @unittest.skip('refactor breaks: Interface should handle labels now')
     def test_label_added_to_layout(self):
-        input = TextInput('key', 'My label')
-
-        self.assertEqual(
-            type(input.widget().layout().itemAt(0).widget()), QLabel)
+        pass
 
     def test_reset_leaves_value_by_default(self):
         input = TextInput('key', 'My label')
         input.init()
 
-        QTest.keyClicks(input.input, "My Input Text")
+        QTest.keyClicks(input.widget, "My Input Text")
 
         self.assertEqual(input.value(), "My Input Text")
 
@@ -91,7 +74,7 @@ class TestTextInput(unittest.TestCase):
     def test_no_reset_as_default(self):
         input = TextInput('key', 'My label', default="default value")
 
-        QTest.keyClicks(input.input, " and some more text")
+        QTest.keyClicks(input.widget, " and some more text")
 
         value = input.value()
         self.assertNotEqual(input.value(), "default value")
@@ -105,7 +88,7 @@ class TestTextInput(unittest.TestCase):
         input = TextInput(
             'key', 'My label', default="default value", remember=False)
 
-        QTest.keyClicks(input.input, " and some more text")
+        QTest.keyClicks(input.widget, " and some more text")
 
         self.assertNotEqual(input.value(), "default value")
 
@@ -150,7 +133,7 @@ class InterfaceTestInput(QTestCase):
         ]
 
     def children_widgets(self):
-        return [child.widget() for child in self.children]
+        return [child.widget for child in self.children]
 
     def instance(self):
         self.interface = Interface(self.children)
@@ -170,7 +153,7 @@ class InterfaceTestInput(QTestCase):
 
         widget_children = self.interface_widget().children()
         for child in self.children:
-            self.assertIn(child.widget(), widget_children)
+            self.assertIn(child.widget, widget_children)
 
     def test_all_keys_must_be_unique(self):
 
@@ -189,7 +172,7 @@ class InterfaceTestInput(QTestCase):
         for index, child in enumerate(self.children):
             interface_widget = self.interface_widget()
             in_layout = interface_widget.layout().itemAt(index).widget()
-            in_field = child.widget()
+            in_field = child.widget
 
             self.assertEqual(in_layout, in_field)
 
@@ -225,7 +208,7 @@ class InterfaceTestInput(QTestCase):
 
         assert self.interface.dialog.isVisible()
         for child in self.children:
-            assert child.widget().isVisible()
+            assert child.widget.isVisible()
 
     @patch('rynner.inputs.RunnerConfigDialog')
     def test_show_returns_the_output_of_dialog_show(self, MockConfigDialog):
@@ -243,7 +226,7 @@ class InterfaceTestInput(QTestCase):
 
         # type into inputs
         for child in self.children:
-            QTest.keyClicks(child.input, " some text")
+            QTest.keyClicks(child.widget, " some text")
 
         self.interface.show()
 
@@ -294,26 +277,26 @@ class TestRunnerConfigDialogClass(unittest.TestCase):
 
     def test_shows_dialog_with_title(self):
         input = TextInput("key", "label")
-        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget())
-        self.assertFalse(input.widget().isVisible())
+        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget)
+        self.assertFalse(input.widget.isVisible())
         dialog.show()
-        self.assertTrue(input.widget().isVisible())
+        self.assertTrue(input.widget.isVisible())
         self.assertEqual(dialog.windowTitle(), "MY WINDOW TITLE")
 
     def test_shows_dialog_twice(self):
         input = TextInput("key", "label")
-        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget())
+        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget)
 
         # Show once
-        self.assertFalse(input.widget().isVisible())
+        self.assertFalse(input.widget.isVisible())
         dialog.show()
-        self.assertTrue(input.widget().isVisible())
+        self.assertTrue(input.widget.isVisible())
         dialog.close()
-        self.assertFalse(input.widget().isVisible())
+        self.assertFalse(input.widget.isVisible())
 
         # Show again
-        self.assertFalse(input.widget().isVisible())
+        self.assertFalse(input.widget.isVisible())
         dialog.show()
-        self.assertTrue(input.widget().isVisible())
+        self.assertTrue(input.widget.isVisible())
         dialog.close()
-        self.assertFalse(input.widget().isVisible())
+        self.assertFalse(input.widget.isVisible())

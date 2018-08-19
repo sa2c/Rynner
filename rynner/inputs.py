@@ -1,5 +1,5 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QVBoxLayout, QDialog, QDialogButtonBox
+from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox
 from PySide2.QtCore import QSize, Signal
 
 # an empty/blank QWidget wrapper?
@@ -40,8 +40,8 @@ class Interface:
                     "duplicate entries for key '{}'".format(child.key))
             else:
                 self.children[child.key] = child
-                child.widget().setParent(widget)
-                widget.layout().addWidget(child.widget())
+                child.widget.setParent(widget)
+                widget.layout().addWidget(child.widget)
 
         self.dialog = RunnerConfigDialog("Configure Run", widget)
 
@@ -70,40 +70,29 @@ class Interface:
 class TextInput:
     def __init__(self, key, label, default=None, remember=True):
 
-        self.__widget = QWidget()
-
         self.__default_value = default
-        self.__widget.setLayout(QVBoxLayout())
         self.__remember = remember
 
         # public attributes
         self.key = key
-        self.label = label
+        self.label = QLabel(label)
+        self.widget = QLineEdit()
 
-        for widget in self.widgets():
-            self.__widget.layout().addWidget(widget)
-
+        # initialise with default value
         self.set_value(self.__default_value)
 
-    def widgets(self):
-        self.input = QLineEdit(self.__widget)
-        return [QLabel(self.label, self.__widget), self.input]
-
     def value(self):
-        return self.input.text()
+        return self.widget.text()
 
     def set_value(self, value):
-        return self.input.setText(value)
-
-    def widget(self):
-        return self.__widget
+        return self.widget.setText(value)
 
     def init(self):
         if not self.__remember:
             self.set_value(self.__default_value)
 
     def cli(self):
-        return input(self.label)
+        return input(self.label.text())
 
     def valid(self):
         return True

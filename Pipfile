@@ -9,6 +9,7 @@ paramiko = "*"
 pystache = "*"
 "pyside2" = "*"
 nose = "*"
+ipython = "*"
 
 [dev-packages]
 

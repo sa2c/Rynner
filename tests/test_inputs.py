@@ -117,7 +117,7 @@ class TestTextInput(unittest.TestCase):
         mock_key = MM()
         input = TextInput(mock_key, 'label')
 
-        self.assertEqual(input.key(), mock_key)
+        self.assertEqual(input.key, mock_key)
 
     def test_cli_asks_for_input(self):
         input = TextInput('key', 'Test Label')
@@ -176,12 +176,12 @@ class InterfaceTestInput(QTestCase):
 
         first = self.children[0]
 
-        self.children.append(TextInput(first.key(), first.label))
+        self.children.append(TextInput(first.key, first.label))
 
         with self.assertRaises(DuplicateKeyException) as context:
             self.instance()
 
-        self.assertIn(first.key(), str(context.exception))
+        self.assertIn(first.key, str(context.exception))
 
     def test_widgets_added_to_layout(self):
         self.instance()

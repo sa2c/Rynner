@@ -35,14 +35,11 @@ class Interface:
         widget.setLayout(QVBoxLayout())
 
         for child in children:
-            key = child.key()
-            value = child
-
-            if key in self.children:
+            if child.key in self.children:
                 raise DuplicateKeyException(
-                    "duplicate entries for key '{}'".format(key))
+                    "duplicate entries for key '{}'".format(child.key))
             else:
-                self.children[key] = value
+                self.children[child.key] = child
                 child.widget().setParent(widget)
                 widget.layout().addWidget(child.widget())
 
@@ -75,16 +72,18 @@ class TextInput:
 
         self.__widget = QWidget()
 
-        self.__key = key
-        self.default_value = default
-        self.__widget.setLayout(QVBoxLayout())
-        self.remember = remember
+        self.__default_value = default
+        self.__widget.setLayout(QHBoxLayout())
+        self.__remember = remember
+
+        # public attributes
+        self.key = key
         self.label = label
 
         for widget in self.widgets():
             self.__widget.layout().addWidget(widget)
 
-        self.set_value(self.default_value)
+        self.set_value(self.__default_value)
 
     def widgets(self):
         self.input = QLineEdit(self.__widget)
@@ -99,12 +98,9 @@ class TextInput:
     def widget(self):
         return self.__widget
 
-    def key(self):
-        return self.__key
-
     def init(self):
-        if not self.remember:
-            self.set_value(self.default_value)
+        if not self.__remember:
+            self.set_value(self.__default_value)
 
     def cli(self):
         return input(self.label)

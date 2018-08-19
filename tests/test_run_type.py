@@ -30,19 +30,17 @@ class TestRunType(unittest.TestCase):
         self.assertTrue(self.interface.show.called)
 
     def test_can_add_action(self):
-        def an_action(data):
-            pass
+        some_action = lambda data: None
 
         self.instance()
-        action = self.run_type.add_action('action label', an_action)
+        action = self.run_type.add_action('action label', some_action)
         self.assertIn(action, self.run_type.actions())
 
     def test_action_is_instance_of_action_class(self):
-        def an_action(data):
-            pass
+        some_action = lambda data: None
 
         self.instance()
-        action = self.run_type.add_action('action label', an_action)
+        action = self.run_type.add_action('action label', some_action)
         actions = self.run_type.actions()
         self.assertIs(type(actions[0]), RunAction)
 

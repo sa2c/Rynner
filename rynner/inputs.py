@@ -73,7 +73,7 @@ class TextInput:
         self.__widget = QWidget()
 
         self.__default_value = default
-        self.__widget.setLayout(QHBoxLayout())
+        self.__widget.setLayout(QVBoxLayout())
         self.__remember = remember
 
         # public attributes

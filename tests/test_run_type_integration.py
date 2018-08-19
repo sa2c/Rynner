@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock as MM
 from rynner.run_type import RunType, RunAction
 from rynner.inputs import Interface, TextInput
-from PySide2.QtWidgets import QApplication
+from tests.qtest_helpers import app
 
 
 class TestRunTypeIntegration(unittest.TestCase):

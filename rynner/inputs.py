@@ -1,5 +1,5 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QApplication, QLineEdit, QVBoxLayout, QDialog, QDialogButtonBox
+from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QVBoxLayout, QDialog, QDialogButtonBox
 from PySide2.QtCore import QSize, Signal
 
 # an empty/blank QWidget wrapper?

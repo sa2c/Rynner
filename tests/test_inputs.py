@@ -4,8 +4,7 @@ from unittest.mock import patch
 from PySide2.QtTest import QTest
 import rynner
 from rynner.inputs import *
-
-app = QApplication(sys.argv)
+from tests.qtest_helpers import app
 
 
 class TestTextInput(unittest.TestCase):

@@ -4,7 +4,7 @@ from unittest.mock import patch
 from PySide2.QtTest import QTest
 import rynner
 from rynner.inputs import *
-from tests.qtest_helpers import app
+from tests.qtest_helpers import QTestCase
 
 
 class TestTextInput(unittest.TestCase):
@@ -141,7 +141,7 @@ class TestTextInput(unittest.TestCase):
         self.assertTrue(self.input.valid())
 
 
-class InterfaceTestInput(unittest.TestCase):
+class InterfaceTestInput(QTestCase):
     def setUp(self):
         self.children = [
             TextInput('key1', 'My label 1'),

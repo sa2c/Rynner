@@ -1,11 +1,14 @@
 import unittest
 from unittest.mock import MagicMock as MM
 from rynner.run_type import RunType, RunAction
-from rynner.inputs import Interface, TextInput
-from tests.qtest_helpers import app
+from rynner.inputs import Interface, TextInput, RunnerConfigDialog
+from tests.qtest_helpers import QTestCase
+from PySide2.QtTest import QTest
 
 
 class TestRunTypeIntegration(unittest.TestCase):
+    @unittest.skip('expected failure')
+    # workaround: unittest.expectedFailure does not work with nose
     def test_configure_and_run_empty_runner(self):
         interface = Interface([
             TextInput('key', 'My Label', default="My Default"),
@@ -25,9 +28,11 @@ class TestRunTypeIntegration(unittest.TestCase):
         # The dialog window not created (unless in pdb) - need a test for this.
         assert False
 
+    @unittest.skip('expected failure')
     def test_dialog_window_has_title(self):
         assert False
 
+    @unittest.skip('expected failure')
     def test_dialog_window_test_behaviour_title(self):
         # - validation
         # - reset values

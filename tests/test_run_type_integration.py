@@ -74,6 +74,8 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
             TextField('Some Parameter', 'param', default='Some default value')
         ])
 
+        connection = MM()
+
         def runner(self):
             datastore = MM()
             defaults = []
@@ -81,19 +83,21 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
                                                             'memory')]
 
             behaviour = Behaviour(option_map, defaults)
-            connection = Connection(host='hawk', user='s.mark.dawson')
 
             a = Run(
                 nodes=10,
                 memory=10000,
                 host=Host(behaviour, connection, datastore),
-                script='')
+                script='my_command')
 
         rt = RunType(runner, interface)
 
         button = qtest_helpers.get_button(rt.interface.dialog._button_box,
                                           'ok')
         qtest_helpers.button_callback(method=rt.create, button=button)
+
+        connection.put_file_content.assert_called_once_with(
+            'jobcard', '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n')
 
     @unittest.skip('expected failure')
     def test_dialog_window_test_behaviour(self):

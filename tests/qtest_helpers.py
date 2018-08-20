@@ -1,5 +1,11 @@
 import unittest
+from PySide2.QtCore import QTimer
 from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QPushButton
+
+##################################################################
+# QTestCase test base class                                      #
+##################################################################
 
 
 class QTestCase(unittest.TestCase):
@@ -18,6 +24,35 @@ class QTestCase(unittest.TestCase):
         '''assert that a list of Qt objects are all not visible. Arguments are a list of QWidgets to test'''
         self.assertNotIn(True, self.__visibility(widgets))
 
+
+##################################################################
+# Helper functions                                               #
+##################################################################
+
+
+def get_button(button_box, button_text):
+
+    buttons = [
+        button for button in button_box.children() if
+        type(button) is QPushButton and button_text in button.text().lower()
+    ]
+    button = buttons[0]
+
+    return button
+
+
+def button_callback(method, button):
+    def callback():
+        button.click()
+
+    QTimer.singleShot(20, callback)
+
+    method()
+
+
+##################################################################
+# QApplication                                                   #
+##################################################################
 
 # ensure app is instantiated only once (when package loaded initially)
 app = QApplication()

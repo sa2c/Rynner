@@ -1,10 +1,11 @@
 import unittest
 from unittest.mock import MagicMock as MM
 from unittest.mock import patch
+from PySide2.QtCore import QTimer
 from PySide2.QtTest import QTest
 import rynner
 from rynner.inputs import *
-from tests.qtest_helpers import QTestCase
+from tests.qtest_helpers import QTestCase, get_button, button_callback
 
 
 class TestTextInput(unittest.TestCase):
@@ -211,18 +212,27 @@ class InterfaceTestInput(QTestCase):
     def test_creates_and_shows_dialog(self):
         self.instance()
         self.assertNotQVisible(self.children_widgets())
-        self.interface.show()
-        self.assertQVisible(self.children_widgets())
 
-        assert self.interface.dialog.isVisible()
-        for child in self.children:
-            assert child.widget.isVisible()
+        def callback():
+            # widgets visible on show
+            self.assertQVisible(self.children_widgets())
+            assert self.interface.dialog.isVisible()
+
+            # widgets visible on show
+            self.interface.dialog.accept()
+
+            # dialog invisible after accept
+            assert not self.interface.dialog.isVisible()
+
+        QTimer.singleShot(10, callback)
+
+        self.interface.show()
 
     @patch('rynner.inputs.RunnerConfigDialog')
     def test_show_returns_the_output_of_dialog_show(self, MockConfigDialog):
         self.instance()
         accepted = self.interface.show()
-        dialog_exec_return = MockConfigDialog().open()
+        dialog_exec_return = MockConfigDialog().exec_()
         self.assertEqual(accepted, dialog_exec_return)
 
     def test_resets_children(self):
@@ -236,7 +246,8 @@ class InterfaceTestInput(QTestCase):
         for child in self.children:
             QTest.keyClicks(child.widget, " some text")
 
-        self.interface.show()
+        ok_button = get_button(self.interface.dialog._button_box, 'ok')
+        button_callback(method=self.interface.show, button=ok_button)
 
         values = self.interface.data()
 

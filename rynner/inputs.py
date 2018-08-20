@@ -18,9 +18,11 @@ class RunnerConfigDialog(QDialog):
         self.setWindowTitle(dialog_title)
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(widget)
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok
-                                   | QDialogButtonBox.Cancel)
-        self.layout().addWidget(buttons)
+        self._button_box = QDialogButtonBox(QDialogButtonBox.Ok
+                                            | QDialogButtonBox.Cancel)
+        self._button_box.accepted.connect(self.accept)
+        self._button_box.rejected.connect(self.reject)
+        self.layout().addWidget(self._button_box)
 
 
 class Interface:
@@ -56,7 +58,7 @@ class Interface:
         # reset values
         [child.init() for child in self.children]
 
-        accepted = self.dialog.open()
+        accepted = self.dialog.exec_()
 
         return accepted
 

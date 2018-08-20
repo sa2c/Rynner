@@ -12,6 +12,8 @@
 - implement sync, host, or maybe something in the action mechanism?
 #       self.host.sync(self.runid, self.downloads)
 - Rather than parsing script out, it makes sense to make script a positional argument (since it is mandatory)
+- Need to work out where the remote base path is computed??
+- Need to do some other stuff...
 * Template
 - doesn't really do anything - and not integration tested
 * Host
@@ -41,3 +43,12 @@ this could be useful, but could also be a source of errors if users forget to de
 - the fact that addWidget adds to layout isn't tested (only that it's a child of this parent)
 
 * Need way of testing files created easily
+* Michele Todo
+- scheduler data list
+- implement more BaseField subclasses
+- validation on BaseField 
+- integration testing with a particular app? integration testing including uploads?
+** Validation: 
+- valid() should return false if not valid
+- QValidation => integer, double, regex
+- change valid() to check with validator

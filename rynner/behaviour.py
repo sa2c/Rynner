@@ -7,14 +7,14 @@ class ScriptNotSpecifiedException(Exception):
 
 
 class Behaviour:
-    def __init__(self, option_map, defaults):
-        self.map = option_map
+    def __init__(self, parameter_map, submit_cmd, defaults):
+        self._map = parameter_map
 
     def parse(self, options):
         options = options.copy()
 
-        # create a new context, this will later get passed to the run method
-        context = []
+        # create a new context_options, this will later get passed to the run method
+        context_options = []
 
         # script is handled differently, it lives in a seperate key
         if 'script' in options.keys():
@@ -34,7 +34,7 @@ class Behaviour:
                     'invalid option(s): {}'.format(invalid_keys))
             curr_len = len(options.keys())
 
-            for option in self.map:
+            for option in self._map:
                 template = option[0]
                 keys = option[1]
 
@@ -53,7 +53,7 @@ class Behaviour:
                         out = template.format(*value_list)
 
                     # append formatted string to output
-                    context.append(out)
+                    context_options.append(out)
 
                     # remove consumed keys from dict to avoid repetition
                     for key in keys:
@@ -61,7 +61,8 @@ class Behaviour:
 
                     break
 
-        return {'options': context, 'script': script}
+        context = {'options': context_options, 'script': script}
 
     def run(self, connection, context):
         pass
+        return context

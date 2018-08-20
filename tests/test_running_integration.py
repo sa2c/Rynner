@@ -16,7 +16,7 @@ class TestBehaviour(unittest.TestCase):
             ('#FAKE --num-nodes={}', 'num_nodes'),
         ]
         defaults = MM()
-        self.behaviour = Behaviour(option_map, defaults)
+        self.behaviour = Behaviour(option_map, 'submit_cmd', defaults)
         self.connection = MM()
         self.datastore = MM()
         self.host = Host(self.behaviour, self.connection, self.datastore)

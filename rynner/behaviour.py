@@ -71,7 +71,7 @@ class Behaviour:
         lines = context['options'] + [context['script']]
 
         # build the jobcard as a string
-        jobcard = '\n'.join(lines)
+        jobcard = '\n'.join(lines) + '\n'
 
         # upload the jobcard to the cluster
         remote_jobcard = '/'.join([remote_path, 'jobcard'])

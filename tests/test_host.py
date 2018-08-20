@@ -158,8 +158,8 @@ class TestHost(unittest.TestCase):
     def test_run_handled_by_behaviour_method(self):
         self.instantiate()
         context = MM()
-        self.host.run(MM(), context)
-        self.mock_behaviour.run.assert_called_once_with(ANY, context)
+        self.host.run(1536, context)
+        self.mock_behaviour.run.assert_called_once_with(ANY, context, '1536')
 
     def test_type_handled_by_behaviour(self):
         self.instantiate()
@@ -175,10 +175,10 @@ class TestHost(unittest.TestCase):
     def test_run_passes_connection(self):
         self.instantiate()
         options = MM()
-        id = MM()
+        id = '9843759'
         self.host.run(id, options)
         self.mock_behaviour.run.assert_called_once_with(
-            self.mock_connection, options)
+            self.mock_connection, options, id)
 
     def test_stores_options_in_datastore(self):
         self.instantiate()

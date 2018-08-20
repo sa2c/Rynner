@@ -41,8 +41,12 @@ class Host:
         return context
 
     def run(self, id, context):
-        isrunning = self.behaviour.run(self.connection, context, remote_path)
+        isrunning = self.behaviour.run(self.connection, context,
+                                       self._remote_path(id))
         self.datastore.isrunning(id, isrunning)
+
+    def _remote_path(self, id):
+        return str(id)
 
     def type(self, string):
         return self.behaviour.type(string)

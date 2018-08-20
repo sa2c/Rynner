@@ -18,7 +18,7 @@ class TestRunTypeIntegration(QTestCase):
     def create_run_type(self):
         self.run_type = RunType(self.runner, self.interface)
 
-    def test_configure_and_run_empty_runner(self):
+    def test_show_config_window_for_empty_runner(self):
         self.create_run_type()
 
         self.assertNotQVisible(self.run_type.interface.dialog)
@@ -27,8 +27,21 @@ class TestRunTypeIntegration(QTestCase):
 
         self.assertQVisible(self.run_type.interface.dialog)
 
+    def test_run_empty_runner(self):
+        self.runner = MM()
+
+        self.create_run_type()
+
+        self.run_type.create()
+
+        ok_button = self.interface.dialog.children()[-1].children()[1]
+        ok_button.click()
+
+        self.runner.assert_called_once_with("ARGUMENTS")
+
     @unittest.skip('expected failure')
     def test_dialog_window_test_behaviour(self):
+        # interface can be accepted
         # - window title
         # - validation
         # - reset values

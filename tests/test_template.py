@@ -26,29 +26,29 @@ class TestTemplate(unittest.TestCase):
         assert isinstance(template, Template)
 
     def test_substitutes_values(self):
-        template = Template('this is my {{ var1 }}')
-        string = template.render({'var1': 'one'})
+        template = Template('this is my {var1}')
+        string = template.format({'var1': 'one'})
 
         self.assertEqual(string, 'this is my one')
 
     def test_fails_not_enough_options(self):
-        template = Template('this is my {{ var1 }} and {{ var2 }}')
+        template = Template('this is my {var1} and {var2}')
 
         with self.assertRaises(TemplateArgumentException):
-            string = template.render({'var1': 'one'})
+            string = template.format({'var1': 'one'})
 
     def test_fails_too_many_options(self):
-        template = Template('this is my {{ var1 }}')
+        template = Template('this is my {var1}')
 
         with self.assertRaises(TemplateArgumentException):
-            string = template.render({'var1': 'one', 'var2': 'two'})
+            string = template.format({'var1': 'one', 'var2': 'two'})
 
     def test_computes_keys(self):
-        template = Template('this is my {{ var1 }} and {{ var2 }}')
+        template = Template('this is my {var1} and {var2}')
         self.assertEqual(template.keys(), {'var1', 'var2'})
 
     def test_fails_invalid_options(self):
-        template = Template('this is my {{ var1 }}')
+        template = Template('this is my {var1}')
 
         with self.assertRaises(TemplateArgumentException):
-            template.render({'var1one', 'var2two'})
+            template.format({'var1one', 'var2two'})

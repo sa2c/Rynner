@@ -49,7 +49,7 @@ class TestBehaviour(unittest.TestCase):
             host=self.host,
             walltime='10:0:00',
             num_nodes=10,
-            script=Template('this is my {{ var }}').render({
+            script=Template('this is my {var}').format({
                 'var': 'script'
             }))
         context = {

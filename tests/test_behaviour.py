@@ -25,13 +25,13 @@ class TestBehaviour(unittest.TestCase):
 
     def test_behaviour_can_call_run(self):
         self.instantiate()
-        self.behaviour.run({}, {})
+        self.behaviour.run({'options': ['An Option'], 'script': 'command'}, {})
 
     def test_behaviour_single_string_opt_map_parsed(self):
         opt_map = [
             ('#FAKE --memory={}', 'memory'),
         ]
-        input = {'memory': 'MEMORY_VALUE'}
+        input = {'memory': 'MEMORY_VALUE', 'script': 'script'}
         output = [
             '#FAKE --memory=MEMORY_VALUE',
         ]
@@ -43,7 +43,11 @@ class TestBehaviour(unittest.TestCase):
             ('#FAKE --memory={}', 'memory'),
             ('#FAKE --cpus={}', 'cpus'),
         ]
-        input = {'memory': 'MEMORY_VALUE', 'cpus': 'CPU_VALUE'}
+        input = {
+            'memory': 'MEMORY_VALUE',
+            'cpus': 'CPU_VALUE',
+            'script': 'script'
+        }
         output = [
             '#FAKE --memory=MEMORY_VALUE',
             '#FAKE --cpus=CPU_VALUE',
@@ -57,7 +61,11 @@ class TestBehaviour(unittest.TestCase):
             ('#SHOULD SKIP ME', 'memory'),
             ('#FAKE --cpus={}', 'cpus'),
         ]
-        input = {'memory': 'MEMORY_VALUE', 'cpus': 'CPU_VALUE'}
+        input = {
+            'memory': 'MEMORY_VALUE',
+            'cpus': 'CPU_VALUE',
+            'script': 'script'
+        }
         output = [
             '#FAKE --memory=MEMORY_VALUE',
             '#FAKE --cpus=CPU_VALUE',
@@ -72,7 +80,11 @@ class TestBehaviour(unittest.TestCase):
             ('#FAKE --cpus={}', 'cpus'),
         ]
 
-        input = {'memory': 'MEMORY_VALUE', 'cpus': 'CPU_VALUE'}
+        input = {
+            'memory': 'MEMORY_VALUE',
+            'cpus': 'CPU_VALUE',
+            'script': 'script'
+        }
 
         output = ['#FAKE --memory=MEMORY_VALUE --cpus=CPU_VALUE']
 
@@ -86,7 +98,11 @@ class TestBehaviour(unittest.TestCase):
             ('#FAKE --cpus={}', 'another_variable'),
         ]
 
-        input = {'memory': 'MEMORY_VALUE', 'cpus': 'CPU_VALUE'}
+        input = {
+            'memory': 'MEMORY_VALUE',
+            'cpus': 'CPU_VALUE',
+            'script': 'script'
+        }
 
         output = ['#FAKE --memory=MEMORY_VALUE --cpus=CPU_VALUE']
 
@@ -102,7 +118,8 @@ class TestBehaviour(unittest.TestCase):
         input = {
             'memory': 'MEMORY_VALUE',
             'cpus': 'CPU_VALUE',
-            'another-var': 'ERROR!'
+            'another-var': 'ERROR!',
+            'script': 'script'
         }
 
         self.instantiate(opt_map)
@@ -122,6 +139,7 @@ class TestBehaviour(unittest.TestCase):
         input = {
             'memory': 'MEMORY_VALUE',
             'cpus': 'CPU_VALUE',
+            'script': 'script'
         }
 
         output = ['#FAKE --memory=CPU_VALUE --cpus=MEMORY_VALUE']
@@ -129,7 +147,7 @@ class TestBehaviour(unittest.TestCase):
         self.assert_parse(opt_map, input, output)
 
     def test_input_dict_untouched(self):
-        input = {'memory': 1, 'cpus': 1}
+        input = {'memory': 1, 'cpus': 1, 'script': 'script'}
         input_copy = input.copy()
         opt_map = [
             ('#FAKE --memory={}', 'memory'),
@@ -163,9 +181,14 @@ class TestBehaviour(unittest.TestCase):
 
         mock_mem, mock_cpu, mock_template = (MM(), MM(), MM())
 
-        input = {'memory': mock_mem, 'cpus': mock_cpu}
+        input = {'memory': mock_mem, 'cpus': mock_cpu, 'script': 'script'}
 
-        output = [{'function-return': [input, ('cpus', 'memory')]}]
+        output = [{
+            'function-return': [{
+                'memory': mock_mem,
+                'cpus': mock_cpu
+            }, ('cpus', 'memory')]
+        }]
 
         context = self.assert_parse(opt_map, input, output)
 

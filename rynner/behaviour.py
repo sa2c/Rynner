@@ -2,6 +2,10 @@ class InvalidContextOption(Exception):
     pass
 
 
+class ScriptNotSpecifiedException(Exception):
+    pass
+
+
 class Behaviour:
     def __init__(self, option_map, defaults):
         self.map = option_map
@@ -16,7 +20,8 @@ class Behaviour:
         if 'script' in options.keys():
             script = options.pop('script')
         else:
-            script = None
+            raise ScriptNotSpecifiedException(
+                "script key/argument is mandatory")
 
         curr_len = len(options.keys()) + 1
 
@@ -43,7 +48,6 @@ class Behaviour:
                     # format the template string using the list of keys (in order)
                     value_list = (options[key] for key in keys)
                     if callable(template):
-
                         out = template(options, keys)
                     else:
                         out = template.format(*value_list)

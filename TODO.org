@@ -11,6 +11,7 @@
 #       self.host.queue_downloads(self.runid, self.downloads)
 - implement sync, host, or maybe something in the action mechanism?
 #       self.host.sync(self.runid, self.downloads)
+- Rather than parsing script out, it makes sense to make script a positional argument (since it is mandatory)
 * Template
 - doesn't really do anything - and not integration tested
 * Host
@@ -19,6 +20,7 @@
 - how do I specify global files for upload/download?
 - implement download as: def download(id, downloads):
 - id is passed around a lot here for u/l and d/l, maybe there is another way?
+- would be nice if I could specify string as 'safdf {memory} sdfdsf {cpus}' - and the variables being out of order, would that mess with when it's order-based
 * General
 - move exceptions to their own file
 * Behaviour
@@ -28,6 +30,7 @@
 - "template" functions can't currently decide that it will defer keys to a later function,
 this could be useful, but could also be a source of errors if users forget to delete keys within the function
 - run method should return running state as a boolean (maybe?) (for datastore)
+- should I rename 'script' to 'command' ...?
 * Datastore
 - not implemented!
 * Connection

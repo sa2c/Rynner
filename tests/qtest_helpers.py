@@ -45,7 +45,7 @@ def button_callback(method, button):
     def callback():
         button.click()
 
-    QTimer.singleShot(20, callback)
+    QTimer.singleShot(10, callback)
 
     method()
 

@@ -25,7 +25,12 @@ class TestBehaviour(unittest.TestCase):
 
     def test_behaviour_can_call_run(self):
         self.instantiate()
-        self.behaviour.run({'options': ['An Option'], 'script': 'command'}, {})
+        connection = MM()
+        self.behaviour.run(
+            connection, {
+                'options': ['Some Option Result', 'Another Option Result'],
+                'script': 'command'
+            })
 
     def test_behaviour_single_string_opt_map_parsed(self):
         opt_map = [

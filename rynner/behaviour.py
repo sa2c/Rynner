@@ -9,6 +9,7 @@ class ScriptNotSpecifiedException(Exception):
 class Behaviour:
     def __init__(self, parameter_map, submit_cmd, defaults):
         self._map = parameter_map
+        self._submit_cmd = submit_cmd
 
     def parse(self, options):
         options = options.copy()
@@ -63,6 +64,17 @@ class Behaviour:
 
         context = {'options': context_options, 'script': script}
 
-    def run(self, connection, context):
-        pass
         return context
+
+    def run(self, connection, context, remote_path):
+        # collect a list of all the lines in the resultant jobcard
+        lines = context['options'] + [context['script']]
+
+        # build the jobcard as a string
+        jobcard = '\n'.join(lines)
+
+        # upload the jobcard to the cluster
+        remote_jobcard = '/'.join([remote_path, 'jobcard'])
+        connection.put_file_content(remote_jobcard, jobcard)
+
+        connection.run_command(self._submit_cmd, pwd=remote_path)

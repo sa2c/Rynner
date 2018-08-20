@@ -6,15 +6,21 @@ from rynner.behaviour import *
 class TestBehaviour(unittest.TestCase):
     def setUp(self):
         self.mock_conn = MM()
+        self.submit_cmd = 'some_submission_cmd'
 
     def instantiate(self, opt_map=None):
         self.opt_map = MM()
         if opt_map is not None:
             self.opt_map = opt_map
+
         self.defaults = MM()
-        self.behaviour = Behaviour(self.opt_map, self.defaults)
+        self.behaviour = Behaviour(self.opt_map, self.submit_cmd,
+                                   self.defaults)
 
     def assert_parse(self, opt_map, input, output):
+        '''
+        assert that passing input results in output (expected), for a given opt_map
+        '''
         self.instantiate(opt_map)
         context = self.behaviour.parse(input)
         self.assertEqual(context['options'], output)
@@ -30,7 +36,7 @@ class TestBehaviour(unittest.TestCase):
             connection, {
                 'options': ['Some Option Result', 'Another Option Result'],
                 'script': 'command'
-            })
+            }, '/some/remote/path')
 
     def test_behaviour_single_string_opt_map_parsed(self):
         opt_map = [
@@ -199,6 +205,29 @@ class TestBehaviour(unittest.TestCase):
 
     @unittest.skip("classes as cluster config not implemented yet")
     def test_with_class(self):
+        pass
+
+    def test_run_method_calls_connection(self):
+        self.instantiate()
+        connection = MM()
+        context = {'options': ['one', 'two', 'three'], 'script': 'four'}
+        self.behaviour.run(connection, context, '/some/remote/path')
+        connection.put_file_content('/some/remote/path/jobcard',
+                                    'one\ntwo\nthree\nfour\n')
+
+    def test_run_calls_submit(self):
+        self.instantiate()
+        connection = MM()
+        context = {'options': ['one', 'two', 'three'], 'script': 'four'}
+        self.behaviour.run(connection, context, '/some/remote/path')
+        connection.run_command.assert_called_once_with(
+            'some_submission_cmd', pwd='/some/remote/path')
+
+    @unittest.skip("not impletemented yet by default")
+    def test_uses_defaults(self):
+        '''
+        defaults passed to __init__ should be used if nothing provided
+        '''
         pass
 
 

@@ -110,6 +110,10 @@ class TestRun(unittest.TestCase):
 
         assert 'no __rynner_value__ method' in str(context.exception)
 
+    def test_throws_exception(self):
+        with self.assertRaises(InvalidHostSpecifiedException):
+            run = Run(host='InvalidHost')
+
 
 if __name__ == '__main__':
     unittest.main()

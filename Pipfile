@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 fabric = "*"
 paramiko = "*"
-pystache = "*"
 "pyside2" = "*"
 nose = "*"
 ipython = "*"

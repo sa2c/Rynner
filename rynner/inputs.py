@@ -1,4 +1,5 @@
 import sys
+from abc import ABC, abstractmethod
 from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox
 from PySide2.QtCore import QSize, Signal
 
@@ -69,7 +70,7 @@ class Interface:
         return [child for child in self.children if not child.valid()]
 
 
-class TextInput:
+class BaseField(ABC):
     def __init__(self, key, label, default=None, remember=True):
 
         self.__default_value = default
@@ -78,16 +79,22 @@ class TextInput:
         # public attributes
         self.key = key
         self.label = QLabel(label)
-        self.widget = QLineEdit()
+        self.widget = self._widget()
 
         # initialise with default value
         self.set_value(self.__default_value)
 
-    def value(self):
-        return self.widget.text()
+    @abstractmethod
+    def _widget(self):
+        pass
 
+    @abstractmethod
+    def value(self):
+        pass
+
+    @abstractmethod
     def set_value(self, value):
-        return self.widget.setText(value)
+        pass
 
     def init(self):
         if not self.__remember:
@@ -98,3 +105,22 @@ class TextInput:
 
     def valid(self):
         return True
+
+
+class TextField(BaseField):
+    def _widget(self):
+        return QLineEdit()
+
+    def value(self):
+        return self.widget.text()
+
+    def set_value(self, value):
+        self.widget.setText(value)
+
+
+class NumericField(TextField):
+    def value(self):
+        pass
+
+    def set_value(self, value):
+        pass

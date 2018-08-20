@@ -2,7 +2,7 @@ import unittest
 from PySide2.QtCore import QTimer
 from unittest.mock import MagicMock as MM
 from rynner.run_type import RunType, RunAction
-from rynner.inputs import Interface, TextInput, RunnerConfigDialog
+from rynner.inputs import Interface, TextField, RunnerConfigDialog
 from tests import qtest_helpers
 from rynner.run import Run, HostNotSpecifiedException
 from rynner.host import Host, Connection
@@ -13,8 +13,8 @@ from PySide2.QtTest import QTest
 class TestRunTypeIntegration(qtest_helpers.QTestCase):
     def setUp(self):
         self.interface = Interface([
-            TextInput('key', 'My Label', default="My Default"),
-            TextInput(
+            TextField('key', 'My Label', default="My Default"),
+            TextField(
                 'another_key', 'My Other Label', default="My Other Default"),
         ])
         self.runner = lambda data: None
@@ -71,7 +71,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
 
     def test_throws_error_without_host(self):
         interface = Interface([
-            TextInput('Some Parameter', 'param', default='Some default value')
+            TextField('Some Parameter', 'param', default='Some default value')
         ])
 
         def runner(self):

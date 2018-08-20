@@ -58,6 +58,23 @@ class TestConnection(unittest.TestCase):
         self.connection.get_file(remote, local)
         self.FabricMock().get.assert_called_once_with(remote, local)
 
+    def test_put_content(self):
+        self.connection.put_file_content('/my/remote/path', 'content')
+
+        # get method that is called
+        callee = self.FabricMock().put
+
+        # method only called once
+        callee.assert_called_once()
+
+        # check arguments
+        call_args_list = callee.call_args_list
+        args, kwargs = call_args_list[0]
+        content, remote_path = args
+        content = content.getvalue()
+        self.assertEqual(content, 'content')
+        self.assertEqual(remote_path, '/my/remote/path')
+
 
 class TestHost(unittest.TestCase):
     def setUp(self):

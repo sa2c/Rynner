@@ -1,4 +1,5 @@
 import fabric
+import io
 from rynner.behaviour import InvalidContextOption
 
 
@@ -18,7 +19,7 @@ class Connection():
         self.conn.get(remote_path, local_path)
 
     def put_file_content(self, remote_path, content):
-        raise NotImplementedError()
+        self.conn.put(io.StringIO(content), remote_path)
 
 
 class Host:

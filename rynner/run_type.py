@@ -19,11 +19,10 @@ class RunType:
         self.__actions = []
 
     def create(self):
-        # display configuration
+        # display configuration window
         accepted = self.interface.show()
 
-        if accepted and self.interface.valid():
-            #if self.interface.valid_input():
+        if accepted and len(self.interface.invalid()) == 0:
             data = self.interface.data()
 
             # TODO : what about host? This should be part of the dict as well?

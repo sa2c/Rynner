@@ -1,6 +1,5 @@
-import pystache
+from string import Formatter
 
-renderer = pystache.Renderer()
 
 
 class TemplateArgumentException(Exception):
@@ -15,9 +14,9 @@ class Template:
         return Template(content)
 
     def __init__(self, template_string):
-        self.parsed = pystache.parse(template_string)
+        self.template_string = template_string
 
-    def render(self, args):
+    def format(self, args):
         try:
             argset = set(args.keys())
         except:
@@ -25,10 +24,10 @@ class Template:
                 'invalid type of template arguments')
 
         if argset == self.keys():
-            return renderer.render(self.parsed, args)
+            return self.template_string.format(**args)
         else:
             raise TemplateArgumentException(
                 f'template arguments do not match {self.keys()} != {argset}')
 
     def keys(self):
-        return {s.key for s in self.parsed._parse_tree if type(s) != str}
+        return {i[1] for i in Formatter().parse(self.template_string)}

@@ -23,6 +23,10 @@ class Run:
             for k in data.keys() if k not in self.key_filter
         }
 
+        if not hasattr(options['host'], 'parse'):
+            raise InvalidHostSpecifiedException(
+                'The object specified by host key should have a parse method')
+
         context = options['host'].parse(self.id, host_dict)
 
         if 'uploads' in data.keys():
@@ -46,4 +50,8 @@ class UnconvertableOptionType(AttributeError):
 
 
 class HostNotSpecifiedException(AttributeError):
+    pass
+
+
+class InvalidHostSpecifiedException(AttributeError):
     pass

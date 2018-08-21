@@ -26,7 +26,7 @@ class TestBehaviour(unittest.TestCase):
 
     def test_instantiate_run(self):
         self.instantiate()
-        run = Run(host=self.host, walltime='10:0:00')
+        run = Run(host=self.host, walltime='10:0:00', script='my_script')
 
     def test_instantiate_run_with_walltime(self):
         self.instantiate()
@@ -49,7 +49,7 @@ class TestBehaviour(unittest.TestCase):
             host=self.host,
             walltime='10:0:00',
             num_nodes=10,
-            script=Template('this is my {{ var }}').render({
+            script=Template('this is my {var}').format({
                 'var': 'script'
             }))
         context = {
@@ -75,12 +75,14 @@ class TestBehaviour(unittest.TestCase):
         self.instantiate()
         self.host.run = MM()
         with self.assertRaises(InvalidContextOption):
-            run = Run(host=self.host, uploads=['throw an error'])
+            run = Run(
+                host=self.host, script='my_script', uploads=['throw an error'])
 
     def test_uploads_correct_format(self):
         self.instantiate()
         self.host.run = MM()
-        run = Run(host=self.host, uploads=[('local', 'remote')])
+        run = Run(
+            host=self.host, script='my_script', uploads=[('local', 'remote')])
         self.connection.put_file.assert_called_once_with('local', 'remote')
 
     @unittest.skip("running not implemented yet")

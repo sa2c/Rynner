@@ -1,49 +1,53 @@
 import unittest
 from unittest.mock import MagicMock as MM
 from unittest.mock import patch
+from PySide2.QtCore import QTimer
 from PySide2.QtTest import QTest
 import rynner
 from rynner.inputs import *
-from tests.qtest_helpers import QTestCase
+from tests.qtest_helpers import QTestCase, get_button, button_callback
 
 
-class TestTextInput(unittest.TestCase):
+class ConcreteField(BaseField):
+    def __init__(self, key, label, default=None, remember=True):
+        super().__init__(key, label, default=default, remember=remember)
+        self.__value = default
+
+    def _widget(self):
+        return QWidget()
+
+    def value(self):
+        return self.__value
+
+    def set_value(self, value):
+        self.__value = value
+
+
+class TestBaseField(unittest.TestCase):
     def setUp(self):
         pass
 
     def instance(self, **kwargs):
-        self.input = TextInput('key', 'Label', **kwargs)
-
-    def type_text(self, text):
-        QTest.keyClicks(self.input.widget, text)
+        self.input = ConcreteField('key', 'Label', **kwargs)
 
     def test_instance(self):
         self.instance()
 
-    def test_can_type_text(self):
-        self.instance()
-        self.type_text("some input")
-
-    def test_value_method_return_text(self):
-        self.instance()
-        self.type_text("some input")
-        self.assertEqual(self.input.value(), "some input")
-
     def test_show_qwidget(self):
-        input = TextInput('key', 'label')
+        input = ConcreteField('key', 'label')
         input.init()
 
     def test_has_adds_widgets_as_child(self):
-        input = TextInput('key', 'label')
+        input = ConcreteField('key', 'label')
 
-        self.assertIsInstance(input.widget, QLineEdit)
+        self.assertIsInstance(input.widget, QWidget)
 
     def test_sets_default_text_in_text_edit(self):
-        input = TextInput('key', 'label', default='default string')
+        input = ConcreteField('key', 'label', default='default string')
         self.assertEqual(input.value(), 'default string')
 
     def test_label_contains_text(self):
-        input = TextInput('key', 'My label')
+        input = ConcreteField('key', 'My label')
 
         self.assertEqual(input.label.text(), "My label")
         self.assertIsInstance(input.label, QLabel)
@@ -52,45 +56,8 @@ class TestTextInput(unittest.TestCase):
     def test_label_added_to_layout(self):
         pass
 
-    def test_reset_leaves_value_by_default(self):
-        input = TextInput('key', 'My label')
-        input.init()
-
-        QTest.keyClicks(input.widget, "My Input Text")
-
-        self.assertEqual(input.value(), "My Input Text")
-
-        input.init()
-
-        self.assertEqual(input.value(), "My Input Text")
-
     def test_uses_default_as_initial(self):
-        input = TextInput('key', 'My label', default="default value")
-
-        input.init()
-
-        self.assertEqual(input.value(), "default value")
-
-    def test_no_reset_as_default(self):
-        input = TextInput('key', 'My label', default="default value")
-
-        QTest.keyClicks(input.widget, " and some more text")
-
-        value = input.value()
-        self.assertNotEqual(input.value(), "default value")
-
-        input.init()
-
-        # input value remains the same on calls to init
-        self.assertEqual(input.value(), value)
-
-    def test_resets_if_reset_true(self):
-        input = TextInput(
-            'key', 'My label', default="default value", remember=False)
-
-        QTest.keyClicks(input.widget, " and some more text")
-
-        self.assertNotEqual(input.value(), "default value")
+        input = ConcreteField('key', 'My label', default="default value")
 
         input.init()
 
@@ -98,12 +65,12 @@ class TestTextInput(unittest.TestCase):
 
     def test_stores_key(self):
         mock_key = MM()
-        input = TextInput(mock_key, 'label')
+        input = ConcreteField(mock_key, 'label')
 
         self.assertEqual(input.key, mock_key)
 
     def test_cli_asks_for_input(self):
-        input = TextInput('key', 'Test Label')
+        input = ConcreteField('key', 'Test Label')
 
         input_data = "Test Input Data"
 
@@ -114,12 +81,12 @@ class TestTextInput(unittest.TestCase):
 
     @patch('rynner.inputs.input')
     def test_cli_correct_label(self, mock_input):
-        input = TextInput('key', 'Test Label')
+        input = ConcreteField('key', 'Test Label')
 
         value = input.cli()
         mock_input.assert_called_once_with('Test Label')
 
-    def test_default_TextInput_is_valid(self):
+    def test_default_BaseField_is_valid(self):
         self.instance()
         self.assertTrue(self.input.valid())
 
@@ -127,9 +94,9 @@ class TestTextInput(unittest.TestCase):
 class InterfaceTestInput(QTestCase):
     def setUp(self):
         self.children = [
-            TextInput('key1', 'My label 1', default="My Value 1"),
-            TextInput('key2', 'My label 2', default="My Value 2"),
-            TextInput('key3', 'My label 3', default="My Value 3")
+            TextField('key1', 'My label 1', default="My Value 1"),
+            TextField('key2', 'My label 2', default="My Value 2"),
+            TextField('key3', 'My label 3', default="My Value 3")
         ]
 
     def children_widgets(self):
@@ -159,7 +126,7 @@ class InterfaceTestInput(QTestCase):
 
         first = self.children[0]
 
-        self.children.append(TextInput(first.key, first.label))
+        self.children.append(TextField(first.key, first.label))
 
         with self.assertRaises(DuplicateKeyException) as context:
             self.instance()
@@ -186,8 +153,8 @@ class InterfaceTestInput(QTestCase):
 
     def test_data_returns_data_from_children(self):
         self.children = [
-            TextInput('key1', 'Label', default='default1'),
-            TextInput('key2', 'Label', default='default2')
+            TextField('key1', 'Label', default='default1'),
+            TextField('key2', 'Label', default='default2')
         ]
         self.instance()
         self.assertEqual(self.interface.data(), {
@@ -211,23 +178,32 @@ class InterfaceTestInput(QTestCase):
     def test_creates_and_shows_dialog(self):
         self.instance()
         self.assertNotQVisible(self.children_widgets())
-        self.interface.show()
-        self.assertQVisible(self.children_widgets())
 
-        assert self.interface.dialog.isVisible()
-        for child in self.children:
-            assert child.widget.isVisible()
+        def callback():
+            # widgets visible on show
+            self.assertQVisible(self.children_widgets())
+            assert self.interface.dialog.isVisible()
+
+            # widgets visible on show
+            self.interface.dialog.accept()
+
+            # dialog invisible after accept
+            assert not self.interface.dialog.isVisible()
+
+        QTimer.singleShot(10, callback)
+
+        self.interface.show()
 
     @patch('rynner.inputs.RunnerConfigDialog')
     def test_show_returns_the_output_of_dialog_show(self, MockConfigDialog):
         self.instance()
         accepted = self.interface.show()
-        dialog_exec_return = MockConfigDialog().open()
+        dialog_exec_return = MockConfigDialog().exec_()
         self.assertEqual(accepted, dialog_exec_return)
 
     def test_resets_children(self):
-        input1 = TextInput("key1", "label", default="default", remember=False)
-        input2 = TextInput("key2", "label", default="default", remember=True)
+        input1 = TextField("key1", "label", default="default", remember=False)
+        input2 = TextField("key2", "label", default="default", remember=True)
 
         self.children = [input1, input2]
         self.instance()
@@ -236,7 +212,8 @@ class InterfaceTestInput(QTestCase):
         for child in self.children:
             QTest.keyClicks(child.widget, " some text")
 
-        self.interface.show()
+        ok_button = get_button(self.interface.dialog._button_box, 'ok')
+        button_callback(method=self.interface.show, button=ok_button)
 
         values = self.interface.data()
 
@@ -284,7 +261,7 @@ class TestRunnerConfigDialogClass(unittest.TestCase):
         self.assertEqual(self.widget.parent(), self.dialog)
 
     def test_shows_dialog_with_title(self):
-        input = TextInput("key", "label")
+        input = TextField("key", "label")
         dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget)
         self.assertFalse(input.widget.isVisible())
         dialog.show()
@@ -292,7 +269,7 @@ class TestRunnerConfigDialogClass(unittest.TestCase):
         self.assertEqual(dialog.windowTitle(), "MY WINDOW TITLE")
 
     def test_shows_dialog_twice(self):
-        input = TextInput("key", "label")
+        input = TextField("key", "label")
         dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget)
 
         # Show once
@@ -308,3 +285,75 @@ class TestRunnerConfigDialogClass(unittest.TestCase):
         self.assertTrue(input.widget.isVisible())
         dialog.close()
         self.assertFalse(input.widget.isVisible())
+
+
+class TestTextField(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def instance(self, **kwargs):
+        self.input = TextField('key', 'Label', **kwargs)
+
+    def type_text(self, text):
+        QTest.keyClicks(self.input.widget, text)
+
+    def test_can_type_text(self):
+        self.instance()
+        self.type_text("some input")
+
+    def test_value_method_return_text(self):
+        self.instance()
+        self.type_text("some input")
+        self.assertEqual(self.input.value(), "some input")
+
+    def test_reset_leaves_value_by_default(self):
+        input = TextField('key', 'My label')
+        input.init()
+
+        QTest.keyClicks(input.widget, "My Input Text")
+
+        self.assertEqual(input.value(), "My Input Text")
+
+        input.init()
+
+        self.assertEqual(input.value(), "My Input Text")
+
+    def test_no_reset_as_default(self):
+        input = TextField('key', 'My label', default="default value")
+
+        QTest.keyClicks(input.widget, " and some more text")
+
+        value = input.value()
+        self.assertNotEqual(input.value(), "default value")
+
+        input.init()
+
+        # input value remains the same on calls to init
+        self.assertEqual(input.value(), value)
+
+    def test_resets_if_reset_true(self):
+        input = TextField(
+            'key', 'My label', default="default value", remember=False)
+
+        QTest.keyClicks(input.widget, " and some more text")
+
+        self.assertNotEqual(input.value(), "default value")
+
+        input.init()
+
+        self.assertEqual(input.value(), "default value")
+
+
+class TestNumericField(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def instance(self, **kwargs):
+        self.input = NumericField('key', 'Label', **kwargs)
+
+    def test_instance(self):
+        self.instance()
+
+    def test_widget_should_return_text_field(self):
+        self.instance()
+        self.assertIsInstance(self.input.widget, QLineEdit)

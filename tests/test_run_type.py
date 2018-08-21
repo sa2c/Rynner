@@ -62,7 +62,7 @@ class TestRunType(unittest.TestCase):
     def test_call_runner_if_interface_valid_and_accepted(self):
         # runner is called on create when interface is valid
         self.interface.valid.return_value = True
-        self.interface. exec .return_value = True
+        self.interface.exec.return_value = True
         self.instance()
         self.run_type.create()
         self.assertTrue(self.runner.called)

@@ -2,8 +2,10 @@ import pystache
 
 renderer = pystache.Renderer()
 
+
 class TemplateArgumentException(Exception):
     pass
+
 
 class Template:
     @classmethod
@@ -19,7 +21,8 @@ class Template:
         try:
             argset = set(args.keys())
         except:
-            raise TemplateArgumentException('invalid type of template arguments')
+            raise TemplateArgumentException(
+                'invalid type of template arguments')
 
         if argset == self.keys():
             return renderer.render(self.parsed, args)

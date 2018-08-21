@@ -3,6 +3,11 @@ class InvalidContextOption(Exception):
 
 
 class Behaviour:
+    '''
+    This models a scheduler (slurm, pbs, lsf,...)
+    The information about how the scheduler works is stored in a 'option_map' object,
+
+    '''
     def __init__(self, option_map, defaults):
         self.map = option_map
 
@@ -30,8 +35,7 @@ class Behaviour:
             curr_len = len(options.keys())
 
             for option in self.map:
-                template = option[0]
-                keys = option[1]
+                template, keys = option
 
                 # handle both single strings and tuples of strings
                 # as tuples of strings
@@ -56,8 +60,11 @@ class Behaviour:
                         del options[key]
 
                     break
-
+-
         return {'options': context, 'script': script}
 
     def run(self, connection, context):
+        '''
+        takes connections and context, create jobcard from context and submit it.
+        '''
         pass

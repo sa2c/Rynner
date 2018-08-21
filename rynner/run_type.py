@@ -5,6 +5,14 @@ class RunAction:
 
 
 class RunType:
+    '''
+
+    The runner object (function) it the thing that is responsible for running
+    the job, usually by creating a Run object.
+    Links the GUI/UI and the 'run' logic.
+    (see design.org example?)
+    '''
+
     def __init__(self, runner, interface):
         self.runner = runner
         self.interface = interface

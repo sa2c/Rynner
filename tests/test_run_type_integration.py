@@ -18,9 +18,12 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
                 'another_key', 'My Other Label', default="My Other Default"),
         ])
         self.runner = lambda data: None
+        self.domain = 'swansea.ac.uk'
+        self.type_name = 'My Run Type'
 
-    def instance_run_type(self):
-        self.run_type = RunType(self.runner, self.interface)
+    def instance(self):
+        self.run_type = RunType(self.domain, self.type_name, self.interface,
+                                self.runner)
         button_box = self.run_type.interface.dialog._button_box
         self.ok_button = qtest_helpers.get_button(button_box, 'ok')
         self.cancel_button = qtest_helpers.get_button(button_box, 'cancel')
@@ -29,7 +32,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
         '''
         show the dialog box on run_type.create, hide on click OK
         '''
-        self.instance_run_type()
+        self.instance()
 
         self.assertNotQVisible(self.run_type.interface.dialog)
 
@@ -46,7 +49,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
         '''
         show the dialog box on run_type.create, hide on click cancel
         '''
-        self.instance_run_type()
+        self.instance()
 
         def call_create():
             self.assertQVisible(self.run_type.interface.dialog)
@@ -59,7 +62,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
 
     def test_run_empty_runner(self):
         self.runner = MM()
-        self.instance_run_type()
+        self.instance()
 
         qtest_helpers.button_callback(
             method=self.run_type.create, button=self.ok_button)
@@ -95,7 +98,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
 
             job_id.append(a.id)
 
-        rt = RunType(runner, interface)
+        rt = RunType(self.domain, self.type_name, interface, runner)
 
         button = qtest_helpers.get_button(rt.interface.dialog._button_box,
                                           'ok')
@@ -104,8 +107,10 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
         job_id = job_id[0]
 
         connection.put_file_content.assert_called_once_with(
-            f'{job_id}/jobcard', '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n')
-        connection.run_command.assert_called_once_with('submit_cmd', pwd=f'{job_id}')
+            f'{job_id}/jobcard',
+            '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n')
+        connection.run_command.assert_called_once_with(
+            'submit_cmd', pwd=f'{job_id}')
 
     @unittest.skip('expected failure')
     def test_dialog_window_test_behaviour(self):

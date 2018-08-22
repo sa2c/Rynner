@@ -101,3 +101,13 @@ class TestRunType(unittest.TestCase):
         run_type.create()
 
         MockRun.assert_called_once_with(my='test', data='dict')
+
+    def test_set_params(self):
+        params = MM()
+        run_type = RunType(
+            self.domain, self.name, self.interface, params=params)
+        self.assertEqual(params, run_type.params)
+
+    def test_set_params_default(self):
+        run_type = RunType(self.domain, self.name, self.interface)
+        self.assertEqual(run_type.params, RunType.default_params)

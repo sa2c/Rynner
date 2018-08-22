@@ -8,12 +8,20 @@ class RunAction:
 
 
 class RunType:
-    def __init__(self, domain, name, interface, runner=None):
+    default_params = ["id"]
+
+    def __init__(self, domain, name, interface, runner=None, params=None):
         self.name = name
         self.domain = domain
         self.interface = interface
         self.__actions = []
         self.runner = runner
+
+        # set params to input, if specified otherwise set to default params
+        if params is None:
+            self.params = self.default_params
+        else:
+            self.params = params
 
     def create(self):
         # display configuration window

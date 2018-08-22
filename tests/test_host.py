@@ -195,6 +195,24 @@ class TestHost(unittest.TestCase):
         self.mock_datastore.isrunning.assert_called_once_with(
             id, self.mock_behaviour.run())
 
+    def test_jobs_returns_jobs_from_datastore(self):
+        self.instantiate()
+        run_type = MM()
+        self.assertFalse(self.mock_datastore.jobs.called)
+        self.host.jobs(run_type)
+        self.mock_datastore.jobs.assert_called_once_with(type=run_type)
+
+    def test_jobs_calls_datastore_with_none_by_default(self):
+        self.instantiate()
+        self.assertFalse(self.mock_datastore.jobs.called)
+        self.host.jobs()
+        self.mock_datastore.jobs.assert_called_once_with(type=None)
+
+    def test_jobs_returns_datastore_result(self):
+        self.instantiate()
+        ret = self.host.jobs()
+        self.assertEqual(ret, self.mock_datastore.jobs())
+
 
 if __name__ == '__main__':
     unittest.main()

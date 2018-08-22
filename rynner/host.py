@@ -50,3 +50,6 @@ class Host:
 
     def type(self, string):
         return self.behaviour.type(string)
+
+    def jobs(self, run_type=None):
+        return self.datastore.jobs(type=run_type)

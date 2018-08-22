@@ -220,6 +220,11 @@ class TestHost(unittest.TestCase):
         self.mock_datastore.update.assert_called_once_with(
             run_type=mock_run_type)
 
+    def test_sets_connection_on_datastore(self):
+        self.instantiate()
+        self.mock_datastore.set_connection.assert_called_once_with(
+            self.mock_connection)
+
 
 if __name__ == '__main__':
     unittest.main()

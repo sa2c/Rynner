@@ -76,13 +76,16 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
 
         connection = MM()
 
+        # job_id is a hack to get the run id out of the runner function
+        job_id = []
+
         def runner(self):
             datastore = MM()
             defaults = []
             option_map = [('#FAKE num_nodes={}', 'nodes'), ('#FAKE memory={}',
                                                             'memory')]
 
-            behaviour = Behaviour(option_map, defaults)
+            behaviour = Behaviour(option_map, 'submit_cmd', defaults)
 
             a = Run(
                 nodes=10,
@@ -90,14 +93,19 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
                 host=Host(behaviour, connection, datastore),
                 script='my_command')
 
+            job_id.append(a.id)
+
         rt = RunType(runner, interface)
 
         button = qtest_helpers.get_button(rt.interface.dialog._button_box,
                                           'ok')
         qtest_helpers.button_callback(method=rt.create, button=button)
 
+        job_id = job_id[0]
+
         connection.put_file_content.assert_called_once_with(
-            'jobcard', '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n')
+            f'{job_id}/jobcard', '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n')
+        connection.run_command.assert_called_once_with('submit_cmd', pwd=f'{job_id}')
 
     @unittest.skip('expected failure')
     def test_dialog_window_test_behaviour(self):

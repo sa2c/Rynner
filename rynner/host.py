@@ -1,4 +1,5 @@
 import fabric
+import io
 from rynner.behaviour import InvalidContextOption
 
 
@@ -22,7 +23,7 @@ class Connection():
         self.conn.get(remote_path, local_path)
 
     def put_file_content(self, remote_path, content):
-        raise NotImplementedError()
+        self.conn.put(io.StringIO(content), remote_path)
 
 
 class Host:
@@ -62,14 +63,18 @@ class Host:
         return context
 
     def run(self, id, context):
-        '''
-        sefl expl.
-        '''
-        isrunning = self.behaviour.run(self.connection, context)
+        isrunning = self.behaviour.run(self.connection, context,
+                                       self._remote_path(id))
         self.datastore.isrunning(id, isrunning)
+
+    def _remote_path(self, id):
+        return str(id)
 
     def type(self, string):
         '''
         Ask behaviour for type and return it.
         '''
         return self.behaviour.type(string)
+
+    def jobs(self, run_type=None):
+        return self.datastore.jobs(type=run_type)

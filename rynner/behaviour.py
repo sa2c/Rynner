@@ -12,14 +12,16 @@ class Behaviour:
     The information about how the scheduler works is stored in a 'option_map' object,
 
     '''
-    def __init__(self, option_map, defaults):
-        self.map = option_map
+
+    def __init__(self, parameter_map, submit_cmd, defaults):
+        self._map = parameter_map
+        self._submit_cmd = submit_cmd
 
     def parse(self, options):
         options = options.copy()
 
-        # create a new context, this will later get passed to the run method
-        context = []
+        # create a new context_options, this will later get passed to the run method
+        context_options = []
 
         # script is handled differently, it lives in a seperate key
         if 'script' in options.keys():
@@ -39,8 +41,9 @@ class Behaviour:
                     'invalid option(s): {}'.format(invalid_keys))
             curr_len = len(options.keys())
 
-            for option in self.map:
-                template, keys = option
+            for option in self._map:
+                template = option[0]
+                keys = option[1]
 
                 # handle both single strings and tuples of strings
                 # as tuples of strings
@@ -57,18 +60,27 @@ class Behaviour:
                         out = template.format(*value_list)
 
                     # append formatted string to output
-                    context.append(out)
+                    context_options.append(out)
 
                     # remove consumed keys from dict to avoid repetition
                     for key in keys:
                         del options[key]
 
                     break
--
-        return {'options': context, 'script': script}
 
-    def run(self, connection, context):
-        '''
-        takes connections and context, create jobcard from context and submit it.
-        '''
-        pass
+        context = {'options': context_options, 'script': script}
+
+        return context
+
+    def run(self, connection, context, remote_path):
+        # collect a list of all the lines in the resultant jobcard
+        lines = context['options'] + [context['script']]
+
+        # build the jobcard as a string
+        jobcard = '\n'.join(lines) + '\n'
+
+        # upload the jobcard to the cluster
+        remote_jobcard = '/'.join([remote_path, 'jobcard'])
+        connection.put_file_content(remote_jobcard, jobcard)
+
+        connection.run_command(self._submit_cmd, pwd=remote_path)

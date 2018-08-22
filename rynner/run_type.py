@@ -1,3 +1,6 @@
+from rynner.run import Run
+
+
 class RunAction:
     def __init__(self, label, function):
         self.label = label
@@ -6,17 +9,18 @@ class RunAction:
 
 class RunType:
     '''
-
     The runner object (function) it the thing that is responsible for running
     the job, usually by creating a Run object.
     Links the GUI/UI and the 'run' logic.
     (see design.org example?)
     '''
 
-    def __init__(self, runner, interface):
-        self.runner = runner
+    def __init__(self, domain, name, interface, runner=None):
+        self.name = name
+        self.domain = domain
         self.interface = interface
         self.__actions = []
+        self.runner = runner
 
     def create(self):
         # display configuration window
@@ -25,8 +29,10 @@ class RunType:
         if accepted and len(self.interface.invalid()) == 0:
             data = self.interface.data()
 
-            # TODO : what about host? This should be part of the dict as well?
-            self.runner(data)
+            if self.runner is None:
+                run = Run(**data)
+            else:
+                self.runner(data)
 
     def add_action(self, label, function):
         action = RunAction(label, function)

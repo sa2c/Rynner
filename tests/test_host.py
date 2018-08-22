@@ -58,6 +58,23 @@ class TestConnection(unittest.TestCase):
         self.connection.get_file(remote, local)
         self.FabricMock().get.assert_called_once_with(remote, local)
 
+    def test_put_content(self):
+        self.connection.put_file_content('/my/remote/path', 'content')
+
+        # get method that is called
+        callee = self.FabricMock().put
+
+        # method only called once
+        callee.assert_called_once()
+
+        # check arguments
+        call_args_list = callee.call_args_list
+        args, kwargs = call_args_list[0]
+        content, remote_path = args
+        content = content.getvalue()
+        self.assertEqual(content, 'content')
+        self.assertEqual(remote_path, '/my/remote/path')
+
 
 class TestHost(unittest.TestCase):
     def setUp(self):
@@ -141,8 +158,8 @@ class TestHost(unittest.TestCase):
     def test_run_handled_by_behaviour_method(self):
         self.instantiate()
         context = MM()
-        self.host.run(MM(), context)
-        self.mock_behaviour.run.assert_called_once_with(ANY, context)
+        self.host.run(1536, context)
+        self.mock_behaviour.run.assert_called_once_with(ANY, context, '1536')
 
     def test_type_handled_by_behaviour(self):
         self.instantiate()
@@ -158,10 +175,10 @@ class TestHost(unittest.TestCase):
     def test_run_passes_connection(self):
         self.instantiate()
         options = MM()
-        id = MM()
+        id = '9843759'
         self.host.run(id, options)
         self.mock_behaviour.run.assert_called_once_with(
-            self.mock_connection, options)
+            self.mock_connection, options, id)
 
     def test_stores_options_in_datastore(self):
         self.instantiate()
@@ -177,6 +194,24 @@ class TestHost(unittest.TestCase):
         self.host.run(id, context)
         self.mock_datastore.isrunning.assert_called_once_with(
             id, self.mock_behaviour.run())
+
+    def test_jobs_returns_jobs_from_datastore(self):
+        self.instantiate()
+        run_type = MM()
+        self.assertFalse(self.mock_datastore.jobs.called)
+        self.host.jobs(run_type)
+        self.mock_datastore.jobs.assert_called_once_with(type=run_type)
+
+    def test_jobs_calls_datastore_with_none_by_default(self):
+        self.instantiate()
+        self.assertFalse(self.mock_datastore.jobs.called)
+        self.host.jobs()
+        self.mock_datastore.jobs.assert_called_once_with(type=None)
+
+    def test_jobs_returns_datastore_result(self):
+        self.instantiate()
+        ret = self.host.jobs()
+        self.assertEqual(ret, self.mock_datastore.jobs())
 
 
 if __name__ == '__main__':

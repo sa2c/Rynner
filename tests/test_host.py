@@ -213,6 +213,13 @@ class TestHost(unittest.TestCase):
         ret = self.host.jobs()
         self.assertEqual(ret, self.mock_datastore.jobs())
 
+    def test_jobs_updates_datastore(self):
+        self.instantiate()
+        mock_run_type = MM()
+        ret = self.host.update(mock_run_type)
+        self.mock_datastore.update.assert_called_once_with(
+            run_type=mock_run_type)
+
 
 if __name__ == '__main__':
     unittest.main()

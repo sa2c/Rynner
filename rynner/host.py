@@ -53,3 +53,6 @@ class Host:
 
     def jobs(self, run_type=None):
         return self.datastore.jobs(type=run_type)
+
+    def update(self, run_type=None):
+        self.datastore.update(run_type=run_type)

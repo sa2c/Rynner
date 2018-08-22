@@ -34,7 +34,7 @@ pbs_option_map = [
     ('#PBS -N={}', 'name'),
     ('#PBS -l placement=shared ', 'oversubscribe'),
     ('#PBS -o {}', 'output_file'),
-    ('#PBS -l pmem={}', 'memory_per_task_MB'),  # MB
+    ('#PBS -l pmem={}mb', 'memory_per_task_MB'),  # MB
     ('#PBS -l procs={}', 'ntasks'),
     ('#PBS -l ppn={}', 'ntasks_per_node'),
     ('#PBS -l ngpus={}', 'ngpus'),

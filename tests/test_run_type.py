@@ -111,3 +111,30 @@ class TestRunType(unittest.TestCase):
     def test_set_params_default(self):
         run_type = RunType(self.domain, self.name, self.interface)
         self.assertEqual(run_type.params, RunType.default_params)
+
+    def test_assert_default_params_values(self):
+        self.assertEqual(RunType.default_params, [("id", "Job ID"),
+                                                  ("name", "Job Name")])
+
+    def test_default_param_values(self):
+        run_type = RunType(self.domain, self.name, self.interface)
+        self.assertEqual(run_type.params, [("id", "Job ID"),
+                                           ("name", "Job Name")])
+
+    def test_add_list_jobs(self):
+        self.instance()
+        ret = self.run_type.list_jobs([])
+        self.assertEqual(ret, [])
+
+    def test_add_list_jobs(self):
+        self.instance()
+        host1 = MM()
+        host1.jobs.return_value = ['host1-job1', 'host1-job2']
+        ret = self.run_type.list_jobs([host1])
+        self.assertEqual(ret, ['host1-job1', 'host1-job2'])
+
+    def test_calls_host_jobs_with_domain(self):
+        self.instance()
+        host = MM()
+        self.run_type.list_jobs([host])
+        host.jobs.assert_called_once_with(self.domain)

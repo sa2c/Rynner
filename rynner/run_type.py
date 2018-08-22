@@ -8,7 +8,7 @@ class RunAction:
 
 
 class RunType:
-    default_params = ["id"]
+    default_params = [("id", "Job ID"), ("name", "Job Name")]
 
     def __init__(self, domain, name, interface, runner=None, params=None):
         self.name = name
@@ -42,3 +42,11 @@ class RunType:
 
     def actions(self):
         return self.__actions
+
+    def list_jobs(self, hosts):
+        jobs = []
+        for host in hosts:
+            for job in host.jobs(self.domain):
+                jobs.append(job)
+        return jobs
+

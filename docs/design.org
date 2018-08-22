@@ -110,13 +110,13 @@ ic = InterfaceConfig([ ConfigGroup([ TextField('Local Job Name', 'job_name'),
 - Each Rynner object shares an underlying data object ?? Which has some model-level validation on it?
 - Had a "build" method as well, calls the build model on its children...
 - The build method essentially replaces the object with an instance of the appropriate gui class based on a key
-* TODO CLASS: Datastore?
+* TODO CLASS: Datastore
 - contains store and fetch methods
 - handles local/remote copies and caching etc somehow
 - initialised with connection to cluster (if required)
-
-* TODO CLASS: Host Manager
-- need somewhere to build/load list of hosts
+- Should connect datastore to GUI for signalling exceptions and/or failures
+* TODO CLASS: RunManager
+- should build/load the hosts here
 - need some way of selecting hosts from within a plugin...!
 - How do I know what hosts a job type is allowed?
 - How can a job type tell the application what hosts it wants to work with?

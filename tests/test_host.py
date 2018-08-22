@@ -200,25 +200,34 @@ class TestHost(unittest.TestCase):
         run_type = MM()
         self.assertFalse(self.mock_datastore.jobs.called)
         self.host.jobs(run_type)
-        self.mock_datastore.jobs.assert_called_once_with(type=run_type)
+        self.mock_datastore.jobs.assert_called_once_with(run_type)
 
     def test_jobs_calls_datastore_with_none_by_default(self):
         self.instantiate()
         self.assertFalse(self.mock_datastore.jobs.called)
         self.host.jobs()
-        self.mock_datastore.jobs.assert_called_once_with(type=None)
+        self.mock_datastore.jobs.assert_called_once_with(None)
 
     def test_jobs_returns_datastore_result(self):
         self.instantiate()
         ret = self.host.jobs()
         self.assertEqual(ret, self.mock_datastore.jobs())
 
+    def test_jobs_datastore_args(self):
+        self.instantiate()
+        ret = self.host.jobs('some-id')
+        self.mock_datastore.jobs.assert_called_once_with('some-id')
+
+    def test_jobs_datastore_no_args(self):
+        self.instantiate()
+        ret = self.host.jobs()
+        self.mock_datastore.jobs.assert_called_once_with(None)
+
     def test_jobs_updates_datastore(self):
         self.instantiate()
         mock_run_type = MM()
         ret = self.host.update(mock_run_type)
-        self.mock_datastore.update.assert_called_once_with(
-            run_type=mock_run_type)
+        self.mock_datastore.update.assert_called_once_with(mock_run_type)
 
     def test_sets_connection_on_datastore(self):
         self.instantiate()

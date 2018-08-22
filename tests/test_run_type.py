@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock as MM
+from unittest.mock import MagicMock as MM, patch
 from rynner.run_type import RunType, RunAction
 from rynner.inputs import Interface
 
@@ -10,11 +10,15 @@ class TestRunType(unittest.TestCase):
         self.interface = MM()
         self.data = {'a': 'a', 'b': 'b'}
 
+        self.domain = 'rynner.swansea.ac.uk'
+        self.name = 'Test Plugin'
+
     def instance(self):
         self.interface.data.return_value = self.data
         self.interface.invalid.return_value = []
 
-        self.run_type = RunType(self.runner, self.interface)
+        self.run_type = RunType(self.domain, self.name, self.interface,
+                                self.runner)
 
     def test_instance(self):
         self.instance()
@@ -78,11 +82,22 @@ class TestRunType(unittest.TestCase):
         self.assertTrue(self.interface.invalid.called)
         self.assertFalse(self.runner.called)
 
-    def test_doesnt_call_runner_if_exec_is_invalid(self):
+    def test_doesnt_call_runner_if_exec_cancelled(self):
         # runner is not called when invalid
         self.instance()
-        self.interface.valid.return_value = True
+        self.interface.invalid.return_value = []
         self.interface.show.return_value = False
         self.run_type.create()
         self.assertTrue(self.interface.show.called)
         self.assertFalse(self.runner.called)
+
+    @patch('rynner.run_type.Run')
+    def test_doesnt_call_runner_default(self, MockRun):
+        run_type = RunType(self.domain, self.name, self.interface)
+
+        self.interface.invalid.return_value = []
+        self.interface.show.return_value = True
+        self.interface.data.return_value = {'my': 'test', 'data': 'dict'}
+        run_type.create()
+
+        MockRun.assert_called_once_with(my='test', data='dict')

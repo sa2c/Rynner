@@ -50,3 +50,23 @@ class RunType:
                 jobs.append(job)
         return jobs
 
+
+class RunTypeCollection:
+    '''
+    This class allows a collection of RunType objects to be used with the same API as a single object.
+    '''
+
+    def __init__(self, name, run_types, params=None):
+        self.name = name
+        self.run_types = run_types
+        if params is None:
+            self.params = RunType.default_params
+        else:
+            self.params = params
+
+    def list_jobs(self, hosts):
+        jobs = [
+            job for host in hosts for run_type in self.run_types
+            for job in host.jobs(run_type.domain)
+        ]
+        return jobs

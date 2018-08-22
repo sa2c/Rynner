@@ -88,3 +88,17 @@ class SimpleTypeValidator(Validator):
             raise RynnerValidatorException(
                 f'Input value is not {self.mytype.__name__}')
         return value
+
+
+validators = {
+    'account': SimpleTypeValidator(str),
+    'memory_per_task_MB': IntValidator(min=0),
+    'name': SimpleTypeValidator(str),
+    'ngpus': IntValidator(min=0),
+    'ntasks': IntValidator(min=1),
+    'ntasks_per_node': IntValidator(min=1),
+    'output_file': SimpleTypeValidator(str),
+    'oversubscribe': SimpleTypeValidator(bool),
+    'queue': SimpleTypeValidator(str),
+    'runtime_HMS': TimeHMSStringValidator(),
+}

@@ -1,7 +1,6 @@
 from string import Formatter
 
 
-
 class TemplateArgumentException(Exception):
     pass
 

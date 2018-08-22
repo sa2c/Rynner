@@ -4,10 +4,6 @@ from rynner.behaviour import InvalidContextOption
 
 
 class Connection():
-    '''
-    self expl.
-    '''
-
     def __init__(self, host, user):
         self.conn = fabric.Connection(host=host, user=user)
 
@@ -31,7 +27,7 @@ class Host:
     Host is initialized with
     - a Connection object (1 to 1 to ssh connection/remote server)
     - a 'behaviour': 1 to 1 to 'scheduler' (slurm, pbs...)
-    - ...
+    - a datastore object which is used to store status
 
     It basically connects 'behaviour' and 'connection'
     '''
@@ -53,10 +49,8 @@ class Host:
 
     def parse(self, id, options):
         '''
-        Gets context from behaviour which takes 'run options'
-
-        context is to be passed to the run method
-        Rename to 'configure'?
+        Gets context from behaviour, which takes 'run options' as argument.
+        Context is to be passed to the run method
         '''
         context = self.behaviour.parse(options)
         self.datastore.store(id, options)
@@ -72,7 +66,7 @@ class Host:
 
     def type(self, string):
         '''
-        Ask behaviour for type and return it.
+        Gets type from behaviour and returns it.
         '''
         return self.behaviour.type(string)
 

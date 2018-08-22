@@ -8,8 +8,6 @@ In many cases, there are conflicting/redundant ways to require resources.
 1. --nodes/--ntasks-per-node/--ntasks : there are some nuances here, but we assume 
    cases nnodes = ceil(ntasks/ntasks-per-node)
 2. --mem/--mem-per-cpu : these are mutually exclusive. We assume 1 task per core.
-3. we may want to set --cpus-per-task=1 
-4. 
 '''
 
 slurm1711_option_map = [

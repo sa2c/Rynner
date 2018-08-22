@@ -14,6 +14,6 @@ activate:
 	pipenv shell -c
 
 test:
-	pipenv run -- python3 -m unittest discover
+	pipenv run -- python -m unittest discover
 
 .PHONY: help activate test

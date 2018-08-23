@@ -14,7 +14,7 @@ class RunType:
         self.name = name
         self.domain = domain
         self.interface = interface
-        self.__actions = []
+        self.actions = []
         self.runner = runner
 
         # set params to input, if specified otherwise set to default params
@@ -37,11 +37,8 @@ class RunType:
 
     def add_action(self, label, function):
         action = RunAction(label, function)
-        self.__actions.append(action)
+        self.actions.append(action)
         return action
-
-    def actions(self):
-        return self.__actions
 
     def list_jobs(self, hosts):
         jobs = []
@@ -63,6 +60,8 @@ class RunTypeCollection:
             self.params = RunType.default_params
         else:
             self.params = params
+
+        self.actions = []
 
     def list_jobs(self, hosts):
         jobs = [

@@ -1,6 +1,6 @@
 import sys
 from abc import ABC, abstractmethod
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox
+from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox, QGroupBox, QCheckBox
 from PySide2.QtCore import QSize, Signal
 
 # an empty/blank QWidget wrapper?
@@ -124,3 +124,72 @@ class NumericField(TextField):
 
     def set_value(self, value):
         pass
+
+
+class CheckBoxesField(BaseField):
+    def __init__(
+            self,
+            keys,  # list N
+            labels,  # list N
+            title=None,
+            layout=None,
+            defaults=None,  #list N
+    ):
+        if defaults is None:
+            defaults = [False for k in keys]
+
+        if type(keys) != list:
+            raise TypeError('"keys" is not a list.')
+        if type(labels) != list:
+            raise TypeError('"labels" is not a list.')
+        if len(keys) != len(labels):
+            raise ValueError(
+                f'len(labels)[{len(labels)}] != len(keys)[{len(keys)}]')
+
+        if len(defaults) != len(keys):
+            raise ValueError(
+                f'len(defaults)[{len(defaults)}] != len(keys)[{len(keys)}]')
+
+        for key in keys:
+            if type(key) is not str:
+                raise TypeError('keys are not strings.')
+        for label in labels:
+            if type(label) is not str:
+                raise TypeError('labels are not strings.')
+        for default in defaults:
+            if type(default) is not bool:
+                raise TypeError('defaults are not booleans.')
+
+        self.widget = self._widget(keys, labels, title, layout, defaults)
+        self.key = keys
+        self.label = labels
+
+    def _widget(self, keys, labels, title, layout, defaults):
+        w = QGroupBox(title)
+        layout = QVBoxLayout()
+        self._optionwidgets = {}
+        self._layout = layout
+        for key, label, default in zip(keys, labels, defaults):
+            checkbox = QCheckBox(label)
+            checkbox.setChecked(default)
+            self._optionwidgets[key] = checkbox
+            layout.addWidget(checkbox)
+        w.setLayout(layout)
+        return w
+
+    def value(self):
+        values = {}
+        for k in self.key:
+            values[k] = self._optionwidgets[k].isChecked()
+
+        return values
+
+    def set_value(self, value_to_set):
+        if type(value_to_set) is not dict:
+            raise TypeError('Input is not a dictionary.')
+        for v in value_to_set.values():
+            if type(v) is not bool:
+                raise TypeError('Input dict values are not booleans.')
+
+        for k, v in value_to_set.items():
+            self._optionwidgets[k].setChecked(v)

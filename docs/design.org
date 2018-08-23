@@ -115,8 +115,10 @@ ic = InterfaceConfig([ ConfigGroup([ TextField('Local Job Name', 'job_name'),
 - handles local/remote copies and caching etc somehow
 - initialised with connection to cluster (if required)
 - Should connect datastore to GUI for signalling exceptions and/or failures
-* TODO CLASS: RunManager
-- should build/load the hosts here
+- note: Job ID should be added to the data object (??) - or maybe I use the UUID everywhere?
+* TODO CLASS: Manager?
+- need somewhere to load hosts and run_types and to tie everything together
+- should have everything exposed through RunType class? (so easy to modify in the plugin?)
 - need some way of selecting hosts from within a plugin...!
 - How do I know what hosts a job type is allowed?
 - How can a job type tell the application what hosts it wants to work with?
@@ -166,3 +168,17 @@ def setup(data): Run(data) #+END_SRC python
 * TODO Conference
 - a plugin example repo ?
 - UI exception handling
+* Async Behaviour
+- fetch of jobs should be async in another thread
+- Connection object should delegate to a single worker connection thread which does all the async stuff
+- This would mean that LONG FILE UPLOADS WOULD FREEZE THE INTERFACE JOB FETCHING...!?
+- The job actually should be placed at the end of the queue (so it runs at the right time) - i,e the queue is FIFO
+- An exception handler method just notifies the user of exceptions (for now)
+* Other clients
+- command line
+- emacs
+* Other considerations
+- what about a process that lives on the cluster (and runner function runs on that side)
+- how should I implement that? Future work?
+
+note: job data objects should contain cluster jobID...!

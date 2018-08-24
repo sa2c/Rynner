@@ -35,6 +35,7 @@ class Host:
     def __init__(self, behaviour, connection, datastore):
         self.connection = connection
         self.behaviour = behaviour
+        datastore.set_connection(connection)
         self.datastore = datastore
 
     def upload(self, id, uploads):
@@ -70,5 +71,8 @@ class Host:
         '''
         return self.behaviour.type(string)
 
-    def jobs(self, run_type=None):
-        return self.datastore.jobs(type=run_type)
+    def jobs(self, run_type_id=None):
+        return self.datastore.jobs(run_type_id)
+
+    def update(self, run_type_id=None):
+        self.datastore.update(run_type_id)

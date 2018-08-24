@@ -7,6 +7,10 @@ import rynner
 from rynner.inputs import *
 from tests.qtest_helpers import QTestCase, get_button, button_callback
 
+# TODO: for CheckBoxesField, only __init__, set_value and value methods have been tested,
+#       and it has been tested that 'key','label' and 'widget' are public members.
+#       All the rest must be tested.
+
 
 class ConcreteField(BaseField):
     def __init__(self, key, label, default=None, remember=True):
@@ -357,3 +361,277 @@ class TestNumericField(unittest.TestCase):
     def test_widget_should_return_text_field(self):
         self.instance()
         self.assertIsInstance(self.input.widget, QLineEdit)
+
+
+class TestCheckBoxesField(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_instance_pass1(self):
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+
+        CheckBoxesField(keys=keys, labels=labs)
+
+    def test_instance_fail1(self):
+        '''
+        Labels and keys must have same length.
+        '''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2']
+
+        with self.assertRaises(ValueError) as cm:
+            CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(str(cm.exception), 'len(labels)[2] != len(keys)[3]')
+
+    def test_instance_fail2(self):
+        '''
+        Keys must be strings.
+        '''
+        keys = [(1, 2, 3), 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+
+        with self.assertRaises(TypeError) as cm:
+            CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(str(cm.exception), 'keys are not strings.')
+
+    def test_instance_fail3(self):
+        '''
+        labels must be strings.
+        '''
+        keys = ['key1', 'key2', 'key3']
+        labs = [(1, 2, 3), 'lab2', 'lab3']
+
+        with self.assertRaises(TypeError) as cm:
+            CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(str(cm.exception), 'labels are not strings.')
+
+    def test_instance_fail4(self):
+        '''
+        keys must be lists
+        '''
+        keys = 'key1'
+        labs = ['lab1']
+        with self.assertRaises(TypeError) as cm:
+            CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(str(cm.exception), '"keys" is not a list.')
+
+    def test_instance_fail5(self):
+        '''
+        labels must be lists
+        '''
+        keys = ['key1']
+        labs = 'lab1'
+        with self.assertRaises(TypeError) as cm:
+            CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(str(cm.exception), '"labels" is not a list.')
+
+    def test_instance_fail6(self):
+        '''
+        if defaults is specified, it must be of the same length of
+        keys and labels.
+        '''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        defaults = [True]
+        with self.assertRaises(ValueError) as cm:
+            CheckBoxesField(keys=keys, labels=labs, defaults=defaults)
+
+        self.assertEqual(str(cm.exception), 'len(defaults)[1] != len(keys)[2]')
+
+    def test_instance_fail6(self):
+        '''
+        if defaults is specified, it must be composed of booleans.
+        '''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        defaults = ['True', True]
+        with self.assertRaises(TypeError) as cm:
+            CheckBoxesField(keys=keys, labels=labs, defaults=defaults)
+
+        self.assertEqual(str(cm.exception), 'defaults are not booleans.')
+
+    def test_instance_pass2(self):
+        '''
+        The widget must be created with the right title.
+        '''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        title = 'A title'
+        cb = CheckBoxesField(keys=keys, labels=labs, title=title)
+        self.assertEqual(cb.widget.title(), title)
+
+    def test_instance_pass3a(self):
+        '''
+        the widget children must have the correct labels.
+        '''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(len(cb._optionwidgets), len(labs))
+
+    def test_instance_pass3b(self):
+        '''
+        the widget children must have the correct labels.
+        '''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        for label, key in zip(labs, keys):
+            optionWidget = cb._optionwidgets[key]
+            self.assertEqual(optionWidget.text(), label)
+
+    def test_instance_pass4a(self):
+        '''
+        The widget children must be in the added to the layout.
+        '''
+
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        widgets_layout = [
+            cb._layout.itemAt(i).widget() for i in range(cb._layout.count())
+        ]
+        self.assertEqual(len(widgets_layout), len(keys))
+
+    def test_instance_pass4b(self):
+        '''
+        The widget children must be in the added to the layout.
+        '''
+
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        widgets_layout = [
+            cb._layout.itemAt(i).widget() for i in range(cb._layout.count())
+        ]
+
+        for label, key, optionWidget2 in zip(labs, keys, widgets_layout):
+            optionWidget = cb._optionwidgets[key]
+            self.assertIs(optionWidget, optionWidget2)
+
+    def test_instance_5(self):
+        '''The widget must have the layout as layout.'''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertIs(cb.widget.layout(), cb._layout)
+
+    def test_value_1(self):
+        '''Value() must return a dictionary'''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertIsInstance(cb.value(), dict)
+
+    def test_value_2(self):
+        '''Value() must return a dictionary, and keys must be equal to the keys
+        passed to __init__()'''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(set(cb.value().keys()), set(keys))
+
+    def test_value_3(self):
+        '''Value() must return a dictionary, of booleans.'''
+        keys = ['key1', 'key2']
+        labs = ['lab1', 'lab2']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        for k, v in cb.value().items():
+            self.assertIsInstance(v, bool)
+
+    def test_value_4(self):
+        '''Value() must return the default values just after initialisation.'''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        defaults = [True, False, True]
+        cb = CheckBoxesField(keys=keys, labels=labs, defaults=defaults)
+
+        expectedValues = dict(zip(keys, defaults))
+
+        self.assertEqual(expectedValues, cb.value())
+
+    def test_set_value_fail1(self):
+        '''set_value() must complain if a dict is not passed as input.'''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        valuesToSet = labs  # just not a dict
+
+        with self.assertRaises(TypeError) as cm:
+            cb.set_value(valuesToSet)
+
+        self.assertEqual(str(cm.exception), 'Input is not a dictionary.')
+
+    def test_set_value_fail2(self):
+        '''set_value() must complain if in the dict passed as input values are not booleans.'''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        valuesToSet = dict(zip(keys, labs))  # just not bools as dict
+
+        with self.assertRaises(TypeError) as cm:
+            cb.set_value(valuesToSet)
+
+        self.assertEqual(
+            str(cm.exception), 'Input dict values are not booleans.')
+
+    def test_set_value_1(self):
+        '''value() must return values set with set_values().'''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        vals = [True, False, True]
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        valuesToSet = dict(zip(keys, vals))
+
+        cb.set_value(valuesToSet)
+
+        self.assertEqual(valuesToSet, cb.value())
+
+    def test_getkey(self):
+        '''
+        field 'key' must be part of the interface.
+        '''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        cb = CheckBoxesField(keys=keys, labels=labs)
+
+        self.assertEqual(keys, cb.key)
+
+    def test_getlabel(self):
+        '''
+        field 'label' must be part of the interface.
+        '''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        title = 'a title'
+        cb = CheckBoxesField(keys=keys, labels=labs, title=title)
+
+        self.assertEqual(labs, cb.label)
+
+    def test_getwidget(self):
+        '''
+        field 'label' must be part of the interface.
+        '''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        title = 'a title'
+        cb = CheckBoxesField(keys=keys, labels=labs, title=title)
+
+        thewidget = cb.widget

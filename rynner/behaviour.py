@@ -7,6 +7,12 @@ class ScriptNotSpecifiedException(Exception):
 
 
 class Behaviour:
+    '''
+    This models a scheduler (slurm, pbs, lsf,...)
+    The information about how the scheduler works is stored in a 'option_map' object,
+
+    '''
+
     def __init__(self, parameter_map, submit_cmd, defaults):
         self._map = parameter_map
         self._submit_cmd = submit_cmd
@@ -47,14 +53,14 @@ class Behaviour:
                 # match if all keys in tuple are options keys
                 if set(keys) <= set(options.keys()):
                     # format the template string using the list of keys (in order)
-                    value_list = (options[key] for key in keys)
-                    if callable(template):
-                        out = template(options, keys)
-                    else:
-                        out = template.format(*value_list)
-
-                    # append formatted string to output
-                    context_options.append(out)
+                    value_list = [options[key] for key in keys]
+                    if value_list != [False]:
+                        if callable(template):
+                            out = template(options, keys)
+                        else:
+                            out = template.format(*value_list)
+                        # append formatted string to output
+                        context_options.append(out)
 
                     # remove consumed keys from dict to avoid repetition
                     for key in keys:

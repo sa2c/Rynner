@@ -230,6 +230,26 @@ class TestBehaviour(unittest.TestCase):
         '''
         pass
 
+    def test_with_boolean_false(self):
+        stringy = '#FAKE --flag'
+        opt_map = [(stringy, 'flag')]
+
+        input = {'flag': False, 'script': 'mpirun -n 8 ./myprogram'}
+
+        output = []
+
+        self.assert_parse(opt_map, input, output)
+
+    def test_with_boolean_true(self):
+        stringy = '#FAKE --flag'
+        opt_map = [(stringy, 'flag')]
+
+        input = {'flag': True, 'script': 'mpirun -n 8 ./myprogram'}
+
+        output = [stringy]
+
+        self.assert_parse(opt_map, input, output)
+
 
 if __name__ == '__main__':
     unittest.main()

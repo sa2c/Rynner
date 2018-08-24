@@ -3,15 +3,9 @@ import collections
 from PySide2.QtCore import QAbstractTableModel, Qt, QObject
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 from rynner.run_type import RunType
+from rynner.ui import load_ui
 
 # TODO - No unit tests for code in this file
-
-
-class RynnerListView(QTableView):
-    def __init__(self, model, parent=None):
-        super().__init__(parent)
-        self.setModel(model)
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 
 class RynnerTableModel(QStandardItemModel):
@@ -70,34 +64,41 @@ class MainView(QDialog):
 
 
 class QRunTypeView(QWidget):
-    def __init__(self, run_type, hosts, parent=None):
+    def __init__(self, run_type, hosts, parent=None, view=None):
         super().__init__(parent)
+        if view is None:
+            # could potentially also just put it in the right place??
+            view = load_ui('list_view.ui')
+
         # create the a table view and model
         self.tablemodel = RynnerTableModel(run_type, hosts)
-        self.tableview = RynnerListView(self.tablemodel)
-        self.tableview.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+        view.tableView.setModel(self.tablemodel)
+        # can probably set these in view
+        view.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        view.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.setLayout(QVBoxLayout())
-        self.layout().addWidget(self.tableview)
+        self.layout().addWidget(view)
 
-        button_container = QWidget()
-        cancel_job_button = QPushButton("Cancel Job")
-        new_job_button = QPushButton("New Job")
-        action_control = QActionSelector(run_type.actions)
-        layout = QHBoxLayout()
-        layout.addWidget(new_job_button)
-        layout.addWidget(cancel_job_button)
-        layout.addItem(
-            QSpacerItem(10, 10, QSizePolicy.MinimumExpanding,
-                        QSizePolicy.Expanding))
-        layout.addWidget(action_control)
-        layout.addItem(
-            QSpacerItem(100, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        button_container.setLayout(layout)
-        self.layout().addWidget(button_container)
+        #button_container = QWidget()
+        #cancel_job_button = QPushButton("Cancel Job")
+        #new_job_button = QPushButton("New Job")
+        #action_control = QActionSelector(run_type.actions)
+        #layout = QHBoxLayout()
+        #layout.addWidget(new_job_button)
+        #layout.addWidget(cancel_job_button)
+        #layout.addItem(
+        #    QSpacerItem(10, 10, QSizePolicy.MinimumExpanding,
+        #                QSizePolicy.Expanding))
+        #layout.addWidget(action_control)
+        #layout.addItem(
+        #    QSpacerItem(100, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        #button_container.setLayout(layout)
+        #self.layout().addWidget(button_container)
 
-        new_job_button.clicked.connect(self.create_new_job)
-        cancel_job_button.clicked.connect(self.cancel_job)
+        #new_job_button.clicked.connect(self.create_new_job)
+        #cancel_job_button.clicked.connect(self.cancel_job)
 
     def create_new_job(self):
         if len(self.tableview.run_types) == 1:

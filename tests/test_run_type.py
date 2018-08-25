@@ -163,14 +163,14 @@ class TestRunType(unittest.TestCase):
         run_type = RunType(self.domain, self.name)
         self.assertEqual(run_type.labels, None)
 
-    def test_index_view_class(self):
+    def test_build_index_view(self):
         view_class = MM()
-        self.instance(index_view_class=view_class)
-        self.assertEqual(self.run_type.index_view_class, view_class)
+        self.instance(build_index_view=view_class)
+        self.assertEqual(self.run_type.build_index_view, view_class)
 
-    def test_index_view_class_default(self):
+    def test_build_index_view_default(self):
         self.instance()
-        self.assertEqual(self.run_type.index_view_class, None)
+        self.assertEqual(self.run_type.build_index_view, None)
 
     def test_create_view_is_stored(self):
         create_view = MM()
@@ -222,6 +222,10 @@ class TestRunTypeCollection(unittest.TestCase):
     def test_create_view_none_by_default(self):
         self.instance()
         self.assertEqual(self.rc.create_view, None)
+
+    def test_has_build_index_view_none(self):
+        self.instance()
+        self.assertEqual(self.rc.build_index_view, None)
 
     def test_list_jobs(self):
         self.instance()

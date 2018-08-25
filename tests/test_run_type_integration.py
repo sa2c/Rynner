@@ -24,7 +24,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
     def instance(self):
         self.run_type = RunType(self.domain, self.type_name, self.interface,
                                 self.runner)
-        button_box = self.run_type.interface.dialog._button_box
+        button_box = self.run_type.create_view.dialog._button_box
         self.ok_button = qtest_helpers.get_button(button_box, 'ok')
         self.cancel_button = qtest_helpers.get_button(button_box, 'cancel')
 
@@ -34,12 +34,12 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
         '''
         self.instance()
 
-        self.assertNotQVisible(self.run_type.interface.dialog)
+        self.assertNotQVisible(self.run_type.create_view.dialog)
 
         def call_create():
-            self.assertQVisible(self.run_type.interface.dialog)
+            self.assertQVisible(self.run_type.create_view.dialog)
             self.ok_button.click()
-            self.assertNotQVisible(self.run_type.interface.dialog)
+            self.assertNotQVisible(self.run_type.create_view.dialog)
 
         QTimer.singleShot(10, call_create)
 
@@ -52,9 +52,9 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
         self.instance()
 
         def call_create():
-            self.assertQVisible(self.run_type.interface.dialog)
+            self.assertQVisible(self.run_type.create_view.dialog)
             self.cancel_button.click()
-            self.assertNotQVisible(self.run_type.interface.dialog)
+            self.assertNotQVisible(self.run_type.create_view.dialog)
 
         QTimer.singleShot(10, call_create)
 
@@ -100,7 +100,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
 
         rt = RunType(self.domain, self.type_name, interface, runner)
 
-        button = qtest_helpers.get_button(rt.interface.dialog._button_box,
+        button = qtest_helpers.get_button(rt.create_view.dialog._button_box,
                                           'ok')
         qtest_helpers.button_callback(method=rt.create, button=button)
 

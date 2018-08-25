@@ -16,6 +16,8 @@
 - Need to do some other stuff...
 * RunType
 - RunType collection should have a create_view by default which allows choosing between multiple run types then proxies the selected view...
+- is run_type.create really a good idea? or better for the framework to do the heavy lifting?
+- RunTypeCollection has no create_view method
 * Template
 - doesn't really do anything - and not integration tested
 * Host

@@ -1,22 +1,30 @@
+from abc import ABC, abstractmethod
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QTableView, QTableWidgetItem, QDialog, QAbstractItemView, QTabWidget, QPushButton, QHBoxLayout, QAbstractItemView, QComboBox, QLabel, QSpacerItem, QSizePolicy, QItemDelegate
 import collections
-from PySide2.QtCore import QAbstractTableModel, Qt, QObject
+from PySide2.QtCore import QAbstractTableModel, Qt, QObject, Signal
 from PySide2.QtGui import QStandardItemModel, QStandardItem
-from rynner.run_type import RunType
+from PySide2.QtQuick import QQuickView
+from PySide2.QtCore import QUrl
+from rynner.run_type import RunType, RunAction
 from rynner.ui import load_ui
 
+
 # TODO - No unit tests for code in this file
+class RynnerTabSignals(QObject):
+    new_run = Signal()
+    stop_run = Signal()
+    run_action = Signal(RunAction)
 
 
 class RynnerTableModel(QStandardItemModel):
     def __init__(self, run_type, hosts, parent=None):
-        # TODO throw error if all run_type don't have params
+        # TODO throw error if all run_type don't have view_keys
 
         super().__init__(parent)
         self.hosts = hosts
 
-        self.params = run_type.params
-        labels = [v[1] for v in self.params]
+        self.view_keys = run_type.view_keys
+        labels = [v[1] for v in self.view_keys]
         self.setHorizontalHeaderLabels(labels)
 
         self.run_type = run_type
@@ -26,8 +34,7 @@ class RynnerTableModel(QStandardItemModel):
     # TODO - this should be a slot that is connected to by datastore??
     def refresh_from_datastore(self):
         jobs = self.run_type.list_jobs(self.hosts)
-        for col, key_tuple in enumerate(self.run_type.params):
-            key, value = key_tuple
+        for col, key in enumerate(self.run_type.view_keys):
             for row, job in enumerate(jobs):
                 value = job[key]
                 self.setItem(row, col, QStandardItem(value))
@@ -54,51 +61,51 @@ class MainView(QDialog):
         self.resize(800, 600)
 
         # Add a new tab for each run type
+        models = {}
         for run_type in run_types:
-            new_tab = QRunTypeView(run_type, hosts)
+            models[run_type] = RynnerTableModel(run_type, hosts)
+            if run_type.build_index_view is not None:
+                view = run_type.build_index_view(models[run_type], run_type)
+            else:
+                # TODO - passing run_type in here is dubious at best...
+                # maybe pass be a proxy object with a bunch of slots?
+                view = build_index_view(models[run_type], run_type)
 
-            self.tabs.addTab(new_tab, run_type.name)
+            self.tabs.addTab(view, run_type.name)
 
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.tabs)
 
+    def create_new_job(self):
+        if len(self.tableview.run_types) == 1:
+            self.tableview.run_types[0].create()
+        else:
+            raise NotImplementedException()
+            #run_type = QRunTypeSelector(self.tableview.run_types)
 
-class QRunTypeView(QWidget):
-    def __init__(self, run_type, hosts, parent=None, view=None):
-        super().__init__(parent)
-        if view is None:
-            # could potentially also just put it in the right place??
-            view = load_ui('list_view.ui')
 
-        # create the a table view and model
-        self.tablemodel = RynnerTableModel(run_type, hosts)
+# takes in the table model and returns a view widget! with links signals?
+# contains run_type so that signals can be linked?? Maybe I need a run type proxy??
+def build_index_view(model, run_type):
+    # could potentially also just put it in the right place??
+    view = load_ui('list_view.ui')
 
-        view.tableView.setModel(self.tablemodel)
-        # can probably set these in view
-        view.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-        view.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+    # create the a table view and model
 
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(view)
+    view.table.setModel(model)
+    # can probably set these in view
+    view.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+    view.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-        #button_container = QWidget()
-        #cancel_job_button = QPushButton("Cancel Job")
-        #new_job_button = QPushButton("New Job")
-        #action_control = QActionSelector(run_type.actions)
-        #layout = QHBoxLayout()
-        #layout.addWidget(new_job_button)
-        #layout.addWidget(cancel_job_button)
-        #layout.addItem(
-        #    QSpacerItem(10, 10, QSizePolicy.MinimumExpanding,
-        #                QSizePolicy.Expanding))
-        #layout.addWidget(action_control)
-        #layout.addItem(
-        #    QSpacerItem(100, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        #button_container.setLayout(layout)
-        #self.layout().addWidget(button_container)
+    if hasattr(run_type, 'create'):
+        view.newButton.clicked.connect(run_type.create)
+    else:
+        view.newButton.setVisible(False)
+        view.stopButton.setVisible(False)
 
-        #new_job_button.clicked.connect(self.create_new_job)
-        #cancel_job_button.clicked.connect(self.cancel_job)
+        # TODO - also need to set up view here
+
+    return view
 
     def create_new_job(self):
         if len(self.tableview.run_types) == 1:

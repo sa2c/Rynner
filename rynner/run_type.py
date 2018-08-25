@@ -15,7 +15,7 @@ class RunType:
     (see design.org example)
     '''
 
-    index_view_class = None
+    build_index_view = None
 
     view_keys = ("id", "name")
 
@@ -26,7 +26,7 @@ class RunType:
                  runner=None,
                  view_keys=None,
                  labels=None,
-                 index_view_class=None):
+                 build_index_view=None):
         '''
         domain: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given RunType class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
         name: a string giving the human readable Plugin name. This is the string which is displayed to the user in the UI to identify the runs of this plugin.
@@ -43,8 +43,8 @@ class RunType:
         self.runner = runner
         self.labels = labels
 
-        if index_view_class is not None:
-            self.index_view_class = index_view_class
+        if build_index_view is not None:
+            self.build_index_view = build_index_view
 
         if view_keys is not None:
             self.view_keys = view_keys
@@ -84,7 +84,7 @@ class RunTypeCollection:
     This class allows a collection of RunType objects to be used with the same API as a single object.
     '''
 
-    index_view_class = None
+    build_index_view = None
 
     def __init__(self, name, run_types, view_keys=None, labels=None):
         self.name = name

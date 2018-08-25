@@ -55,8 +55,7 @@ class TestRun(unittest.TestCase):
             'My Second Type',
             self.interface,
             self.runner,
-            params=[("id", "Job ID"), ("name", "Job Name"),
-                    ("some-other-data", "Some Other Value")])
+            view_keys=("id", "name", "some-other-data"))
 
         rt1.add_action("My Action", self.action)
 
@@ -103,14 +102,6 @@ class TestRun(unittest.TestCase):
         self.tabs = MainView(self.hosts, run_types)
         self.tabs.exec_()
 
-    def test_show_QRunTypeView(self):
-        self.create_run_types()
-
-        q = QRunTypeView(self.run_types[0], self.hosts)
-        q.tablemodel.refresh_from_datastore()
-
-        q.show()
-
     def test_action_selector(self):
         func = lambda x: None
         actions = [
@@ -121,4 +112,3 @@ class TestRun(unittest.TestCase):
         ]
         act_select = QActionSelector(actions)
         act_select.show()
-        app.exec_()

@@ -71,8 +71,8 @@ class Host:
         '''
         return self.behaviour.type(string)
 
-    def jobs(self, run_type_id=None):
-        return self.datastore.jobs(run_type_id)
+    def jobs(self, plugin_id=None):
+        return self.datastore.jobs(plugin_id)
 
-    def update(self, run_type_id=None):
-        self.datastore.update(run_type_id)
+    def update(self, plugin_id=None):
+        self.datastore.update(plugin_id)

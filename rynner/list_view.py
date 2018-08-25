@@ -4,37 +4,47 @@ import collections
 from PySide2.QtCore import QAbstractTableModel, Qt, QObject, Signal
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtQuick import QQuickView
-from PySide2.QtCore import QUrl
-from rynner.run_type import Plugin, RunAction
+from PySide2.QtCore import QUrl, Slot
+from rynner.plugin import Plugin, RunAction
 from rynner.ui import load_ui
 
 
-# TODO - No unit tests for code in this file
-class RynnerTabSignals(QObject):
-    new_run = Signal()
-    stop_run = Signal()
-    run_action = Signal(RunAction)
-
-
 class RynnerTableModel(QStandardItemModel):
-    def __init__(self, run_type, hosts, parent=None):
-        # TODO throw error if all run_type don't have view_keys
+    def __init__(self, plugin, hosts, parent=None):
+        # TODO throw error if all plugin don't have view_keys
 
         super().__init__(parent)
         self.hosts = hosts
 
-        self.view_keys = run_type.view_keys
-        labels = [v[1] for v in self.view_keys]
-        self.setHorizontalHeaderLabels(labels)
+        self.view_keys = plugin.view_keys
+        self.setHorizontalHeaderLabels(self.view_keys)
 
-        self.run_type = run_type
+        self.plugin = plugin
 
         self.refresh_from_datastore()
 
+    @Slot()
+    def create_new_run(self):
+        print(f"create {self.plugin.name}....!")
+
+
+    @Slot()
+    def stop_run(self, model_index):
+        run = model_index.row()
+        print(f"stop {self.plugin.name} job {run}....!")
+
+    @Slot()
+    def run_action(self, action, job):
+        print(f"running action f{action} for {self.plugin.name} on {job}")
+
+    @Slot()
+    def archive_job(self, job):
+        print(f"archiving job f{job} for {self.plugin.name}")
+
     # TODO - this should be a slot that is connected to by datastore??
     def refresh_from_datastore(self):
-        jobs = self.run_type.list_jobs(self.hosts)
-        for col, key in enumerate(self.run_type.view_keys):
+        jobs = self.plugin.list_jobs(self.hosts)
+        for col, key in enumerate(self.plugin.view_keys):
             for row, job in enumerate(jobs):
                 value = job[key]
                 self.setItem(row, col, QStandardItem(value))
@@ -48,47 +58,40 @@ class MainView(QDialog):
     (i.e. something like a URL)
 
     Upshot -> Plugin needs a URL + a label
-    jobs = [ host.get_jobs(type=run_type.uid) for host in hosts ].flatten()
+    jobs = [ host.get_jobs(type=plugin.uid) for host in hosts ].flatten()
     '''
 
-    def __init__(self, hosts, run_types):
+    def __init__(self, hosts, plugins):
         super().__init__(None)
 
         self.hosts = hosts
-        self.run_types = run_types
+        self.plugins = plugins
 
         self.tabs = QTabWidget()
         self.resize(800, 600)
 
         # Add a new tab for each run type
         models = {}
-        for run_type in run_types:
-            models[run_type] = RynnerTableModel(run_type, hosts)
-            if run_type.build_index_view is not None:
-                view = run_type.build_index_view(models[run_type], run_type)
+        for plugin in plugins:
+            models[plugin] = RynnerTableModel(plugin, hosts)
+            if plugin.build_index_view is not None:
+                view = plugin.build_index_view(models[plugin])
             else:
-                # TODO - passing run_type in here is dubious at best...
+                # TODO - passing plugin in here is dubious at best...
                 # maybe pass be a proxy object with a bunch of slots?
-                view = build_index_view(models[run_type], run_type)
+                view = build_index_view(models[plugin], 'list_view.ui')
 
-            self.tabs.addTab(view, run_type.name)
+            self.tabs.addTab(view, plugin.name)
 
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.tabs)
 
-    def create_new_job(self):
-        if len(self.tableview.run_types) == 1:
-            self.tableview.run_types[0].create()
-        else:
-            raise NotImplementedException()
-            #run_type = QPluginSelector(self.tableview.run_types)
-
 
 # takes in the table model and returns a view widget! with links signals?
-# contains run_type so that signals can be linked?? Maybe I need a run type proxy??
-def build_index_view(model, run_type):
+# contains plugin so that signals can be linked?? Maybe I need a run type proxy??
+def build_index_view(model, ui_file):
     # could potentially also just put it in the right place??
-    view = load_ui('list_view.ui')
+    view = load_ui(ui_file)
 
     # create the a table view and model
 
@@ -97,25 +100,22 @@ def build_index_view(model, run_type):
     view.table.setSelectionBehavior(QAbstractItemView.SelectRows)
     view.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-    if hasattr(run_type, 'create'):
-        view.newButton.clicked.connect(run_type.create)
-    else:
-        view.newButton.setVisible(False)
-        view.stopButton.setVisible(False)
+    # add actions
+    view.actionComboBox.addItem("action")
 
-        # TODO - also need to set up view here
+    view.newButton.clicked.connect(model.create_new_run)
+    view.stopButton.clicked.connect(lambda selected : model.stop_run(view.table.currentIndex()))
+
+    def set_action(action_idx):
+        job_idx = view.table.currentIndex()
+        if action_idx > 0:
+            model.run_action(action_idx, job_idx)
+        view.actionComboBox.setCurrentIndex(0)
+
+    view.actionComboBox.currentIndexChanged.connect(set_action)
+    # TODO - also need to set up view here
 
     return view
-
-    def create_new_job(self):
-        if len(self.tableview.run_types) == 1:
-            self.tableview.run_types[0].create()
-        else:
-            raise NotImplementedException()
-            #run_type = QPluginSelector(self.tableview.run_types)
-
-    def cancel_job(self):
-        print('Cancel Job')
 
 
 class QActionSelector(QWidget):

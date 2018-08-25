@@ -6,7 +6,7 @@ from tests.qtest_helpers import *
 from rynner.host import Host, Connection
 from rynner.behaviour import Behaviour
 from rynner.inputs import RunCreateView, TextField
-from rynner.run_type import Plugin, PluginCollection, RunAction
+from rynner.plugin import Plugin, PluginCollection, RunAction
 from rynner.run import Run
 
 
@@ -20,8 +20,8 @@ class RunView:
 class TestRun(unittest.TestCase):
     def setUp(self):
 
-        # Create a fake interface
-        self.interface = RunCreateView([
+        # Create a fake run_create_view
+        self.run_create_view = RunCreateView([
             TextField('Some Parameter', 'param', default='Some default value')
         ])
 
@@ -45,21 +45,21 @@ class TestRun(unittest.TestCase):
 
         self.action = lambda x: print("TEST")
 
-    def create_run_types(self):
+    def create_plugins(self):
 
         # create Plugin objects
-        rt1 = Plugin('swansea.ac.uk/1', 'My First Type', self.interface,
+        rt1 = Plugin('swansea.ac.uk/1', 'My First Type', self.run_create_view,
                      self.runner)
         rt2 = Plugin(
             'swansea.ac.uk/2',
             'My Second Type',
-            self.interface,
+            self.run_create_view,
             self.runner,
             view_keys=("id", "name", "some-other-data"))
 
         rt1.add_action("My Action", self.action)
 
-        self.run_types = [rt1, rt2]
+        self.plugins = [rt1, rt2]
 
         # create mock of jobs returned by datastore
         jobs = {
@@ -83,23 +83,23 @@ class TestRun(unittest.TestCase):
             }]
         }
 
-        def jobsf(run_type=None):
-            return jobs[run_type]
+        def jobsf(plugin=None):
+            return jobs[plugin]
 
         self.datastore.jobs = jobsf
 
     def test_show_groups(self):
-        self.create_run_types()
-        run_types = [PluginCollection("All", self.run_types)]
-        run_types.extend(self.run_types)
+        self.create_plugins()
+        plugins = [PluginCollection("All", self.plugins)]
+        plugins.extend(self.plugins)
 
         # rt.create()
 
         # test with single entry + with a list of lists (as type)
-        #run_types = [rt_all, rt1, rt2]
-        #run_types = [rt1, rt2]
+        #plugins = [rt_all, rt1, rt2]
+        #plugins = [rt1, rt2]
 
-        self.tabs = MainView(self.hosts, run_types)
+        self.tabs = MainView(self.hosts, plugins)
         #self.tabs.exec_()
 
     def test_action_selector(self):

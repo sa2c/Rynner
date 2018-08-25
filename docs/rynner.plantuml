@@ -108,7 +108,7 @@ class Qt.QConfigLayoutManager {
 }
 
 class Qt.QRunningStandardModel {
-      init(available_runners, Plugin[] run_types)
+      init(available_runners, Plugin[] plugins)
 }
 
 Qt.QRunnableConfigModel ..> Qt.QRunnableConfigDialog : signal

@@ -5,7 +5,7 @@ class Datastore:
     def isrunning(self, id, isrunning):
         raise NotImplementedError()
 
-    def jobs(self, run_type_id):
+    def jobs(self, plugin_id):
         raise NotImplementedError()
 
     def set_connection(self, connection):

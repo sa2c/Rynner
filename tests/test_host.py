@@ -197,10 +197,10 @@ class TestHost(unittest.TestCase):
 
     def test_jobs_returns_jobs_from_datastore(self):
         self.instantiate()
-        run_type = MM()
+        plugin = MM()
         self.assertFalse(self.mock_datastore.jobs.called)
-        self.host.jobs(run_type)
-        self.mock_datastore.jobs.assert_called_once_with(run_type)
+        self.host.jobs(plugin)
+        self.mock_datastore.jobs.assert_called_once_with(plugin)
 
     def test_jobs_calls_datastore_with_none_by_default(self):
         self.instantiate()
@@ -225,9 +225,9 @@ class TestHost(unittest.TestCase):
 
     def test_jobs_updates_datastore(self):
         self.instantiate()
-        mock_run_type = MM()
-        ret = self.host.update(mock_run_type)
-        self.mock_datastore.update.assert_called_once_with(mock_run_type)
+        mock_plugin = MM()
+        ret = self.host.update(mock_plugin)
+        self.mock_datastore.update.assert_called_once_with(mock_plugin)
 
     def test_sets_connection_on_datastore(self):
         self.instantiate()

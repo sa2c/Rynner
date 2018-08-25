@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock as MM, patch
-from rynner.run_type import Plugin, RunAction, PluginCollection
+from rynner.plugin import Plugin, RunAction, PluginCollection
+from PySide2.QtCore import Signal
 
 
 class TestPlugin(unittest.TestCase):
@@ -16,25 +17,25 @@ class TestPlugin(unittest.TestCase):
         self.create_view.data.return_value = self.data
         self.create_view.invalid.return_value = []
 
-        self.run_type = Plugin(self.domain, self.name, **kwargs)
+        self.plugin = Plugin(self.domain, self.name, **kwargs)
 
     def test_instance(self):
         self.instance()
 
     def test_create_calls_setup(self):
         self.instance(runner=self.runner, create_view=self.create_view)
-        self.run_type.create()
+        self.plugin.create()
         self.runner.assert_called_once_with(self.data)
 
     def test_create_view_show_method_called(self):
         self.instance(create_view=self.create_view, runner=self.runner)
         self.assertFalse(self.create_view.exec_.called)
-        self.run_type.create()
+        self.plugin.create()
         self.assertTrue(self.create_view.exec_.called)
 
     def test_call_runner_if_no_instance(self):
         self.instance(runner=self.runner, create_view=None)
-        self.run_type.create()
+        self.plugin.create()
         self.assertFalse(self.create_view.exec_.called)
         self.assertTrue(self.runner.called)
 
@@ -42,15 +43,15 @@ class TestPlugin(unittest.TestCase):
         some_action = lambda data: None
 
         self.instance()
-        action = self.run_type.add_action('action label', some_action)
-        self.assertIn(action, self.run_type.actions)
+        action = self.plugin.add_action('action label', some_action)
+        self.assertIn(action, self.plugin.actions)
 
     def test_action_is_instance_of_action_class(self):
         some_action = lambda data: None
 
         self.instance()
-        action = self.run_type.add_action('action label', some_action)
-        actions = self.run_type.actions
+        action = self.plugin.add_action('action label', some_action)
+        actions = self.plugin.actions
         self.assertIs(type(actions[0]), RunAction)
 
     def test_action_created_with_behaviour_and_label(self):
@@ -59,21 +60,21 @@ class TestPlugin(unittest.TestCase):
         action_function = MM()
         action_label = MM()
 
-        action = self.run_type.add_action(action_label, action_function)
+        action = self.plugin.add_action(action_label, action_function)
         self.assertEqual(action.label, action_label)
         self.assertEqual(action.function, action_function)
 
     def test_create_can_handle_empty_data(self):
         self.instance(runner=self.runner)
         self.data = {}
-        self.run_type.create()
+        self.plugin.create()
 
     def test_call_runner_if_create_view_valid_and_accepted(self):
         # runner is called on create when create_view is valid
         self.instance(runner=self.runner)
         self.create_view.exec_.return_value = True
         self.create_view.invalid.return_value = []
-        self.run_type.create()
+        self.plugin.create()
         self.assertTrue(self.runner.called)
 
     def test_doesnt_call_runner_if_create_view_is_invalid(self):
@@ -81,7 +82,7 @@ class TestPlugin(unittest.TestCase):
         self.instance(runner=self.runner, create_view=self.create_view)
         self.create_view.exec_.return_value = True
         self.create_view.invalid.return_value = ['a', 'b']
-        self.run_type.create()
+        self.plugin.create()
         self.assertTrue(self.create_view.invalid.called)
         self.assertFalse(self.runner.called)
 
@@ -90,30 +91,30 @@ class TestPlugin(unittest.TestCase):
         self.instance(runner=self.runner, create_view=self.create_view)
         self.create_view.invalid.return_value = []
         self.create_view.exec_.return_value = False
-        self.run_type.create()
+        self.plugin.create()
         self.assertTrue(self.create_view.exec_.called)
         self.assertFalse(self.runner.called)
 
-    @patch('rynner.run_type.Run')
+    @patch('rynner.plugin.Run')
     def test_doesnt_call_runner_default(self, MockRun):
-        run_type = Plugin(self.domain, self.name, self.create_view)
+        plugin = Plugin(self.domain, self.name, self.create_view)
 
         self.create_view.invalid.return_value = []
         self.create_view.exec_.return_value = True
         self.create_view.data.return_value = {'my': 'test', 'data': 'dict'}
-        run_type.create()
+        plugin.create()
 
         MockRun.assert_called_once_with(my='test', data='dict')
 
     def test_set_view_keys_stored(self):
         view_keys = MM()
-        run_type = Plugin(
+        plugin = Plugin(
             self.domain, self.name, self.create_view, view_keys=view_keys)
-        self.assertEqual(view_keys, run_type.view_keys)
+        self.assertEqual(view_keys, plugin.view_keys)
 
     def test_set_view_keys_default(self):
-        run_type = Plugin(self.domain, self.name, self.create_view)
-        self.assertEqual(run_type.view_keys, Plugin.view_keys)
+        plugin = Plugin(self.domain, self.name, self.create_view)
+        self.assertEqual(plugin.view_keys, Plugin.view_keys)
 
     def test_assert_default_view_keys_values(self):
         self.assertEqual(Plugin.view_keys, (
@@ -122,19 +123,19 @@ class TestPlugin(unittest.TestCase):
         ))
 
     def test_default_param_values(self):
-        run_type = Plugin(self.domain, self.name, self.create_view)
-        self.assertEqual(run_type.view_keys, ("id", "name"))
+        plugin = Plugin(self.domain, self.name, self.create_view)
+        self.assertEqual(plugin.view_keys, ("id", "name"))
 
     def test_add_list_jobs(self):
         self.instance()
-        ret = self.run_type.list_jobs([])
+        ret = self.plugin.list_jobs([])
         self.assertEqual(ret, [])
 
     def test_add_list_jobs(self):
         self.instance()
         host1 = MM()
         host1.jobs.return_value = ['host1-job1', 'host1-job2']
-        ret = self.run_type.list_jobs([host1])
+        ret = self.plugin.list_jobs([host1])
         self.assertEqual(ret, ['host1-job1', 'host1-job2'])
 
     def test_add_list_jobs_multi_hosts(self):
@@ -143,52 +144,56 @@ class TestPlugin(unittest.TestCase):
         host1.jobs.return_value = ['host1-job1', 'host1-job2']
         host2 = MM()
         host2.jobs.return_value = ['host2-job2', 'host2-job2']
-        ret = self.run_type.list_jobs([host1, host2])
+        ret = self.plugin.list_jobs([host1, host2])
         self.assertEqual(
             ret, ['host1-job1', 'host1-job2', 'host2-job2', 'host2-job2'])
 
     def test_calls_host_jobs_with_domain(self):
         self.instance()
         host = MM()
-        self.run_type.list_jobs([host])
+        self.plugin.list_jobs([host])
         host.jobs.assert_called_once_with(self.domain)
 
     def test_add_labels(self):
         labels = MM()
-        run_type = Plugin(self.domain, self.name, labels=labels)
-        self.assertEqual(run_type.labels, labels)
+        plugin = Plugin(self.domain, self.name, labels=labels)
+        self.assertEqual(plugin.labels, labels)
 
     def test_add_labels(self):
         labels = MM()
-        run_type = Plugin(self.domain, self.name)
-        self.assertEqual(run_type.labels, None)
+        plugin = Plugin(self.domain, self.name)
+        self.assertEqual(plugin.labels, None)
 
     def test_build_index_view(self):
         view_class = MM()
         self.instance(build_index_view=view_class)
-        self.assertEqual(self.run_type.build_index_view, view_class)
+        self.assertEqual(self.plugin.build_index_view, view_class)
 
     def test_build_index_view_default(self):
         self.instance()
-        self.assertEqual(self.run_type.build_index_view, None)
+        self.assertEqual(self.plugin.build_index_view, None)
 
     def test_create_view_is_stored(self):
         create_view = MM()
         self.instance(create_view=create_view)
-        self.assertEqual(self.run_type.create_view, create_view)
+        self.assertEqual(self.plugin.create_view, create_view)
 
     def test_create_view_none_by_default(self):
         self.instance()
-        self.assertEqual(self.run_type.create_view, None)
+        self.assertEqual(self.plugin.create_view, None)
+
+    def test_has_runs_changed_signal(self):
+        self.instance()
+        self.assertIsInstance(self.plugin.runs_changed, Signal)
 
 
 class TestPluginCollection(unittest.TestCase):
     def setUp(self):
         self.name = 'Test Collection Name'
-        self.run_types = [MM(), MM()]
+        self.plugins = [MM(), MM()]
 
     def instance(self, **kwargs):
-        self.rc = PluginCollection(self.name, self.run_types, **kwargs)
+        self.rc = PluginCollection(self.name, self.plugins, **kwargs)
 
     def test_instance(self):
         self.instance()
@@ -197,9 +202,9 @@ class TestPluginCollection(unittest.TestCase):
         self.instance()
         self.assertEqual(self.rc.name, self.name)
 
-    def test_has_run_types(self):
+    def test_has_plugins(self):
         self.instance()
-        self.assertEqual(self.rc.run_types, self.run_types)
+        self.assertEqual(self.rc.plugins, self.plugins)
 
     def test_has_view_keys_with_default(self):
         self.instance()
@@ -212,12 +217,12 @@ class TestPluginCollection(unittest.TestCase):
 
     def test_add_labels(self):
         labels = MM()
-        run_type = PluginCollection(self.name, self.run_types, labels=labels)
-        self.assertEqual(run_type.labels, labels)
+        plugin = PluginCollection(self.name, self.plugins, labels=labels)
+        self.assertEqual(plugin.labels, labels)
 
     def test_labels_none_by_default(self):
-        run_type = PluginCollection(self.name, self.run_types)
-        self.assertEqual(run_type.labels, None)
+        plugin = PluginCollection(self.name, self.plugins)
+        self.assertEqual(plugin.labels, None)
 
     def test_create_view_none_by_default(self):
         self.instance()
@@ -226,6 +231,10 @@ class TestPluginCollection(unittest.TestCase):
     def test_has_build_index_view_none(self):
         self.instance()
         self.assertEqual(self.rc.build_index_view, None)
+
+    def test_has_runs_changed_signal(self):
+        self.instance()
+        self.assertIsInstance(self.rc.runs_changed, Signal)
 
     def test_list_jobs(self):
         self.instance()
@@ -256,7 +265,7 @@ class TestPluginCollection(unittest.TestCase):
             call_type1, call_type2 = call_arg_list
 
             args, vals = call_type1
-            self.assertEqual(args, (self.run_types[0].domain, ))
+            self.assertEqual(args, (self.plugins[0].domain, ))
 
             args, vals = call_type2
-            self.assertEqual(args, (self.run_types[1].domain, ))
+            self.assertEqual(args, (self.plugins[1].domain, ))

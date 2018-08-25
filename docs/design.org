@@ -117,7 +117,7 @@ ic = RunCreateViewConfig([ ConfigGroup([ TextField('Local Job Name', 'job_name')
 - Should connect datastore to GUI for signalling exceptions and/or failures
 - note: Job ID should be added to the data object (??) - or maybe I use the UUID everywhere?
 * TODO CLASS: Manager?
-- need somewhere to load hosts and run_types and to tie everything together
+- need somewhere to load hosts and plugins and to tie everything together
 - should have everything exposed through Plugin class? (so easy to modify in the plugin?)
 - need some way of selecting hosts from within a plugin...!
 - How do I know what hosts a job type is allowed?
@@ -157,7 +157,7 @@ def setup(data, context):
         pbs=[ '--money' ]
 
 
-run_type = Plugin(setup) #+END_SRC python
+plugin = Plugin(setup) #+END_SRC python
 
 the default code could be:
 #+BEGIN_SRC python

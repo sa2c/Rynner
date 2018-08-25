@@ -11,9 +11,9 @@ JobModel -> wrapper for job type??? Are there reasons for job model to change wi
 class JobType:
     types = []
 
-    def __init__(self, setup_function, config_interface, executable=None):
+    def __init__(self, setup_function, config_run_create_view, executable=None):
         self.job_setup = setup_function
-        self.config = config_interface
+        self.config = config_run_create_view
         self.actions = {}
         if self.executable is not None:
             # what makes sense to do here?

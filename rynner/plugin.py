@@ -86,9 +86,9 @@ class PluginCollection:
 
     build_index_view = None
 
-    def __init__(self, name, run_types, view_keys=None, labels=None):
+    def __init__(self, name, plugins, view_keys=None, labels=None):
         self.name = name
-        self.run_types = run_types
+        self.plugins = plugins
         if view_keys is None:
             self.view_keys = Plugin.view_keys
         else:
@@ -101,7 +101,7 @@ class PluginCollection:
 
     def list_jobs(self, hosts):
         jobs = [
-            job for host in hosts for run_type in self.run_types
-            for job in host.jobs(run_type.domain)
+            job for host in hosts for plugin in self.plugins
+            for job in host.jobs(plugin.domain)
         ]
         return jobs

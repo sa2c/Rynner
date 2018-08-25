@@ -45,7 +45,7 @@ Load compatible built-in runners (specified as a list of class names)
  (specified as a list of class names for internal, pluggable runners are set at a plugin-only leve)
 
  or file path for plugins? CLASH!!!)
-   - look for Plugin-Cluster data/config files, load into run_type.runner_data
+   - look for Plugin-Cluster data/config files, load into plugin.runner_data
 ** Create (load) Runners from config files
    config file
 ** Load runner-specific config data into the Plugin object

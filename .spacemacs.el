@@ -21,7 +21,7 @@
                                     (with-current-buffer "*testing*"
                                         (evil-normal-state)))))
 
-(setq my-tests-to-run "test_run_type_integration")
+(setq my-tests-to-run "test_plugin_integration")
 
 (spacemacs/set-leader-keys "D" '(lambda ()
                                   (interactive)

@@ -3,12 +3,12 @@ class RunManager:
     Run manager is a container for application hosts and run types
     '''
 
-    def __init__(self, hosts=None, run_types=None):
+    def __init__(self, hosts=None, plugins=None):
         self.hosts = hosts
-        self.run_types = run_types
+        self.plugins = plugins
 
-        # hosts and run_types should not be None
+        # hosts and plugins should not be None
         if self.hosts is None:
             self.hosts = []
-        if self.run_types is None:
-            self.run_types = []
+        if self.plugins is None:
+            self.plugins = []

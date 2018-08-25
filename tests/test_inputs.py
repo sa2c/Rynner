@@ -107,22 +107,22 @@ class RunCreateViewTestInput(QTestCase):
         return [child.widget for child in self.children]
 
     def instance(self):
-        self.interface = RunCreateView(self.children)
+        self.run_create_view = RunCreateView(self.children)
 
-    def interface_widget(self):
-        return self.interface.layout().itemAt(0).widget()
+    def run_create_view_widget(self):
+        return self.run_create_view.layout().itemAt(0).widget()
 
     def test_instance(self):
         self.instance()
 
     def test_create_dialog(self):
         self.instance()
-        self.assertIsInstance(self.interface, QDialog)
+        self.assertIsInstance(self.run_create_view, QDialog)
 
     def test_widgets_added_as_children_of_dialog(self):
         self.instance()
 
-        widget_children = self.interface_widget().children()
+        widget_children = self.run_create_view_widget().children()
         for child in self.children:
             self.assertIn(child.widget, widget_children)
 
@@ -140,7 +140,7 @@ class RunCreateViewTestInput(QTestCase):
     def test_widgets_added_to_layout(self):
         self.instance()
 
-        layout = self.interface_widget().layout()
+        layout = self.run_create_view_widget().layout()
         count = layout.count()
         widgets = (layout.itemAt(idx).widget() for idx in range(count))
 
@@ -161,14 +161,14 @@ class RunCreateViewTestInput(QTestCase):
             TextField('key2', 'Label', default='default2')
         ]
         self.instance()
-        self.assertEqual(self.interface.data(), {
+        self.assertEqual(self.run_create_view.data(), {
             'key1': 'default1',
             'key2': 'default2'
         })
 
     def test_valid_returns_empty_if_no_invalid_children(self):
         self.instance()
-        invalid = self.interface.invalid()
+        invalid = self.run_create_view.invalid()
         self.assertEqual(len(invalid), 0)
 
     def test_valid_true_if_children_valid(self):
@@ -177,7 +177,7 @@ class RunCreateViewTestInput(QTestCase):
 
         self.instance()
 
-        self.assertEqual(self.interface.invalid(), [self.children[0]])
+        self.assertEqual(self.run_create_view.invalid(), [self.children[0]])
 
     def test_creates_and_shows_dialog(self):
         self.instance()
@@ -186,24 +186,24 @@ class RunCreateViewTestInput(QTestCase):
         def callback():
             # widgets visible on show
             self.assertQVisible(self.children_widgets())
-            assert self.interface.isVisible()
+            assert self.run_create_view.isVisible()
 
             # widgets visible on show
-            self.interface.accept()
+            self.run_create_view.accept()
 
             # dialog invisible after accept
-            assert not self.interface.isVisible()
+            assert not self.run_create_view.isVisible()
 
         QTimer.singleShot(10, callback)
 
-        self.interface.show()
+        self.run_create_view.show()
 
     def test_show_returns_the_output_of_dialog_show(self):
         self.instance()
 
         # patch super
         with patch('rynner.inputs.super') as mock_super:
-            accepted = self.interface.show()
+            accepted = self.run_create_view.show()
             self.assertEqual(accepted, mock_super().show())
 
     def test_resets_children(self):
@@ -217,10 +217,10 @@ class RunCreateViewTestInput(QTestCase):
         for child in self.children:
             QTest.keyClicks(child.widget, " some text")
 
-        ok_button = find_QPushButton(self.interface, 'ok')
-        button_callback(method=self.interface.show, button=ok_button)
+        ok_button = find_QPushButton(self.run_create_view, 'ok')
+        button_callback(method=self.run_create_view.show, button=ok_button)
 
-        values = self.interface.data()
+        values = self.run_create_view.data()
 
         self.assertEqual(values, {
             'key1': 'default',
@@ -613,7 +613,7 @@ class TestCheckBoxesField(unittest.TestCase):
 
     def test_getkey(self):
         '''
-        field 'key' must be part of the interface.
+        field 'key' must be part of the run_create_view.
         '''
         keys = ['key1', 'key2', 'key3']
         labs = ['lab1', 'lab2', 'lab3']
@@ -623,7 +623,7 @@ class TestCheckBoxesField(unittest.TestCase):
 
     def test_getlabel(self):
         '''
-        field 'label' must be part of the interface.
+        field 'label' must be part of the run_create_view.
         '''
         keys = ['key1', 'key2', 'key3']
         labs = ['lab1', 'lab2', 'lab3']
@@ -634,7 +634,7 @@ class TestCheckBoxesField(unittest.TestCase):
 
     def test_getwidget(self):
         '''
-        field 'label' must be part of the interface.
+        field 'label' must be part of the run_create_view.
         '''
         keys = ['key1', 'key2', 'key3']
         labs = ['lab1', 'lab2', 'lab3']

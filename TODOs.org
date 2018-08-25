@@ -44,6 +44,11 @@ delete keys within the function
 - run method should return running state as a boolean (maybe?) (for datastore)
 - should I rename 'script' to 'command' ...?
 - there is no 'default configuration' for a scheduler/cluster implemented
+- there should be maybe a 'slurm' option or a 'pbs' option, implemented as:
+('{}', 'slurm')
+or
+('{}', 'pbs')
+- Lists of strings should be flattened/joined with newlines before being passed to parser
 * Datastore
 - store.store
 - store.running=

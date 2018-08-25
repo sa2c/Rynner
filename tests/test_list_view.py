@@ -6,7 +6,7 @@ from tests.qtest_helpers import *
 from rynner.host import Host, Connection
 from rynner.behaviour import Behaviour
 from rynner.inputs import Interface, TextField
-from rynner.run_type import RunType, RunTypeCollection, RunAction
+from rynner.run_type import Plugin, PluginCollection, RunAction
 from rynner.run import Run
 
 
@@ -47,10 +47,10 @@ class TestRun(unittest.TestCase):
 
     def create_run_types(self):
 
-        # create RunType objects
-        rt1 = RunType('swansea.ac.uk/1', 'My First Type', self.interface,
-                      self.runner)
-        rt2 = RunType(
+        # create Plugin objects
+        rt1 = Plugin('swansea.ac.uk/1', 'My First Type', self.interface,
+                     self.runner)
+        rt2 = Plugin(
             'swansea.ac.uk/2',
             'My Second Type',
             self.interface,
@@ -90,7 +90,7 @@ class TestRun(unittest.TestCase):
 
     def test_show_groups(self):
         self.create_run_types()
-        run_types = [RunTypeCollection("All", self.run_types)]
+        run_types = [PluginCollection("All", self.run_types)]
         run_types.extend(self.run_types)
 
         # rt.create()

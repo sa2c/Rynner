@@ -5,7 +5,7 @@ from PySide2.QtCore import QAbstractTableModel, Qt, QObject, Signal
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtQuick import QQuickView
 from PySide2.QtCore import QUrl
-from rynner.run_type import RunType, RunAction
+from rynner.run_type import Plugin, RunAction
 from rynner.ui import load_ui
 
 
@@ -44,10 +44,10 @@ class MainView(QDialog):
     '''
     Periodically, for each host, we should fetch a job list of the data visible
     (e.g. from the datastore of the job) for all jobs of the currently visible
-    type. Jobs of a given type can be deduced by using their entry in RunType
+    type. Jobs of a given type can be deduced by using their entry in Plugin
     (i.e. something like a URL)
 
-    Upshot -> RunType needs a URL + a label
+    Upshot -> Plugin needs a URL + a label
     jobs = [ host.get_jobs(type=run_type.uid) for host in hosts ].flatten()
     '''
 
@@ -81,7 +81,7 @@ class MainView(QDialog):
             self.tableview.run_types[0].create()
         else:
             raise NotImplementedException()
-            #run_type = QRunTypeSelector(self.tableview.run_types)
+            #run_type = QPluginSelector(self.tableview.run_types)
 
 
 # takes in the table model and returns a view widget! with links signals?
@@ -112,7 +112,7 @@ def build_index_view(model, run_type):
             self.tableview.run_types[0].create()
         else:
             raise NotImplementedException()
-            #run_type = QRunTypeSelector(self.tableview.run_types)
+            #run_type = QPluginSelector(self.tableview.run_types)
 
     def cancel_job(self):
         print('Cancel Job')

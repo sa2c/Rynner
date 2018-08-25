@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import MagicMock as MM, patch
-from rynner.run_type import RunType, RunAction, RunTypeCollection
+from rynner.run_type import Plugin, RunAction, PluginCollection
 
 
-class TestRunType(unittest.TestCase):
+class TestPlugin(unittest.TestCase):
     def setUp(self):
         self.runner = MM()
         self.create_view = MM()
@@ -16,7 +16,7 @@ class TestRunType(unittest.TestCase):
         self.create_view.data.return_value = self.data
         self.create_view.invalid.return_value = []
 
-        self.run_type = RunType(self.domain, self.name, **kwargs)
+        self.run_type = Plugin(self.domain, self.name, **kwargs)
 
     def test_instance(self):
         self.instance()
@@ -96,7 +96,7 @@ class TestRunType(unittest.TestCase):
 
     @patch('rynner.run_type.Run')
     def test_doesnt_call_runner_default(self, MockRun):
-        run_type = RunType(self.domain, self.name, self.create_view)
+        run_type = Plugin(self.domain, self.name, self.create_view)
 
         self.create_view.invalid.return_value = []
         self.create_view.show.return_value = True
@@ -107,22 +107,22 @@ class TestRunType(unittest.TestCase):
 
     def test_set_view_keys_stored(self):
         view_keys = MM()
-        run_type = RunType(
+        run_type = Plugin(
             self.domain, self.name, self.create_view, view_keys=view_keys)
         self.assertEqual(view_keys, run_type.view_keys)
 
     def test_set_view_keys_default(self):
-        run_type = RunType(self.domain, self.name, self.create_view)
-        self.assertEqual(run_type.view_keys, RunType.view_keys)
+        run_type = Plugin(self.domain, self.name, self.create_view)
+        self.assertEqual(run_type.view_keys, Plugin.view_keys)
 
     def test_assert_default_view_keys_values(self):
-        self.assertEqual(RunType.view_keys, (
+        self.assertEqual(Plugin.view_keys, (
             "id",
             "name",
         ))
 
     def test_default_param_values(self):
-        run_type = RunType(self.domain, self.name, self.create_view)
+        run_type = Plugin(self.domain, self.name, self.create_view)
         self.assertEqual(run_type.view_keys, ("id", "name"))
 
     def test_add_list_jobs(self):
@@ -155,12 +155,12 @@ class TestRunType(unittest.TestCase):
 
     def test_add_labels(self):
         labels = MM()
-        run_type = RunType(self.domain, self.name, labels=labels)
+        run_type = Plugin(self.domain, self.name, labels=labels)
         self.assertEqual(run_type.labels, labels)
 
     def test_add_labels(self):
         labels = MM()
-        run_type = RunType(self.domain, self.name)
+        run_type = Plugin(self.domain, self.name)
         self.assertEqual(run_type.labels, None)
 
     def test_build_index_view(self):
@@ -182,13 +182,13 @@ class TestRunType(unittest.TestCase):
         self.assertEqual(self.run_type.create_view, None)
 
 
-class TestRunTypeCollection(unittest.TestCase):
+class TestPluginCollection(unittest.TestCase):
     def setUp(self):
         self.name = 'Test Collection Name'
         self.run_types = [MM(), MM()]
 
     def instance(self, **kwargs):
-        self.rc = RunTypeCollection(self.name, self.run_types, **kwargs)
+        self.rc = PluginCollection(self.name, self.run_types, **kwargs)
 
     def test_instance(self):
         self.instance()
@@ -203,7 +203,7 @@ class TestRunTypeCollection(unittest.TestCase):
 
     def test_has_view_keys_with_default(self):
         self.instance()
-        self.assertEqual(self.rc.view_keys, RunType.view_keys)
+        self.assertEqual(self.rc.view_keys, Plugin.view_keys)
 
     def test_has_view_keys_as_specified(self):
         view_keys = MM()
@@ -212,11 +212,11 @@ class TestRunTypeCollection(unittest.TestCase):
 
     def test_add_labels(self):
         labels = MM()
-        run_type = RunTypeCollection(self.name, self.run_types, labels=labels)
+        run_type = PluginCollection(self.name, self.run_types, labels=labels)
         self.assertEqual(run_type.labels, labels)
 
     def test_labels_none_by_default(self):
-        run_type = RunTypeCollection(self.name, self.run_types)
+        run_type = PluginCollection(self.name, self.run_types)
         self.assertEqual(run_type.labels, None)
 
     def test_create_view_none_by_default(self):
@@ -240,7 +240,7 @@ class TestRunTypeCollection(unittest.TestCase):
         # list hosts
         ret = self.rc.list_jobs(hosts)
 
-        # list repeated twice (once for each RunType)
+        # list repeated twice (once for each Plugin)
         # with all host1 first and host2 second
         jobs = [
             'host1-job1', 'host1-job2', 'host1-job1', 'host1-job2',

@@ -7,7 +7,7 @@ class RunAction:
         self.function = function
 
 
-class RunType:
+class Plugin:
     '''
     The runner object (function) it the thing that is responsible for running
     the job, usually by creating a Run object.
@@ -28,13 +28,13 @@ class RunType:
                  labels=None,
                  build_index_view=None):
         '''
-        domain: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given RunType class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
+        domain: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given Plugin class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
         name: a string giving the human readable Plugin name. This is the string which is displayed to the user in the UI to identify the runs of this plugin.
         create_view : an instance of RynCreateView, which defines the view used by the application user to configure a job, and the mapping of that configuration to a set of options which will be passed to Run
         runner: a function which will be called to run a job. Typically this function will instantiate one or more objects of type Run. The input to the method will be a dictionary in which the keys correspond to the 'key' properties of the visible UI objects in the . See the RynCreateView class documentation for details of keys. If not specified, all keys of the RynCreateView object will be passed as keyword arguments to instantiate a single Run object. In this case, the keys of the children of the RynCreateView should correspond directly to keyword arguments of Run.
         view_keys: iterable of strings giving a list of keys to show in the (default) main/index view
         labels: (optional) dictionary giving a human readable name for each label. If not specified, the values of the key of each entry in  is used.
-        view: a callable that when called returns a QWidget object (this should be a QWidget class or a function which returns a QWidget instance). If not set, RynCreateView will be used. view keyword argument which can be used to override the default main/index view to render for a RunType.
+        view: a callable that when called returns a QWidget object (this should be a QWidget class or a function which returns a QWidget instance). If not set, RynCreateView will be used. view keyword argument which can be used to override the default main/index view to render for a Plugin.
         '''
         self.name = name
         self.domain = domain
@@ -79,9 +79,9 @@ class RunType:
         return jobs
 
 
-class RunTypeCollection:
+class PluginCollection:
     '''
-    This class allows a collection of RunType objects to be used with the same API as a single object.
+    This class allows a collection of Plugin objects to be used with the same API as a single object.
     '''
 
     build_index_view = None
@@ -90,7 +90,7 @@ class RunTypeCollection:
         self.name = name
         self.run_types = run_types
         if view_keys is None:
-            self.view_keys = RunType.view_keys
+            self.view_keys = Plugin.view_keys
         else:
             self.view_keys = view_keys
 

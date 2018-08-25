@@ -22,10 +22,10 @@ note left of RunClasses.ClusterRunnable : "user-written plugins are\n coupled to
 RunClasses.PBSHostLogic -|> RunClasses.HostLogic
 RunClasses.Runner ..> RunClasses.Runnable : instantiates
 
-InputSpecification "1" --* "1" RunType
+InputSpecification "1" --* "1" Plugin
 InputSpecification *-- "1.." InputFieldBase
-RunValidationException <.. RunType : throws (create_run)
-class RunType {
+RunValidationException <.. Plugin : throws (create_run)
+class Plugin {
       -func<InputData, Runner, plugin_runner_logic> create_run
       -InputSpecification input_specification
       -dict{label, Runner[],dict{runner_data}>} runners
@@ -74,7 +74,7 @@ RunClasses.ClusterRunner <|-- RunClasses.HawkRunner
 class RunClasses.SunbirdRunner <<Plugin>>
 class RunClasses.HawkRunner << (O,orchid) Instance of ClusterRunner - Plugin>>
 
-RunType ..> InputData
+Plugin ..> InputData
 Qt.QRunnableConfigDialog *--> "0.." Qt.QInputField
 
 class InputData {
@@ -108,7 +108,7 @@ class Qt.QConfigLayoutManager {
 }
 
 class Qt.QRunningStandardModel {
-      init(available_runners, RunType[] run_types)
+      init(available_runners, Plugin[] run_types)
 }
 
 Qt.QRunnableConfigModel ..> Qt.QRunnableConfigDialog : signal
@@ -121,7 +121,7 @@ class Qt.QRunnableConfigModel {
 }
 
 Qt.QRunningStandardModel "1" *--- "1.." RunClasses.Runner
-Qt.QRunningStandardModel .. RunType
+Qt.QRunningStandardModel .. Plugin
 
 abstract InputFieldBase {
          -func<value> is_valid

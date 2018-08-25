@@ -22,12 +22,12 @@ have behaviour different plugin/cluster combinations
 how does Runner/Plugin logic
 
 * Main logic
-** Create (load) RunType objects
+** Create (load) Plugin objects
    - find each plugin and load it
-   - loop over RunType.__subclasses__()
+   - loop over Plugin.__subclasses__()
 
-   - RunType object gets it's default supported runners from class variables
-   - RunType.__init__ adds RunType to a RunType class variable
+   - Plugin object gets it's default supported runners from class variables
+   - Plugin.__init__ adds Plugin to a Plugin class variable
    - Runners are included/setup somehow...!???? with the plugin-specific data
    - Runner (classes) are checked against plugin-supported runner interface (somehow)
    - dict passed in to config input spec, and InputSpecification object created and stored internally
@@ -45,10 +45,10 @@ Load compatible built-in runners (specified as a list of class names)
  (specified as a list of class names for internal, pluggable runners are set at a plugin-only leve)
 
  or file path for plugins? CLASH!!!)
-   - look for RunType-Cluster data/config files, load into run_type.runner_data
+   - look for Plugin-Cluster data/config files, load into run_type.runner_data
 ** Create (load) Runners from config files
    config file
-** Load runner-specific config data into the RunType object
+** Load runner-specific config data into the Plugin object
 ** Create Qt views and models, link them together
 
 --> load the runners and their config
@@ -62,7 +62,7 @@ APP MANAGER IS CONNECT TO TOO MUCH STUFF....!
 
 
 * PROBLEM
-RunType is initialised IN the framwork currently...this doesn't work
+Plugin is initialised IN the framwork currently...this doesn't work
 
 
 * Prev design

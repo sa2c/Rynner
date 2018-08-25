@@ -1,7 +1,7 @@
 import unittest
 from PySide2.QtCore import QTimer
 from unittest.mock import MagicMock as MM
-from rynner.run_type import RunType, RunAction
+from rynner.run_type import Plugin, RunAction
 from rynner.inputs import Interface, TextField, RunnerConfigDialog
 from tests import qtest_helpers
 from rynner.run import Run, HostNotSpecifiedException
@@ -10,7 +10,7 @@ from rynner.behaviour import Behaviour
 from PySide2.QtTest import QTest
 
 
-class TestRunTypeIntegration(qtest_helpers.QTestCase):
+class TestPluginIntegration(qtest_helpers.QTestCase):
     def setUp(self):
         self.interface = Interface([
             TextField('key', 'My Label', default="My Default"),
@@ -22,7 +22,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
         self.type_name = 'My Run Type'
 
     def instance(self):
-        self.run_type = RunType(self.domain, self.type_name, self.interface,
+        self.run_type = Plugin(self.domain, self.type_name, self.interface,
                                 self.runner)
         button_box = self.run_type.create_view.dialog._button_box
         self.ok_button = qtest_helpers.get_button(button_box, 'ok')
@@ -98,7 +98,7 @@ class TestRunTypeIntegration(qtest_helpers.QTestCase):
 
             job_id.append(a.id)
 
-        rt = RunType(self.domain, self.type_name, interface, runner)
+        rt = Plugin(self.domain, self.type_name, interface, runner)
 
         button = qtest_helpers.get_button(rt.create_view.dialog._button_box,
                                           'ok')

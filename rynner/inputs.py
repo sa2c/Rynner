@@ -13,61 +13,49 @@ class DuplicateKeyException(Exception):
     pass
 
 
-class RunnerConfigDialog(QDialog):
-    def __init__(self, dialog_title, widget):
+class RunCreateView(QDialog):
+    def __init__(self, fields, title="Set up run"):
         super().__init__(None)
-        self.setWindowTitle(dialog_title)
+
+        # store fields in instance
+        self.fields = fields
+
+        # check for duplicate keys
+        seen = set()
+        for field in fields:
+            if field.key in seen:
+                # raise an error if a duplicate key found
+                raise DuplicateKeyException(
+                    "duplicate entries for key '{}'".format(field.key))
+            else:
+                # collect seen keys, to check for duplicates
+                seen.add(field.key)
+
+        # layout fields
+        container = QWidget()
+        container.setLayout(QFormLayout())
+        for field in self.fields:
+            container.layout().addRow(field.label, field.widget)
+
+        self.setWindowTitle(title)
         self.setLayout(QVBoxLayout())
-        self.layout().addWidget(widget)
+        self.layout().addWidget(container)
         self._button_box = QDialogButtonBox(QDialogButtonBox.Ok
                                             | QDialogButtonBox.Cancel)
         self._button_box.accepted.connect(self.accept)
         self._button_box.rejected.connect(self.reject)
         self.layout().addWidget(self._button_box)
 
-
-class RunCreateView:
-    def __init__(self, children):
-        # store children in instance
-        self.children = children
-
-        # check for duplicate keys
-        seen = set()
-        for child in children:
-            if child.key in seen:
-                # raise an error if a duplicate key found
-                raise DuplicateKeyException(
-                    "duplicate entries for key '{}'".format(child.key))
-            else:
-                # collect seen keys, to check for duplicates
-                seen.add(child.key)
-
-        # layout children
-        container = self.container()
-
-        # intialise dialog with container
-        self.dialog = RunnerConfigDialog("Configure Run", container)
-
-    def container(self):
-        widget = QWidget()
-        widget.setLayout(QFormLayout())
-        for child in self.children:
-            widget.layout().addRow(child.label, child.widget)
-        return widget
-
-    def show(self):
-        # reset values
-        [child.init() for child in self.children]
-
-        accepted = self.dialog.exec_()
-
-        return accepted
+    def show(self, *args, **kwargs):
+        # reset field values
+        [field.init() for field in self.fields]
+        return super().show()
 
     def data(self):
-        return {child.key: child.value() for child in self.children}
+        return {field.key: field.value() for field in self.fields}
 
     def invalid(self):
-        return [child for child in self.children if not child.valid()]
+        return [field for field in self.fields if not field.valid()]
 
 
 class BaseField(ABC):

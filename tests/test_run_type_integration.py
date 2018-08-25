@@ -1,8 +1,9 @@
 import unittest
 from PySide2.QtCore import QTimer
+from PySide2.QtWidgets import *
 from unittest.mock import MagicMock as MM
 from rynner.run_type import Plugin, RunAction
-from rynner.inputs import RunCreateView, TextField, RunnerConfigDialog
+from rynner.inputs import RunCreateView, TextField
 from tests import qtest_helpers
 from rynner.run import Run, HostNotSpecifiedException
 from rynner.host import Host, Connection
@@ -12,11 +13,12 @@ from PySide2.QtTest import QTest
 
 class TestPluginIntegration(qtest_helpers.QTestCase):
     def setUp(self):
-        self.interface = RunCreateView([
+        self.widgets = [
             TextField('key', 'My Label', default="My Default"),
             TextField(
                 'another_key', 'My Other Label', default="My Other Default"),
-        ])
+        ]
+        self.interface = RunCreateView(self.widgets)
         self.runner = lambda data: None
         self.domain = 'swansea.ac.uk'
         self.type_name = 'My Run Type'
@@ -24,9 +26,13 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
     def instance(self):
         self.run_type = Plugin(self.domain, self.type_name, self.interface,
                                 self.runner)
-        button_box = self.run_type.create_view.dialog._button_box
-        self.ok_button = qtest_helpers.get_button(button_box, 'ok')
-        self.cancel_button = qtest_helpers.get_button(button_box, 'cancel')
+
+
+        # find all buttons in
+        view = self.run_type.create_view
+
+        self.ok_button = qtest_helpers.find_QPushButton(view, 'ok')
+        self.cancel_button = qtest_helpers.find_QPushButton(view, 'cancel')
 
     def test_show_config_window_for_empty_runner(self):
         '''
@@ -34,12 +40,12 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
         '''
         self.instance()
 
-        self.assertNotQVisible(self.run_type.create_view.dialog)
+        self.assertNotQVisible(self.run_type.create_view)
 
         def call_create():
-            self.assertQVisible(self.run_type.create_view.dialog)
+            self.assertQVisible(self.run_type.create_view)
             self.ok_button.click()
-            self.assertNotQVisible(self.run_type.create_view.dialog)
+            self.assertNotQVisible(self.run_type.create_view)
 
         QTimer.singleShot(10, call_create)
 
@@ -52,9 +58,9 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
         self.instance()
 
         def call_create():
-            self.assertQVisible(self.run_type.create_view.dialog)
+            self.assertQVisible(self.run_type.create_view)
             self.cancel_button.click()
-            self.assertNotQVisible(self.run_type.create_view.dialog)
+            self.assertNotQVisible(self.run_type.create_view)
 
         QTimer.singleShot(10, call_create)
 
@@ -66,6 +72,7 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
 
         qtest_helpers.button_callback(
             method=self.run_type.create, button=self.ok_button)
+
 
         self.runner.assert_called_once_with({
             'key': 'My Default',
@@ -100,17 +107,14 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
 
         rt = Plugin(self.domain, self.type_name, interface, runner)
 
-        button = qtest_helpers.get_button(rt.create_view.dialog._button_box,
-                                          'ok')
+        button = qtest_helpers.find_QPushButton(rt.create_view, 'ok')
         qtest_helpers.button_callback(method=rt.create, button=button)
 
-        job_id = job_id[0]
-
         connection.put_file_content.assert_called_once_with(
-            f'{job_id}/jobcard',
+            f'{job_id[0]}/jobcard',
             '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n')
         connection.run_command.assert_called_once_with(
-            'submit_cmd', pwd=f'{job_id}')
+            'submit_cmd', pwd=f'{job_id[0]}')
 
     @unittest.skip('expected failure')
     def test_dialog_window_test_behaviour(self):

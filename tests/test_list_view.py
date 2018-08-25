@@ -100,7 +100,7 @@ class TestRun(unittest.TestCase):
         #run_types = [rt1, rt2]
 
         self.tabs = MainView(self.hosts, run_types)
-        self.tabs.exec_()
+        #self.tabs.exec_()
 
     def test_action_selector(self):
         func = lambda x: None

@@ -28,14 +28,14 @@ class TestPlugin(unittest.TestCase):
 
     def test_create_view_show_method_called(self):
         self.instance(create_view=self.create_view, runner=self.runner)
-        self.assertFalse(self.create_view.show.called)
+        self.assertFalse(self.create_view.exec_.called)
         self.run_type.create()
-        self.assertTrue(self.create_view.show.called)
+        self.assertTrue(self.create_view.exec_.called)
 
     def test_call_runner_if_no_instance(self):
         self.instance(runner=self.runner, create_view=None)
         self.run_type.create()
-        self.assertFalse(self.create_view.show.called)
+        self.assertFalse(self.create_view.exec_.called)
         self.assertTrue(self.runner.called)
 
     def test_can_add_action(self):
@@ -71,7 +71,7 @@ class TestPlugin(unittest.TestCase):
     def test_call_runner_if_create_view_valid_and_accepted(self):
         # runner is called on create when create_view is valid
         self.instance(runner=self.runner)
-        self.create_view.show.return_value = True
+        self.create_view.exec_.return_value = True
         self.create_view.invalid.return_value = []
         self.run_type.create()
         self.assertTrue(self.runner.called)
@@ -79,7 +79,7 @@ class TestPlugin(unittest.TestCase):
     def test_doesnt_call_runner_if_create_view_is_invalid(self):
         # runner is not called when invalid
         self.instance(runner=self.runner, create_view=self.create_view)
-        self.create_view.show.return_value = True
+        self.create_view.exec_.return_value = True
         self.create_view.invalid.return_value = ['a', 'b']
         self.run_type.create()
         self.assertTrue(self.create_view.invalid.called)
@@ -89,9 +89,9 @@ class TestPlugin(unittest.TestCase):
         # runner is not called when invalid
         self.instance(runner=self.runner, create_view=self.create_view)
         self.create_view.invalid.return_value = []
-        self.create_view.show.return_value = False
+        self.create_view.exec_.return_value = False
         self.run_type.create()
-        self.assertTrue(self.create_view.show.called)
+        self.assertTrue(self.create_view.exec_.called)
         self.assertFalse(self.runner.called)
 
     @patch('rynner.run_type.Run')
@@ -99,7 +99,7 @@ class TestPlugin(unittest.TestCase):
         run_type = Plugin(self.domain, self.name, self.create_view)
 
         self.create_view.invalid.return_value = []
-        self.create_view.show.return_value = True
+        self.create_view.exec_.return_value = True
         self.create_view.data.return_value = {'my': 'test', 'data': 'dict'}
         run_type.create()
 

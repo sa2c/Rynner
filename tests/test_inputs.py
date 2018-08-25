@@ -5,7 +5,7 @@ from PySide2.QtCore import QTimer
 from PySide2.QtTest import QTest
 import rynner
 from rynner.inputs import *
-from tests.qtest_helpers import QTestCase, get_button, button_callback
+from tests.qtest_helpers import *
 
 # TODO: for CheckBoxesField, only __init__, set_value and value methods have been tested,
 #       and it has been tested that 'key','label' and 'widget' are public members.
@@ -110,14 +110,14 @@ class RunCreateViewTestInput(QTestCase):
         self.interface = RunCreateView(self.children)
 
     def interface_widget(self):
-        return self.interface.dialog.layout().itemAt(0).widget()
+        return self.interface.layout().itemAt(0).widget()
 
     def test_instance(self):
         self.instance()
 
     def test_create_dialog(self):
         self.instance()
-        self.assertIsInstance(self.interface.dialog, QDialog)
+        self.assertIsInstance(self.interface, QDialog)
 
     def test_widgets_added_as_children_of_dialog(self):
         self.instance()
@@ -186,24 +186,25 @@ class RunCreateViewTestInput(QTestCase):
         def callback():
             # widgets visible on show
             self.assertQVisible(self.children_widgets())
-            assert self.interface.dialog.isVisible()
+            assert self.interface.isVisible()
 
             # widgets visible on show
-            self.interface.dialog.accept()
+            self.interface.accept()
 
             # dialog invisible after accept
-            assert not self.interface.dialog.isVisible()
+            assert not self.interface.isVisible()
 
         QTimer.singleShot(10, callback)
 
         self.interface.show()
 
-    @patch('rynner.inputs.RunnerConfigDialog')
-    def test_show_returns_the_output_of_dialog_show(self, MockConfigDialog):
+    def test_show_returns_the_output_of_dialog_show(self):
         self.instance()
-        accepted = self.interface.show()
-        dialog_exec_return = MockConfigDialog().exec_()
-        self.assertEqual(accepted, dialog_exec_return)
+
+        # patch super
+        with patch('rynner.inputs.super') as mock_super:
+            accepted = self.interface.show()
+            self.assertEqual(accepted, mock_super().show())
 
     def test_resets_children(self):
         input1 = TextField("key1", "label", default="default", remember=False)
@@ -216,7 +217,7 @@ class RunCreateViewTestInput(QTestCase):
         for child in self.children:
             QTest.keyClicks(child.widget, " some text")
 
-        ok_button = get_button(self.interface.dialog._button_box, 'ok')
+        ok_button = find_QPushButton(self.interface, 'ok')
         button_callback(method=self.interface.show, button=ok_button)
 
         values = self.interface.data()
@@ -227,13 +228,17 @@ class RunCreateViewTestInput(QTestCase):
         })
 
 
-class TestRunnerConfigDialogClass(unittest.TestCase):
+class TestRunCreateViewTestDialog(QTestCase):
     def setUp(self):
-        self.dialog_title = "Title"
-        self.widget = QWidget()
+        self.children = [
+            TextField('key1', 'My label 1', default="My Value 1"),
+            TextField('key2', 'My label 2', default="My Value 2"),
+            TextField('key3', 'My label 3', default="My Value 3")
+        ]
+        self.widgets = (c.widget for c in self.children)
 
-    def instance(self):
-        self.dialog = RunnerConfigDialog(self.dialog_title, self.widget)
+    def instance(self, **kwargs):
+        self.dialog = RunCreateView(self.children, **kwargs)
 
     def instance_items(self):
         layout = self.dialog.layout()
@@ -242,15 +247,23 @@ class TestRunnerConfigDialogClass(unittest.TestCase):
     def test_instance(self):
         self.instance()
 
-    def test_title(self):
+    def test_default_title(self):
         self.instance()
-        self.assertEqual(self.dialog.windowTitle(), self.dialog_title)
+        self.assertEqual(self.dialog.windowTitle(), "Set up run")
+
+    def test_title(self):
+        self.instance(title="title")
+        self.assertEqual(self.dialog.windowTitle(), "title")
 
     def test_widget_in_layout(self):
         self.instance()
         items = self.instance_items()
 
-        self.assertIn(self.widget, items)
+        self.assertNotQVisible(self.widgets)
+
+        self.dialog.show()
+
+        self.assertQVisible((c.widget for c in self.children))
 
     def test_buttons_in_layout(self):
         self.instance()
@@ -258,37 +271,31 @@ class TestRunnerConfigDialogClass(unittest.TestCase):
 
         self.assertIn(QDialogButtonBox, type_items)
 
-    def test_instantiate_twice_same_widget(self):
-        self.instance()
-        self.assertEqual(self.widget.parent(), self.dialog)
-        self.instance()
-        self.assertEqual(self.widget.parent(), self.dialog)
-
     def test_shows_dialog_with_title(self):
-        input = TextField("key", "label")
-        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget)
-        self.assertFalse(input.widget.isVisible())
-        dialog.show()
-        self.assertTrue(input.widget.isVisible())
-        self.assertEqual(dialog.windowTitle(), "MY WINDOW TITLE")
+        widgets = [child.widget for child in self.children ]
+        self.instance(title="MY WINDOW TITLE")
+        self.assertNotQVisible(widgets)
+        self.dialog.show()
+        self.assertQVisible(widgets)
+        self.assertEqual(self.dialog.windowTitle(), "MY WINDOW TITLE")
 
     def test_shows_dialog_twice(self):
-        input = TextField("key", "label")
-        dialog = RunnerConfigDialog("MY WINDOW TITLE", input.widget)
+        widgets = [child.widget for child in self.children ]
+        self.instance()
 
         # Show once
-        self.assertFalse(input.widget.isVisible())
-        dialog.show()
-        self.assertTrue(input.widget.isVisible())
-        dialog.close()
-        self.assertFalse(input.widget.isVisible())
+        self.assertNotQVisible(widgets)
+        self.dialog.show()
+        self.assertQVisible(widgets)
+        self.dialog.close()
+        self.assertNotQVisible(widgets)
 
         # Show again
-        self.assertFalse(input.widget.isVisible())
-        dialog.show()
-        self.assertTrue(input.widget.isVisible())
-        dialog.close()
-        self.assertFalse(input.widget.isVisible())
+        self.assertNotQVisible(widgets)
+        self.dialog.show()
+        self.assertQVisible(widgets)
+        self.dialog.close()
+        self.assertNotQVisible(widgets)
 
 
 class TestTextField(unittest.TestCase):

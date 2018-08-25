@@ -30,15 +30,10 @@ class QTestCase(unittest.TestCase):
 ##################################################################
 
 
-def get_button(button_box, button_text):
-
-    buttons = [
-        button for button in button_box.children() if
-        type(button) is QPushButton and button_text in button.text().lower()
-    ]
-    button = buttons[0]
-
-    return button
+def find_QPushButton(obj, text):
+    for child in obj.findChildren(QPushButton):
+        if child.text().lower() == text.lower():
+            return child
 
 
 def button_callback(method, button):
@@ -46,7 +41,6 @@ def button_callback(method, button):
         button.click()
 
     QTimer.singleShot(10, callback)
-
     method()
 
 

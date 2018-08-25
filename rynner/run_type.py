@@ -54,7 +54,7 @@ class Plugin:
             self._run({})
         else:
             # display configuration window
-            accepted = self.create_view.show()
+            accepted = self.create_view.exec_()
 
             if accepted and len(self.create_view.invalid()) == 0:
                 data = self.create_view.data()

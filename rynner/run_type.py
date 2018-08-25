@@ -14,33 +14,57 @@ class RunType:
     Links the GUI/UI and the 'run' logic.
     (see design.org example)
     '''
-    
-    default_params = [("id", "Job ID"), ("name", "Job Name")]
 
-    def __init__(self, domain, name, interface, runner=None, params=None):
+    index_view_class = None
+
+    view_keys = ("id", "name")
+
+    def __init__(self,
+                 domain,
+                 name,
+                 create_view=None,
+                 runner=None,
+                 view_keys=None,
+                 labels=None,
+                 index_view_class=None):
+        '''
+        domain: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given RunType class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
+        name: a string giving the human readable Plugin name. This is the string which is displayed to the user in the UI to identify the runs of this plugin.
+        create_view : an instance of RynCreateView, which defines the view used by the application user to configure a job, and the mapping of that configuration to a set of options which will be passed to Run
+        runner: a function which will be called to run a job. Typically this function will instantiate one or more objects of type Run. The input to the method will be a dictionary in which the keys correspond to the 'key' properties of the visible UI objects in the . See the RynCreateView class documentation for details of keys. If not specified, all keys of the RynCreateView object will be passed as keyword arguments to instantiate a single Run object. In this case, the keys of the children of the RynCreateView should correspond directly to keyword arguments of Run.
+        view_keys: iterable of strings giving a list of keys to show in the (default) main/index view
+        labels: (optional) dictionary giving a human readable name for each label. If not specified, the values of the key of each entry in  is used.
+        view: a callable that when called returns a QWidget object (this should be a QWidget class or a function which returns a QWidget instance). If not set, RynCreateView will be used. view keyword argument which can be used to override the default main/index view to render for a RunType.
+        '''
         self.name = name
         self.domain = domain
-        self.interface = interface
+        self.create_view = create_view
         self.actions = []
         self.runner = runner
+        self.labels = labels
 
-        # set params to input, if specified otherwise set to default params
-        if params is None:
-            self.params = self.default_params
-        else:
-            self.params = params
+        if index_view_class is not None:
+            self.index_view_class = index_view_class
+
+        if view_keys is not None:
+            self.view_keys = view_keys
 
     def create(self):
-        # display configuration window
-        accepted = self.interface.show()
+        if self.create_view is None:
+            self._run({})
+        else:
+            # display configuration window
+            accepted = self.create_view.show()
 
-        if accepted and len(self.interface.invalid()) == 0:
-            data = self.interface.data()
+            if accepted and len(self.create_view.invalid()) == 0:
+                data = self.create_view.data()
+                self._run(data)
 
-            if self.runner is None:
-                run = Run(**data)
-            else:
-                self.runner(data)
+    def _run(self, data):
+        if self.runner is None:
+            run = Run(**data)
+        else:
+            self.runner(data)
 
     def add_action(self, label, function):
         action = RunAction(label, function)
@@ -60,15 +84,20 @@ class RunTypeCollection:
     This class allows a collection of RunType objects to be used with the same API as a single object.
     '''
 
-    def __init__(self, name, run_types, params=None):
+    index_view_class = None
+
+    def __init__(self, name, run_types, view_keys=None, labels=None):
         self.name = name
         self.run_types = run_types
-        if params is None:
-            self.params = RunType.default_params
+        if view_keys is None:
+            self.view_keys = RunType.view_keys
         else:
-            self.params = params
+            self.view_keys = view_keys
 
         self.actions = []
+
+        self.labels = labels
+        self.create_view = None
 
     def list_jobs(self, hosts):
         jobs = [

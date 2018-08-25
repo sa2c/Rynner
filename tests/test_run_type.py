@@ -1,39 +1,42 @@
 import unittest
 from unittest.mock import MagicMock as MM, patch
 from rynner.run_type import RunType, RunAction, RunTypeCollection
-from rynner.inputs import Interface
 
 
 class TestRunType(unittest.TestCase):
     def setUp(self):
         self.runner = MM()
-        self.interface = MM()
+        self.create_view = MM()
         self.data = {'a': 'a', 'b': 'b'}
 
         self.domain = 'rynner.swansea.ac.uk'
         self.name = 'Test Plugin'
 
-    def instance(self):
-        self.interface.data.return_value = self.data
-        self.interface.invalid.return_value = []
+    def instance(self, **kwargs):
+        self.create_view.data.return_value = self.data
+        self.create_view.invalid.return_value = []
 
-        self.run_type = RunType(self.domain, self.name, self.interface,
-                                self.runner)
+        self.run_type = RunType(self.domain, self.name, **kwargs)
 
     def test_instance(self):
         self.instance()
 
     def test_create_calls_setup(self):
-        self.instance()
-
+        self.instance(runner=self.runner, create_view=self.create_view)
         self.run_type.create()
         self.runner.assert_called_once_with(self.data)
 
-    def test_interface_show_method_called(self):
-        self.instance()
-        self.assertFalse(self.interface.show.called)
+    def test_create_view_show_method_called(self):
+        self.instance(create_view=self.create_view, runner=self.runner)
+        self.assertFalse(self.create_view.show.called)
         self.run_type.create()
-        self.assertTrue(self.interface.show.called)
+        self.assertTrue(self.create_view.show.called)
+
+    def test_call_runner_if_no_instance(self):
+        self.instance(runner=self.runner, create_view=None)
+        self.run_type.create()
+        self.assertFalse(self.create_view.show.called)
+        self.assertTrue(self.runner.called)
 
     def test_can_add_action(self):
         some_action = lambda data: None
@@ -61,65 +64,66 @@ class TestRunType(unittest.TestCase):
         self.assertEqual(action.function, action_function)
 
     def test_create_can_handle_empty_data(self):
-        self.instance()
+        self.instance(runner=self.runner)
         self.data = {}
         self.run_type.create()
 
-    def test_call_runner_if_interface_valid_and_accepted(self):
-        # runner is called on create when interface is valid
-        self.instance()
-        self.interface.show.return_value = True
-        self.interface.invalid.return_value = []
+    def test_call_runner_if_create_view_valid_and_accepted(self):
+        # runner is called on create when create_view is valid
+        self.instance(runner=self.runner)
+        self.create_view.show.return_value = True
+        self.create_view.invalid.return_value = []
         self.run_type.create()
         self.assertTrue(self.runner.called)
 
-    def test_doesnt_call_runner_if_interface_is_invalid(self):
+    def test_doesnt_call_runner_if_create_view_is_invalid(self):
         # runner is not called when invalid
-        self.instance()
-        self.interface.show.return_value = True
-        self.interface.invalid.return_value = ['a', 'b']
+        self.instance(runner=self.runner, create_view=self.create_view)
+        self.create_view.show.return_value = True
+        self.create_view.invalid.return_value = ['a', 'b']
         self.run_type.create()
-        self.assertTrue(self.interface.invalid.called)
+        self.assertTrue(self.create_view.invalid.called)
         self.assertFalse(self.runner.called)
 
     def test_doesnt_call_runner_if_exec_cancelled(self):
         # runner is not called when invalid
-        self.instance()
-        self.interface.invalid.return_value = []
-        self.interface.show.return_value = False
+        self.instance(runner=self.runner, create_view=self.create_view)
+        self.create_view.invalid.return_value = []
+        self.create_view.show.return_value = False
         self.run_type.create()
-        self.assertTrue(self.interface.show.called)
+        self.assertTrue(self.create_view.show.called)
         self.assertFalse(self.runner.called)
 
     @patch('rynner.run_type.Run')
     def test_doesnt_call_runner_default(self, MockRun):
-        run_type = RunType(self.domain, self.name, self.interface)
+        run_type = RunType(self.domain, self.name, self.create_view)
 
-        self.interface.invalid.return_value = []
-        self.interface.show.return_value = True
-        self.interface.data.return_value = {'my': 'test', 'data': 'dict'}
+        self.create_view.invalid.return_value = []
+        self.create_view.show.return_value = True
+        self.create_view.data.return_value = {'my': 'test', 'data': 'dict'}
         run_type.create()
 
         MockRun.assert_called_once_with(my='test', data='dict')
 
-    def test_set_params(self):
-        params = MM()
+    def test_set_view_keys_stored(self):
+        view_keys = MM()
         run_type = RunType(
-            self.domain, self.name, self.interface, params=params)
-        self.assertEqual(params, run_type.params)
+            self.domain, self.name, self.create_view, view_keys=view_keys)
+        self.assertEqual(view_keys, run_type.view_keys)
 
-    def test_set_params_default(self):
-        run_type = RunType(self.domain, self.name, self.interface)
-        self.assertEqual(run_type.params, RunType.default_params)
+    def test_set_view_keys_default(self):
+        run_type = RunType(self.domain, self.name, self.create_view)
+        self.assertEqual(run_type.view_keys, RunType.view_keys)
 
-    def test_assert_default_params_values(self):
-        self.assertEqual(RunType.default_params, [("id", "Job ID"),
-                                                  ("name", "Job Name")])
+    def test_assert_default_view_keys_values(self):
+        self.assertEqual(RunType.view_keys, (
+            "id",
+            "name",
+        ))
 
     def test_default_param_values(self):
-        run_type = RunType(self.domain, self.name, self.interface)
-        self.assertEqual(run_type.params, [("id", "Job ID"),
-                                           ("name", "Job Name")])
+        run_type = RunType(self.domain, self.name, self.create_view)
+        self.assertEqual(run_type.view_keys, ("id", "name"))
 
     def test_add_list_jobs(self):
         self.instance()
@@ -149,6 +153,34 @@ class TestRunType(unittest.TestCase):
         self.run_type.list_jobs([host])
         host.jobs.assert_called_once_with(self.domain)
 
+    def test_add_labels(self):
+        labels = MM()
+        run_type = RunType(self.domain, self.name, labels=labels)
+        self.assertEqual(run_type.labels, labels)
+
+    def test_add_labels(self):
+        labels = MM()
+        run_type = RunType(self.domain, self.name)
+        self.assertEqual(run_type.labels, None)
+
+    def test_index_view_class(self):
+        view_class = MM()
+        self.instance(index_view_class=view_class)
+        self.assertEqual(self.run_type.index_view_class, view_class)
+
+    def test_index_view_class_default(self):
+        self.instance()
+        self.assertEqual(self.run_type.index_view_class, None)
+
+    def test_create_view_is_stored(self):
+        create_view = MM()
+        self.instance(create_view=create_view)
+        self.assertEqual(self.run_type.create_view, create_view)
+
+    def test_create_view_none_by_default(self):
+        self.instance()
+        self.assertEqual(self.run_type.create_view, None)
+
 
 class TestRunTypeCollection(unittest.TestCase):
     def setUp(self):
@@ -169,14 +201,27 @@ class TestRunTypeCollection(unittest.TestCase):
         self.instance()
         self.assertEqual(self.rc.run_types, self.run_types)
 
-    def test_has_params_with_default(self):
+    def test_has_view_keys_with_default(self):
         self.instance()
-        self.assertEqual(self.rc.params, RunType.default_params)
+        self.assertEqual(self.rc.view_keys, RunType.view_keys)
 
-    def test_has_params_as_specified(self):
-        params = MM()
-        self.instance(params=params)
-        self.assertEqual(self.rc.params, params)
+    def test_has_view_keys_as_specified(self):
+        view_keys = MM()
+        self.instance(view_keys=view_keys)
+        self.assertEqual(self.rc.view_keys, view_keys)
+
+    def test_add_labels(self):
+        labels = MM()
+        run_type = RunTypeCollection(self.name, self.run_types, labels=labels)
+        self.assertEqual(run_type.labels, labels)
+
+    def test_labels_none_by_default(self):
+        run_type = RunTypeCollection(self.name, self.run_types)
+        self.assertEqual(run_type.labels, None)
+
+    def test_create_view_none_by_default(self):
+        self.instance()
+        self.assertEqual(self.rc.create_view, None)
 
     def test_list_jobs(self):
         self.instance()

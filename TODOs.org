@@ -14,6 +14,8 @@
 - Rather than parsing script out, it makes sense to make script a positional argument (since it is mandatory)
 - Need to work out where the remote base path is computed??
 - Need to do some other stuff...
+* RunType
+- RunType collection should have a create_view by default which allows choosing between multiple run types then proxies the selected view...
 * Template
 - doesn't really do anything - and not integration tested
 * Host

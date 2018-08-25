@@ -56,7 +56,7 @@ class TestBaseField(unittest.TestCase):
         self.assertEqual(input.label.text(), "My label")
         self.assertIsInstance(input.label, QLabel)
 
-    @unittest.skip('refactor breaks: Interface should handle labels now')
+    @unittest.skip('refactor breaks: RunCreateView should handle labels now')
     def test_label_added_to_layout(self):
         pass
 
@@ -95,7 +95,7 @@ class TestBaseField(unittest.TestCase):
         self.assertTrue(self.input.valid())
 
 
-class InterfaceTestInput(QTestCase):
+class RunCreateViewTestInput(QTestCase):
     def setUp(self):
         self.children = [
             TextField('key1', 'My label 1', default="My Value 1"),
@@ -107,7 +107,7 @@ class InterfaceTestInput(QTestCase):
         return [child.widget for child in self.children]
 
     def instance(self):
-        self.interface = Interface(self.children)
+        self.interface = RunCreateView(self.children)
 
     def interface_widget(self):
         return self.interface.dialog.layout().itemAt(0).widget()

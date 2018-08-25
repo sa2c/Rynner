@@ -5,7 +5,7 @@ from rynner.list_view import *
 from tests.qtest_helpers import *
 from rynner.host import Host, Connection
 from rynner.behaviour import Behaviour
-from rynner.inputs import Interface, TextField
+from rynner.inputs import RunCreateView, TextField
 from rynner.run_type import Plugin, PluginCollection, RunAction
 from rynner.run import Run
 
@@ -21,7 +21,7 @@ class TestRun(unittest.TestCase):
     def setUp(self):
 
         # Create a fake interface
-        self.interface = Interface([
+        self.interface = RunCreateView([
             TextField('Some Parameter', 'param', default='Some default value')
         ])
 

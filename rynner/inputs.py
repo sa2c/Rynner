@@ -26,7 +26,7 @@ class RunnerConfigDialog(QDialog):
         self.layout().addWidget(self._button_box)
 
 
-class Interface:
+class RunCreateView:
     def __init__(self, children):
         # store children in instance
         self.children = children

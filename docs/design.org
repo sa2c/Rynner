@@ -83,7 +83,7 @@ numeric field
 
 - from a command line, I pass 'rynner-command-line' and recurse the list asking for input...
 #+BEGIN_SRC python
-ic = InterfaceConfig([ TextField('Local Job Name', 'job_name'),
+ic = RunCreateViewConfig([ TextField('Local Job Name', 'job_name'),
     OptionField('Line Plot Type', 'Line Plot Type', [('Line', 'line'), ('Bar',
     'bar'), ('Pie', 'pie')], 'plot_type'), NumericField( 'Local Numeric Field',
     'velocity', 10), Directory( 'Local Working Directory', 'working_dir'),
@@ -94,7 +94,7 @@ ic = InterfaceConfig([ TextField('Local Job Name', 'job_name'),
     git_repo_url, 'commit'), Select( 'Select Cluster'), 'cluster']) ]) #+END_SRC
 
 #+BEGIN_SRC python
-ic = InterfaceConfig([ ConfigGroup([ TextField('Local Job Name', 'job_name'),
+ic = RunCreateViewConfig([ ConfigGroup([ TextField('Local Job Name', 'job_name'),
     OptionField('Line Plot Type', 'Line Plot Type', [('Line', 'line'), ('Bar',
     'bar'), ('Pie', 'pie')], 'plot_type'), NumericField( 'Local Numeric Field',
     'velocity', 10), WizardGroup( FirstWizardView(TextField('mywiz')),

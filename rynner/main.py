@@ -6,8 +6,10 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtQuick import QQuickView
 from PySide2.QtCore import QUrl, Slot
 from rynner.plugin import Plugin, RunAction
-from rynner.index_table_model import IndexTableModel
+from rynner.index_view import IndexTableModel
 from rynner.ui import load_ui
+
+# TODO - no unit testing on this file (but some integration tests)
 
 
 class MainView(QDialog):
@@ -60,8 +62,6 @@ def build_index_view(model, ui_file):
     # can probably set these in view
     view.table.setSelectionBehavior(QAbstractItemView.SelectRows)
     view.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
-    # TODO add actions - this should be a loop
     view.actionComboBox.addItem("action")
 
     def stop_run():

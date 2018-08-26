@@ -4,7 +4,7 @@ from unittest.mock import patch
 from PySide2.QtCore import QTimer
 from PySide2.QtTest import QTest
 import rynner
-from rynner.inputs import *
+from rynner.create_view import *
 from tests.qtest_helpers import *
 
 # TODO: for CheckBoxesField, only __init__, set_value and value methods have been tested,
@@ -56,10 +56,6 @@ class TestBaseField(unittest.TestCase):
         self.assertEqual(input.label.text(), "My label")
         self.assertIsInstance(input.label, QLabel)
 
-    @unittest.skip('refactor breaks: RunCreateView should handle labels now')
-    def test_label_added_to_layout(self):
-        pass
-
     def test_uses_default_as_initial(self):
         input = ConcreteField('key', 'My label', default="default value")
 
@@ -79,11 +75,11 @@ class TestBaseField(unittest.TestCase):
         input_data = "Test Input Data"
 
         with patch.object(
-                rynner.inputs, "input", create=True, return_value=input_data):
+                rynner.create_view, "input", create=True, return_value=input_data):
             value = input.cli()
             self.assertEqual(value, input_data)
 
-    @patch('rynner.inputs.input')
+    @patch('rynner.create_view.input')
     def test_cli_correct_label(self, mock_input):
         input = ConcreteField('key', 'Test Label')
 
@@ -202,7 +198,7 @@ class RunCreateViewTestInput(QTestCase):
         self.instance()
 
         # patch super
-        with patch('rynner.inputs.super') as mock_super:
+        with patch('rynner.create_view.super') as mock_super:
             accepted = self.run_create_view.show()
             self.assertEqual(accepted, mock_super().show())
 
@@ -213,7 +209,7 @@ class RunCreateViewTestInput(QTestCase):
         self.children = [input1, input2]
         self.instance()
 
-        # type into inputs
+        # type into fields
         for child in self.children:
             QTest.keyClicks(child.widget, " some text")
 

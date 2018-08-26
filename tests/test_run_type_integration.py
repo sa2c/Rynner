@@ -3,7 +3,7 @@ from PySide2.QtCore import QTimer
 from PySide2.QtWidgets import *
 from unittest.mock import MagicMock as MM
 from rynner.plugin import Plugin, RunAction
-from rynner.inputs import RunCreateView, TextField
+from rynner.create_view import RunCreateView, TextField
 from tests import qtest_helpers
 from rynner.run import Run, HostNotSpecifiedException
 from rynner.host import Host, Connection

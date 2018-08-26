@@ -2,7 +2,7 @@ import unittest
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from unittest.mock import MagicMock as MM, patch
-from rynner.index_table_model import *
+from rynner.index_view import *
 from rynner.plugin import *
 
 

@@ -65,9 +65,9 @@ class Plugin(QObject):
         self.actions.append(action)
         return action
 
-    def list_jobs(self, hosts):
+    def list_jobs(self):
         jobs = []
-        for host in hosts:
+        for host in self.hosts:
             for job in host.jobs(self.domain):
                 jobs.append(job)
         return jobs
@@ -96,7 +96,8 @@ class PluginCollection(QObject):
 
     runs_changed = Signal()
 
-    def __init__(self, name, plugins, view_keys=None, labels=None, parent=None):
+    def __init__(self, name, plugins, view_keys=None, labels=None,
+                 parent=None):
         super().__init__(parent)
         self.name = name
         self.plugins = plugins

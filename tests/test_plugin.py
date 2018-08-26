@@ -12,6 +12,13 @@ class TestPlugin(unittest.TestCase):
         self.create_view = MM()
         self.data = {'a': 'a', 'b': 'b'}
 
+        # set up some mock hosts
+        self.host1 = MM()
+        self.host1.jobs.return_value = ['host1-job1', 'host1-job2']
+        self.host2 = MM()
+        self.host2.jobs.return_value = ['host2-job1', 'host2-job2']
+        self.hosts = [self.host1, self.host2]
+
         self.domain = 'rynner.swansea.ac.uk'
         self.name = 'Test Plugin'
 
@@ -135,26 +142,23 @@ class TestPlugin(unittest.TestCase):
 
     def test_add_list_jobs(self):
         self.instance()
-        host1 = MM()
-        host1.jobs.return_value = ['host1-job1', 'host1-job2']
-        ret = self.plugin.list_jobs([host1])
+        self.plugin.hosts = [self.host1]
+        ret = self.plugin.list_jobs()
         self.assertEqual(ret, ['host1-job1', 'host1-job2'])
 
     def test_add_list_jobs_multi_hosts(self):
         self.instance()
-        host1 = MM()
-        host1.jobs.return_value = ['host1-job1', 'host1-job2']
-        host2 = MM()
-        host2.jobs.return_value = ['host2-job2', 'host2-job2']
-        ret = self.plugin.list_jobs([host1, host2])
+        self.plugin.hosts = self.hosts
+        ret = self.plugin.list_jobs()
         self.assertEqual(
-            ret, ['host1-job1', 'host1-job2', 'host2-job2', 'host2-job2'])
+            ret, ['host1-job1', 'host1-job2', 'host2-job1', 'host2-job2'])
 
     def test_calls_host_jobs_with_domain(self):
         self.instance()
-        host = MM()
-        self.plugin.list_jobs([host])
-        host.jobs.assert_called_once_with(self.domain)
+        self.plugin.hosts = self.hosts
+        self.plugin.list_jobs()
+        self.host1.jobs.assert_called_once_with(self.domain)
+        self.host2.jobs.assert_called_once_with(self.domain)
 
     def test_add_labels(self):
         labels = MM()
@@ -202,6 +206,7 @@ class TestPlugin(unittest.TestCase):
         parent = QWidget()
         a = Plugin('name', [])
         self.assertEqual(a.parent(), None)
+
 
 class TestPluginCollection(unittest.TestCase):
     def setUp(self):

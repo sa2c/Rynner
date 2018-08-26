@@ -9,47 +9,6 @@ from rynner.plugin import Plugin, RunAction
 from rynner.ui import load_ui
 
 
-class RynnerTableModel(QStandardItemModel):
-    def __init__(self, plugin, hosts, parent=None):
-        # TODO throw error if all plugin don't have view_keys
-
-        super().__init__(parent)
-        self.hosts = hosts
-
-        self.view_keys = plugin.view_keys
-        self.setHorizontalHeaderLabels(self.view_keys)
-
-        self.plugin = plugin
-
-        self.refresh_from_datastore()
-
-    @Slot()
-    def create_new_run(self):
-        print(f"create {self.plugin.name}....!")
-
-
-    @Slot()
-    def stop_run(self, model_index):
-        run = model_index.row()
-        print(f"stop {self.plugin.name} job {run}....!")
-
-    @Slot()
-    def run_action(self, action, job):
-        print(f"running action f{action} for {self.plugin.name} on {job}")
-
-    @Slot()
-    def archive_job(self, job):
-        print(f"archiving job f{job} for {self.plugin.name}")
-
-    # TODO - this should be a slot that is connected to by datastore??
-    def refresh_from_datastore(self):
-        jobs = self.plugin.list_jobs(self.hosts)
-        for col, key in enumerate(self.plugin.view_keys):
-            for row, job in enumerate(jobs):
-                value = job[key]
-                self.setItem(row, col, QStandardItem(value))
-
-
 class MainView(QDialog):
     '''
     Periodically, for each host, we should fetch a job list of the data visible
@@ -73,7 +32,7 @@ class MainView(QDialog):
         # Add a new tab for each run type
         models = {}
         for plugin in plugins:
-            models[plugin] = RynnerTableModel(plugin, hosts)
+            models[plugin] = IndexTableModel(plugin, hosts)
             if plugin.build_index_view is not None:
                 view = plugin.build_index_view(models[plugin])
             else:
@@ -96,6 +55,7 @@ def build_index_view(model, ui_file):
     # create the a table view and model
 
     view.table.setModel(model)
+
     # can probably set these in view
     view.table.setSelectionBehavior(QAbstractItemView.SelectRows)
     view.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -103,13 +63,17 @@ def build_index_view(model, ui_file):
     # add actions
     view.actionComboBox.addItem("action")
 
-    view.newButton.clicked.connect(model.create_new_run)
-    view.stopButton.clicked.connect(lambda selected : model.stop_run(view.table.currentIndex()))
+    def stop_run():
+        model.stop_run(view.table.selectionModel().selectedRows())
 
-    def set_action(action_idx):
+    view.newButton.clicked.connect(model.create_new_run)
+    view.stopButton.clicked.connect(stop_run)
+
+    def set_action(action):
         job_idx = view.table.currentIndex()
-        if action_idx > 0:
-            model.run_action(action_idx, job_idx)
+        if action > 0:
+            model.run_action(action,
+                             view.table.selectionModel().selectedRows())
         view.actionComboBox.setCurrentIndex(0)
 
     view.actionComboBox.currentIndexChanged.connect(set_action)

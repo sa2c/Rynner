@@ -1,4 +1,5 @@
 from rynner.run import Run
+from PySide2.QtCore import Signal, QObject
 
 
 class RunAction:
@@ -7,7 +8,7 @@ class RunAction:
         self.function = function
 
 
-class Plugin:
+class Plugin(QObject):
     '''
     The runner object (function) it the thing that is responsible for running
     the job, usually by creating a Run object.
@@ -19,6 +20,8 @@ class Plugin:
 
     view_keys = ("id", "name")
 
+    runs_changed = Signal()
+
     def __init__(self,
                  domain,
                  name,
@@ -26,7 +29,8 @@ class Plugin:
                  runner=None,
                  view_keys=None,
                  labels=None,
-                 build_index_view=None):
+                 build_index_view=None,
+                 parent=None):
         '''
         domain: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given Plugin class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
         name: a string giving the human readable Plugin name. This is the string which is displayed to the user in the UI to identify the runs of this plugin.
@@ -36,6 +40,7 @@ class Plugin:
         labels: (optional) dictionary giving a human readable name for each label. If not specified, the values of the key of each entry in  is used.
         view: a callable that when called returns a QWidget object (this should be a QWidget class or a function which returns a QWidget instance). If not set, RynCreateView will be used. view keyword argument which can be used to override the default main/index view to render for a Plugin.
         '''
+        super().__init__(parent)
         self.name = name
         self.domain = domain
         self.create_view = create_view
@@ -79,14 +84,17 @@ class Plugin:
         return jobs
 
 
-class PluginCollection:
+class PluginCollection(QObject):
     '''
     This class allows a collection of Plugin objects to be used with the same API as a single object.
     '''
 
     build_index_view = None
 
-    def __init__(self, name, plugins, view_keys=None, labels=None):
+    runs_changed = Signal()
+
+    def __init__(self, name, plugins, view_keys=None, labels=None, parent=None):
+        super().__init__(parent)
         self.name = name
         self.plugins = plugins
         if view_keys is None:

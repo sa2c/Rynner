@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import MagicMock as MM, patch
 from rynner.plugin import Plugin, RunAction, PluginCollection
 from PySide2.QtCore import Signal
+from PySide2.QtWidgets import QWidget
+from tests.qtest_helpers import *
 
 
 class TestPlugin(unittest.TestCase):
@@ -186,6 +188,20 @@ class TestPlugin(unittest.TestCase):
         self.instance()
         self.assertIsInstance(self.plugin.runs_changed, Signal)
 
+    def test_plugin_signal_connectable(self):
+        # note: signal cannot be connected to slot if QObject init not called
+        a = Plugin('name', [])
+        a.runs_changed.connect(lambda x: None)
+
+    def test_plugin_set_parent(self):
+        parent = QWidget()
+        a = Plugin('name', [], parent=parent)
+        self.assertEqual(a.parent(), parent)
+
+    def test_none_parent_by_default(self):
+        parent = QWidget()
+        a = Plugin('name', [])
+        self.assertEqual(a.parent(), None)
 
 class TestPluginCollection(unittest.TestCase):
     def setUp(self):
@@ -235,6 +251,21 @@ class TestPluginCollection(unittest.TestCase):
     def test_has_runs_changed_signal(self):
         self.instance()
         self.assertIsInstance(self.rc.runs_changed, Signal)
+
+    def test_plugin_collection_signal_connectable(self):
+        # note: signal cannot be connected to slot if QObject init not called
+        a = PluginCollection('name', [])
+        a.runs_changed.connect(lambda x: None)
+
+    def test_plugin_collection_set_parent(self):
+        parent = QWidget()
+        a = PluginCollection('name', [], parent=parent)
+        self.assertEqual(a.parent(), parent)
+
+    def test_none_parent_by_default(self):
+        parent = QWidget()
+        a = PluginCollection('name', [])
+        self.assertEqual(a.parent(), None)
 
     def test_list_jobs(self):
         self.instance()

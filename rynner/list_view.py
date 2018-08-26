@@ -80,21 +80,3 @@ def build_index_view(model, ui_file):
     # TODO - also need to set up view here
 
     return view
-
-
-class QActionSelector(QWidget):
-    def __init__(self, actions, parent=None):
-        super().__init__(parent)
-        layout = QHBoxLayout()
-        self.setLayout(layout)
-
-        if len(actions) > 0:
-            layout.addWidget(QLabel("Run Action: "))
-            combo = QComboBox()
-
-            combo.addItem("Select action...")
-
-            for action in actions:
-                combo.addItem(action.label)
-
-            layout.addWidget(combo)

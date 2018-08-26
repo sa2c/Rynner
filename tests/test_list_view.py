@@ -101,14 +101,3 @@ class TestRun(unittest.TestCase):
 
         self.tabs = MainView(self.hosts, plugins)
         #self.tabs.exec_()
-
-    def test_action_selector(self):
-        func = lambda x: None
-        actions = [
-            RunAction('Action 1', func),
-            RunAction('Action 2', func),
-            RunAction('Action 3', func),
-            RunAction('Action 4', func),
-        ]
-        act_select = QActionSelector(actions)
-        act_select.show()

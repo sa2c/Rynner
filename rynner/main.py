@@ -26,8 +26,9 @@ class MainView(QDialog):
     def __init__(self, hosts, plugins):
         super().__init__(None)
 
-        self.hosts = hosts
         self.plugins = plugins
+        for plugin in plugins:
+            plugin.hosts = hosts
 
         self.tabs = QTabWidget()
         self.resize(800, 600)

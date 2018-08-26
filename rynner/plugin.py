@@ -45,6 +45,7 @@ class Plugin(QObject):
         self.domain = domain
         self.create_view = create_view
         self.actions = []
+        self.hosts = []
         self.runner = runner
         self.labels = labels
 
@@ -111,9 +112,11 @@ class PluginCollection(QObject):
         self.labels = labels
         self.create_view = None
 
-    def list_jobs(self, hosts):
+        self.hosts = []
+
+    def list_jobs(self):
         jobs = [
-            job for host in hosts for plugin in self.plugins
+            job for host in self.hosts for plugin in self.plugins
             for job in host.jobs(plugin.domain)
         ]
         return jobs

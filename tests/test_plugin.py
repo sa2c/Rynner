@@ -95,6 +95,10 @@ class TestPlugin(unittest.TestCase):
         self.assertTrue(self.create_view.invalid.called)
         self.assertFalse(self.runner.called)
 
+    def test_hosts_none_by_default(self):
+        self.instance()
+        self.assertEqual(self.plugin.hosts, [])
+
     def test_doesnt_call_runner_if_exec_cancelled(self):
         # runner is not called when invalid
         self.instance(runner=self.runner, create_view=self.create_view)
@@ -272,6 +276,10 @@ class TestPluginCollection(unittest.TestCase):
         a = PluginCollection('name', [])
         self.assertEqual(a.parent(), None)
 
+    def test_hosts_of_a_plugin_empty_by_default(self):
+        a = PluginCollection('name', [])
+        self.assertEqual(a.hosts, [])
+
     def test_list_jobs(self):
         self.instance()
 
@@ -280,10 +288,10 @@ class TestPluginCollection(unittest.TestCase):
         host1.jobs.return_value = ['host1-job1', 'host1-job2']
         host2 = MM()
         host2.jobs.return_value = ['host2-job2', 'host2-job2']
-        hosts = [host1, host2]
+        self.rc.hosts = [host1, host2]
 
         # list hosts
-        ret = self.rc.list_jobs(hosts)
+        ret = self.rc.list_jobs()
 
         # list repeated twice (once for each Plugin)
         # with all host1 first and host2 second

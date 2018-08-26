@@ -6,7 +6,7 @@ from rynner.run import Run
 from rynner.template import Template
 
 
-class TestBehaviour(unittest.TestCase):
+class TestBehaviourIntegration(unittest.TestCase):
     def setUp(self):
         self.mock_conn = MM()
 

@@ -21,6 +21,8 @@ class IndexTableModel(QStandardItemModel):
 
         self.plugin.runs_changed.connect(self.update_jobs)
 
+        self.update_jobs()
+
     @Slot()
     def update_jobs(self):
         jobs = self.plugin.list_jobs()

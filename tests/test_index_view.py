@@ -43,7 +43,7 @@ class TestIndexTableModel(unittest.TestCase):
         i = self.instance()
         i.plugin.runs_changed.connect.assert_called_once_with(i.update_jobs)
 
-    def test_correct_row_col_count(self):
+    def test_update_jobs_updates_content(self):
         i = self.instance()
 
         # expected table sizes
@@ -52,10 +52,27 @@ class TestIndexTableModel(unittest.TestCase):
 
         # model empty before
         self.assertEqual(i.columnCount(), num_cols)
-        self.assertEqual(i.rowCount(), 0)
+        self.assertEqual(i.rowCount(), num_rows)
+
+        added_job = {'id': 'added job', 'name': 'added job name'}
+        self.jobs.append(added_job)
 
         i.update_jobs()
 
+        # check that jobs are added
+        self.assertEqual(i.columnCount(), num_cols)
+        self.assertEqual(i.rowCount(), num_rows + 1)
+
+        self.assertEqual(i.item(num_rows, 0).data(Qt.UserRole), added_job)
+
+    def test_model_contains_data_on_init(self):
+        i = self.instance()
+
+        # expected table sizes
+        num_cols = len(self.keys)
+        num_rows = len(self.jobs)
+
+        # model empty before
         self.assertEqual(i.columnCount(), num_cols)
         self.assertEqual(i.rowCount(), num_rows)
 

@@ -1,6 +1,9 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
+from rynner.plugin import RunAction
 
+class InvalidModelIndex(Exception):
+    pass
 
 class IndexTableModel(QStandardItemModel):
     '''
@@ -25,22 +28,29 @@ class IndexTableModel(QStandardItemModel):
         for col, key in enumerate(self.plugin.view_keys):
             for row, job in enumerate(jobs):
                 value = job[key]
-                self.setItem(row, col, QStandardItem(value))
+                item = QStandardItem(value)
+                self.setItem(row, col, item)
+                if col == 0:
+                    item.setData(job, Qt.UserRole)
 
-#     @Slot()
-#     def create_new_run(self):
-#         self.plugin.create()
+    @Slot()
+    def create_new_run(self):
+        self.plugin.create()
 
-#     @Slot()
-#     def stop_run(self, indicies):
-#         print(f"stop {self.plugin.name} job {indicies}....!")
+    @Slot(QModelIndex)
+    def stop_run(self, model_index):
+        run_data = self._run_id_from_model_index(model_index)
+        self.plugin.stop_run(run_data)
 
-#     @Slot()
-#     def run_action(self, action, job):
-#         print(f"running action f{action} for {self.plugin.name} on {job}")
+    @Slot(RunAction, QModelIndex)
+    def run_action(self, action, model_index):
+        run_data = self._run_id_from_model_index(model_index)
+        action.run(run_data)
 
-#     @Slot()
-#     def archive_job(self, job):
-#         print(f"archiving job f{job} for {self.plugin.name}")
+    def _run_id_from_model_index(self, model_index):
+        if not model_index.isValid():
+            raise InvalidModelIndex(f'model index not found {model_index}')
 
-#     # TODO - this should be a slot that is connected to by datastore??
+        model_index_data = self.index(model_index.row(), 0)
+        data = self.data(model_index_data, Qt.UserRole)
+        return data

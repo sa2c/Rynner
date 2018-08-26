@@ -9,6 +9,17 @@ from rynner.plugin import *
 class TestIndexTableModel(unittest.TestCase):
     def setUp(self):
         self.plugin = Plugin('some-domain', 'plugin name')
+        self.jobs = [{
+            'id': 'My ID',
+            'name': 'My Name'
+        }, {
+            'id': 'Another ID',
+            'name': 'Another Name'
+        }]
+        self.keys = ['id', 'name']
+
+        self.plugin.view_keys = self.keys
+        self.plugin.list_jobs = lambda: self.jobs
 
     def instance(self):
         return IndexTableModel(self.plugin)
@@ -24,7 +35,7 @@ class TestIndexTableModel(unittest.TestCase):
         i = self.instance()
         labels = (i.headerData(j, Qt.Orientation.Horizontal)
                   for j in range(i.columnCount()))
-        labels = tuple(labels)
+        labels = list(labels)
         self.assertEqual(labels, self.plugin.view_keys)
 
     def test_connects_plugin_to_update_jobs(self):
@@ -35,14 +46,9 @@ class TestIndexTableModel(unittest.TestCase):
     def test_correct_row_col_count(self):
         i = self.instance()
 
-        jobs = [ { 'id' : 'My ID', 'name' : 'My Name'} ]
-        i.plugin.list_jobs = lambda : jobs
-        keys =  ['id', 'name']
-        i.plugin.view_keys = keys
-
         # expected table sizes
-        num_cols = len(keys)
-        num_rows = len(jobs)
+        num_cols = len(self.keys)
+        num_rows = len(self.jobs)
 
         # model empty before
         self.assertEqual(i.columnCount(), num_cols)
@@ -55,22 +61,65 @@ class TestIndexTableModel(unittest.TestCase):
 
     def test_connects_plugin_to_update_jobs(self):
         i = self.instance()
-        jobs = [ { 'id' : 'My ID', 'name' : 'My Name'} ]
-        keys = i.plugin.view_keys
-        i.plugin.list_jobs = lambda : jobs
 
         # expected table sizes
-        num_cols = len(keys)
-        num_rows = len(jobs)
+        num_cols = len(self.keys)
+        num_rows = len(self.jobs)
 
         i.update_jobs()
 
         for row in range(num_rows):
             for col in range(num_cols):
-                job = jobs[row]
-                key = keys[col]
+                job = self.jobs[row]
+                key = self.keys[col]
                 item = i.item(row, col)
                 self.assertEqual(item.text(), job[key])
+
+    def test_has_slots(self):
+        i = self.instance()
+        slots = ['create_new_run', 'stop_run', 'run_action']
+        for slot in slots:
+            self.assertIn(slot, dir(i))
+            assert callable(getattr(i, slot))
+
+    def test_slots_raise_exception_with_invalid_model_index(self):
+        i = self.instance()
+        action = MM()
+        model_index = i.index(-1, -1)
+
+        slots = [('stop_run', model_index), ('run_action', action,
+                                             model_index)]
+
+        for slot in slots:
+            attr = getattr(i, slot[0])
+            with self.assertRaises(InvalidModelIndex) as exception:
+                attr(*slot[1:])
+
+    def test_creates_run(self):
+        self.plugin = MM()
+        i = self.instance()
+        i.create_new_run()
+        self.plugin.create.assert_called_once()
+
+    @unittest.skip('Expected Failure: run stopping not implemented')
+    def test_stops_run(self):
+        i = self.instance()
+        i.update_jobs()
+        for index, job in enumerate(self.jobs):
+            model_index = i.index(index, index)
+            i.stop_run(model_index)
+            self.plugin.stop_run.assert_called_once_with(1)
+
+    def test_run_action(self):
+        i = self.instance()
+        i.update_jobs()
+        for index, job in enumerate(self.jobs):
+            action = MM()
+            # move across diagonal of indexing, to ensure the
+            # item data always returned correctly
+            model_index = i.index(index, index)
+            i.run_action(action, model_index)
+            action.run.assert_called_once_with(job)
 
 
 class TestRefreshFromDatastore(TestIndexTableModel):

@@ -6,6 +6,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtQuick import QQuickView
 from PySide2.QtCore import QUrl, Slot
 from rynner.plugin import Plugin, RunAction
+from rynner.index_table_model import IndexTableModel
 from rynner.ui import load_ui
 
 
@@ -32,7 +33,7 @@ class MainView(QDialog):
         # Add a new tab for each run type
         models = {}
         for plugin in plugins:
-            models[plugin] = IndexTableModel(plugin, hosts)
+            models[plugin] = IndexTableModel(plugin)
             if plugin.build_index_view is not None:
                 view = plugin.build_index_view(models[plugin])
             else:
@@ -60,7 +61,7 @@ def build_index_view(model, ui_file):
     view.table.setSelectionBehavior(QAbstractItemView.SelectRows)
     view.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-    # add actions
+    # TODO add actions - this should be a loop
     view.actionComboBox.addItem("action")
 
     def stop_run():

@@ -54,17 +54,6 @@ class Plugin(QObject):
         if view_keys is not None:
             self.view_keys = view_keys
 
-    def create(self):
-        if self.create_view is None:
-            self._run({})
-        else:
-            # display configuration window
-            accepted = self.create_view.exec_()
-
-            if accepted and len(self.create_view.invalid()) == 0:
-                data = self.create_view.data()
-                self._run(data)
-
     def _run(self, data):
         if self.runner is None:
             run = Run(**data)
@@ -82,6 +71,20 @@ class Plugin(QObject):
             for job in host.jobs(self.domain):
                 jobs.append(job)
         return jobs
+
+    def create(self):
+        if self.create_view is None:
+            self._run({})
+        else:
+            # display configuration window
+            accepted = self.create_view.exec_()
+
+            if accepted and len(self.create_view.invalid()) == 0:
+                data = self.create_view.data()
+                self._run(data)
+
+    def stop_run(self, run_data):
+        raise NotImplementedError()
 
 
 class PluginCollection(QObject):

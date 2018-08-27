@@ -4,11 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fabric = "*"
 paramiko = "*"
 "pyside2" = "*"
-nose = "*"
 ipython = "*"
+pytest = "*"
+pytest-qt = "*"
+pytest-xdist = "*"
 
 [dev-packages]
 

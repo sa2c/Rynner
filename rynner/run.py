@@ -15,7 +15,8 @@ class Run:
         data = options.copy()
 
         if 'host' not in options.keys():
-            raise HostNotSpecifiedException
+            raise HostNotSpecifiedException(
+                'No hosts have been specified for this run')
 
         # Alternative filter for multiple types
         host_dict = {

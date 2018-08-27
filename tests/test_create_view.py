@@ -75,7 +75,8 @@ class TestBaseField(unittest.TestCase):
         input_data = "Test Input Data"
 
         with patch.object(
-                rynner.create_view, "input", create=True, return_value=input_data):
+                rynner.create_view, "input", create=True,
+                return_value=input_data):
             value = input.cli()
             self.assertEqual(value, input_data)
 
@@ -268,7 +269,7 @@ class TestRunCreateViewTestDialog(QTestCase):
         self.assertIn(QDialogButtonBox, type_items)
 
     def test_shows_dialog_with_title(self):
-        widgets = [child.widget for child in self.children ]
+        widgets = [child.widget for child in self.children]
         self.instance(title="MY WINDOW TITLE")
         self.assertNotQVisible(widgets)
         self.dialog.show()
@@ -276,7 +277,7 @@ class TestRunCreateViewTestDialog(QTestCase):
         self.assertEqual(self.dialog.windowTitle(), "MY WINDOW TITLE")
 
     def test_shows_dialog_twice(self):
-        widgets = [child.widget for child in self.children ]
+        widgets = [child.widget for child in self.children]
         self.instance()
 
         # Show once

@@ -19,6 +19,7 @@ class Connection():
 
     def run_command(self, cmd, pwd=None):
         if pwd is not None:
+            self._ensure_dir(pwd)
             cd_cmd = 'cd {pwd}'
             cmd = '; '.join([cd_cmd, cmd])
 
@@ -36,10 +37,12 @@ class Connection():
         return (exit_status, out, err)
 
     def put_file(self, local_path, remote_path):
+        self._ensure_dir(remote_path)
         self.log(f'transferring file: {local_path} -> {remote_path}')
         self.sftp.put(local_path, remote_path)
 
     def put_file_content(self, content, remote_path):
+        self._ensure_dir(remote_path)
         self.log(f'''
 Creating remote file:
 * File path:

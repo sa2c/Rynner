@@ -12,6 +12,10 @@ from rynner.ui import load_ui
 # TODO - no unit testing on this file (but some integration tests)
 
 
+class InvalidDuplicateWidget(Exception):
+    pass
+
+
 class MainView(QDialog):
     '''
     Periodically, for each host, we should fetch a job list of the data visible
@@ -25,6 +29,8 @@ class MainView(QDialog):
 
     def __init__(self, hosts, plugins):
         super().__init__(None)
+
+        self._check_for_duplicate_widgets(plugins)
 
         self.plugins = plugins
         for plugin in plugins:
@@ -48,6 +54,26 @@ class MainView(QDialog):
 
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.tabs)
+
+    def _check_for_duplicate_widgets(self, plugins):
+        all_widgets = set()
+
+        for plugin in plugins:
+            if plugin.create_view is not None:
+                # maintain a global database of used widgets (to prevent second use)
+                plugin_widgets = {
+                    id(child)
+                    for child in plugin.create_view.findChildren(QObject)
+                }
+
+                intersection = plugin_widgets.intersection(all_widgets)
+
+                ndups = len(intersection)
+                if ndups > 0:
+                    raise InvalidDuplicateWidget(
+                        '{ndups} duplicate QWidgets found in different plugin instances'
+                    )
+                all_widgets = plugin_widgets | all_widgets
 
 
 # takes in the table model and returns a view widget! with links signals?

@@ -119,3 +119,16 @@ class TestRun(unittest.TestCase):
         QTimer.singleShot(10, callback)
 
         main.exec_()
+
+    # TESTS for duplicate widgets in MainView taken for Plugin
+    # def test_error_if_initialised_with_same_view(self):
+    #     create_view = RunCreateView([TextField('key', 'label')])
+    #     self.instance(create_view=create_view)
+    #     with self.assertRaises(InvalidDuplicateWidget):
+    #         self.instance(create_view=create_view)
+
+    # def test_error_if_initialised_with_partially_same_view(self):
+    #     fields = [TextField('key', 'label')]
+    #     self.instance(create_view=RunCreateView(fields))
+    #     with self.assertRaises(InvalidDuplicateWidget):
+    #         self.instance(create_view=RunCreateView(fields))

@@ -126,3 +126,6 @@ class PluginCollection(QObject):
             for job in host.jobs(plugin.domain)
         ]
         return jobs
+
+    def create(self):
+        raise NotImplementedError()

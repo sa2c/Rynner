@@ -65,10 +65,11 @@ Creating remote file:
         if self.ssh is None:
             self.ssh = paramiko.SSHClient()
             self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-            key = paramiko.RSAKey.from_private_key_file(rsa_file)
+            key = paramiko.RSAKey.from_private_key_file(self.rsa_file)
             self.log(
-                f'connecting: host={host}, username={user}, key={rsa_file}')
-            self.ssh.connect(host, username=user, pkey=key)
+                f'connecting: host={self.host}, username={self.user}, key={self.rsa_file}'
+            )
+            self.ssh.connect(self.host, username=self.user, pkey=key)
             self.log(f'connected {self.ssh}')
             self.log('opening sftp')
             self.sftp = self.ssh.open_sftp()
@@ -77,7 +78,10 @@ Creating remote file:
         parts = remote_path.split('/')
         if (len(parts) > 1):
             dir = '/'.join(parts[0:-1])
-            self.sftp.mkdir(dir)
+            try:
+                self.sftp.stat(dir)
+            except IOError:
+                self.sftp.mkdir(dir)
 
     def log(self, message):
         self.logger.info(message)

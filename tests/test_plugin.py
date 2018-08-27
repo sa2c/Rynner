@@ -4,6 +4,7 @@ from rynner.plugin import Plugin, RunAction, PluginCollection
 from PySide2.QtCore import Signal
 from PySide2.QtWidgets import QWidget
 from tests.qtest_helpers import *
+import pytest
 
 
 class TestPlugin(unittest.TestCase):
@@ -36,7 +37,7 @@ class TestPlugin(unittest.TestCase):
         self.plugin.create()
         self.runner.assert_called_once_with(self.data)
 
-    def test_create_view_show_method_called(self):
+    lef test_create_view_show_method_called(self):
         self.instance(create_view=self.create_view, runner=self.runner)
         self.assertFalse(self.create_view.exec_.called)
         self.plugin.create()

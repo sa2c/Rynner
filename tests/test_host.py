@@ -239,13 +239,17 @@ class TestHost(unittest.TestCase):
             self.mock_connection)
 
 
+import os
+homedir = os.getenv('HOME')
+
+
 class TestHawk(unittest.TestCase):
     def test_connect(self):
         conn = Connection(
             logger=Logger(),
             host='hawklogin.cf.ac.uk',
             user='s.mark.dawson',
-            key_filename='/Users/phoebejoannamay/.ssh/id_rsa')
+            rsa_file=f'{homedir}/.ssh/id_rsa')
         remote_file = '/home/s.mark.dawson/conn_test'
         local_file = '/tmp/t'
 
@@ -272,7 +276,7 @@ class TestHawk(unittest.TestCase):
             logger=Logger(),
             host='hawklogin.cf.ac.uk',
             user='s.mark.dawson',
-            key_filename='/Users/phoebejoannamay/.ssh/id_rsa')
+            rsa_file=f'{homedir}/.ssh/id_rsa')
         remote_file = '/home/s.mark.dawson/conn_test'
 
         # remote remove file

@@ -13,7 +13,6 @@
 #       self.host.sync(self.runid, self.downloads)
 - Rather than parsing script out, it makes sense to make script a positional argument (since it is mandatory)
 - Need to work out where the remote base path is computed??
-- Need to do some other stuff...
 * RunCreateView
 - this "knows" about the dialog which contains it - it shouldn't!
 - tidy this up?
@@ -67,7 +66,7 @@ or
 - store.running=
 - store.running
 * Connection
-- lazily create base directory
+- lazily creates base directory, but does not create any subdirectories
 - make remote paths relative for u/l and d/l? what about local ones? Encoding them with id or pass in a directory name? Or should that be in behaviour?
 - needs to be shut down when application closes
 - AutoAddPolicy used by paramiko for now - change this

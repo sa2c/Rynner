@@ -104,8 +104,8 @@ class TestIndexTableModel(unittest.TestCase):
         action = MM()
         model_index = i.index(-1, -1)
 
-        slots = [('stop_run', model_index), ('run_action', action,
-                                             model_index)]
+        slots = [('stop_run', [model_index]), ('run_action', action,
+                                               [model_index])]
 
         for slot in slots:
             attr = getattr(i, slot[0])
@@ -135,17 +135,21 @@ class TestIndexTableModel(unittest.TestCase):
             # move across diagonal of indexing, to ensure the
             # item data always returned correctly
             model_index = i.index(index, index)
-            i.run_action(action, model_index)
-            action.run.assert_called_once_with(job)
+            i.run_action(action, [model_index])
+            action.run.assert_called_once_with([job])
 
-
-class TestRefreshFromDatastore(TestIndexTableModel):
     def test_gets_jobs_from_list_jobs(self):
         self.plugin = MM()
         i = self.instance()
-        self.assertFalse(self.plugin.list_jobs.called)
+        self.plugin.list_jobs.assert_called_once_with()
+
+    def test_gets_jobs_from_list_jobs(self):
+        from unittest.mock import call, Mock
+        self.plugin = MM()
+        i = self.instance()
         i.update_jobs()
-        self.assertTrue(self.plugin.list_jobs.called)
+
+        self.assertEqual(self.plugin.mock_calls.count(call.list_jobs()), 2)
 
 
 if __name__ == '__main__':

@@ -24,6 +24,7 @@
 - probably easier if the end user will pass a QWidget rather than a factory
 * Plugin
 - Plugin collection should have a create_view by default which allows choosing between multiple run types then proxies the selected view...
+- PluginCollection.create not implemented (either do this or hide it in the view)
 - is plugin.create really a good idea? or better for the framework to do the heavy lifting?
 - PluginCollection has no create_view method
 * Template

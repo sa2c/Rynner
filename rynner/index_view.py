@@ -35,24 +35,23 @@ class IndexTableModel(QStandardItemModel):
                 if col == 0:
                     item.setData(job, Qt.UserRole)
 
-    @Slot()
     def create_new_run(self):
         self.plugin.create()
 
-    @Slot(QModelIndex)
-    def stop_run(self, model_index):
-        run_data = self._run_id_from_model_index(model_index)
+    def stop_run(self, model_indicies):
+        run_data = self._run_id_from_model_index(model_indicies)
         self.plugin.stop_run(run_data)
 
-    @Slot(RunAction, QModelIndex)
-    def run_action(self, action, model_index):
-        run_data = self._run_id_from_model_index(model_index)
+    def run_action(self, action, model_indicies):
+        run_data = self._run_id_from_model_index(model_indicies)
         action.run(run_data)
 
-    def _run_id_from_model_index(self, model_index):
-        if not model_index.isValid():
-            raise InvalidModelIndex(f'model index not found {model_index}')
+    def _run_id_from_model_index(self, model_indicies):
+        data = []
+        for index in model_indicies:
+            if not index.isValid():
+                raise InvalidModelIndex(f'model index not found {model_indicies}')
 
-        model_index_data = self.index(model_index.row(), 0)
-        data = self.data(model_index_data, Qt.UserRole)
+            data_index = self.index(index.row(), 0)
+            data.append(self.data(data_index, Qt.UserRole))
         return data

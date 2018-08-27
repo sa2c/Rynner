@@ -105,11 +105,16 @@ class TestRun(unittest.TestCase):
         plugins = [PluginCollection("All", self.plugins)]
         plugins.extend(self.plugins)
 
-        # rt.create()
+        main = MainView(self.hosts, plugins)
+        main.tabs.setCurrentIndex(1)
+        current_tab = main.tabs.currentWidget()
+        tab_ok_button = find_QPushButton(current_tab, 'new')
+        tab_ok_button.click()
 
-        # test with single entry + with a list of lists (as type)
-        #plugins = [rt_all, rt1, rt2]
-        #plugins = [rt1, rt2]
+        def callback():
+            window = QApplication.activeWindow()
+            print("***" + str(window))
 
-        self.tabs = MainView(self.hosts, plugins)
-        #self.tabs.exec_()
+        QTimer.singleShot(10, callback)
+
+        main.exec_()

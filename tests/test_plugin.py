@@ -211,6 +211,11 @@ class TestPlugin(unittest.TestCase):
         a = Plugin('name', [])
         self.assertEqual(a.parent(), None)
 
+    def test_create_view_signal_connected(self):
+        self.instance(create_view=self.create_view)
+        self.create_view.accepted.connect.assert_called_once_with(
+            self.plugin.config_accepted)
+
 
 class TestPluginCollection(unittest.TestCase):
     def setUp(self):

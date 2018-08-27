@@ -55,6 +55,9 @@ class Plugin(QObject):
         if view_keys is not None:
             self.view_keys = view_keys
 
+        if create_view is not None:
+            self.create_view.accepted.connect(self.config_accepted)
+
     def _run(self, data):
         if self.runner is None:
             run = Run(**data)

@@ -3,9 +3,12 @@ import os
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
 from rynner.host import *
+from rynner.logs import Logger
+
 
 @unittest.skip('Fabric changed to paramiko')
 class TestConnection(unittest.TestCase):
+    # TODO - the logger in Connection is untested
     def setUp(self):
         self.cluster_host = 'example.cluster.com'
         self.cluster_user = 'user'
@@ -239,6 +242,7 @@ class TestHost(unittest.TestCase):
 class TestHawk(unittest.TestCase):
     def test_connect(self):
         conn = Connection(
+            logger=Logger(),
             host='hawklogin.cf.ac.uk',
             user='s.mark.dawson',
             key_filename='/Users/phoebejoannamay/.ssh/id_rsa')
@@ -258,7 +262,6 @@ class TestHawk(unittest.TestCase):
         local_content = open(local_file, 'r').read()
         self.assertEqual(local_content, from_remote_content)
 
-
         # ls dir content
         status, out, err = conn.run_command('ls')
 
@@ -266,6 +269,7 @@ class TestHawk(unittest.TestCase):
 
     def test_put_file_content(self):
         conn = Connection(
+            logger=Logger(),
             host='hawklogin.cf.ac.uk',
             user='s.mark.dawson',
             key_filename='/Users/phoebejoannamay/.ssh/id_rsa')
@@ -293,6 +297,7 @@ class TestHawk(unittest.TestCase):
         status, out, err = conn.run_command('ls')
 
         self.assertIn('conn_test', out)
+
 
 if __name__ == '__main__':
     unittest.main()

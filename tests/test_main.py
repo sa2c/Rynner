@@ -9,6 +9,7 @@ from rynner.main import MainView
 from rynner.create_view import RunCreateView, TextField
 from rynner.plugin import Plugin, PluginCollection, RunAction
 from rynner.run import Run
+from rynner.logs import Logger
 
 
 class RunView:
@@ -36,7 +37,7 @@ class TestRun(unittest.TestCase):
         self.patcher = patch('rynner.host.paramiko.SSHClient')
         self.paramiko_mock = self.patcher.start()
 
-        connection = Connection('hawk', key_filename='keyfile')
+        connection = Connection(Logger(), 'hawk', key_filename='keyfile')
         self.datastore = MM()
         self.hosts = [Host(behaviour, connection, self.datastore)]
 

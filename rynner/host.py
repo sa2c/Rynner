@@ -4,35 +4,58 @@ from rynner.behaviour import InvalidContextOption
 
 
 class Connection():
-    def __init__(self, host, user=None, key_filename=None):
+    def __init__(self, logger, host, user=None, key_filename=None):
+        self.logger = logger
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         #key = paramiko.RSAKey.from_private_key_file(rsa_file)
+        self.logger.info(f'connecting: host={host}, username={user}, key_filename={key_filename}')
+        self.logger.info(f'connected {self.ssh}')
         self.ssh.connect(host, username=user, key_filename=key_filename)
+        self.logger.info('opening sftp')
         self.sftp = self.ssh.open_sftp()
 
     def run_command(self, cmd, pwd=None):
         if pwd is not None:
             cd_cmd = 'cd {pwd}'
             cmd = '; '.join([cd_cmd, cmd])
+
+        self.logger.info(f'running command ({self.ssh}): {cmd}')
+
         stdin, stdout, stderr = self.ssh.exec_command(cmd)
 
         exit_status = stdout.channel.recv_exit_status()
         out = stdout.read().decode().split('\n')
         err = stderr.read().decode().split('\n')
 
+        self.logger.info(f'Standard Output:\n{out}')
+        self.logger.info(f'Standard Error:\n{err}')
+
         return (exit_status, out, err)
 
     def put_file(self, local_path, remote_path):
+        self.logger.info(f'transferring file: {local_path} -> {remote_path}')
         self.sftp.put(local_path, remote_path)
 
     def put_file_content(self, content, remote_path):
+        self.logger.info(f'''
+Creating remote file:
+* File path:
+{remote_path}
+* File content:
+{content}
+        ''')
+
         file = self.sftp.file(remote_path, mode='w')
         file.write(content)
         file.flush()
 
+        self.logger.info(f'File {remote_path} written')
+
     def get_file(self, remote_path, local_path):
+        self.logger.info(f'Transfer remote file: {remote_path} -> {local_path}')
         self.sftp.get(remote_path, local_path)
+        self.logger.info(f'File {remote_path} transferred')
 
 
 class Host:

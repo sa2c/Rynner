@@ -1,134 +1,232 @@
-import unittest
-import os
-from unittest.mock import patch, call, ANY
-from unittest.mock import MagicMock as MM
-from tests.qtest_helpers import *
-from rynner.host import Host, Connection
-from rynner.behaviour import Behaviour
+from PySide2 import QtWidgets
+from PySide2.QtWidgets import QPushButton
 from rynner.main import MainView
-from rynner.create_view import RunCreateView, TextField
-from rynner.plugin import Plugin, PluginCollection, RunAction
-from rynner.run import Run
+from rynner.behaviour import Behaviour
+from rynner.plugin import Plugin, PluginCollection
+from rynner.option_maps import slurm1711_option_map as option_map
+from rynner.host import Host, Connection
 from rynner.logs import Logger
+from rynner.create_view import RunCreateView, TextField
+from unittest.mock import MagicMock as MM
+import pytest
+
+defaults = []
 
 
-class RunView:
-    def __init__(self, jobId, JobName, Parameter):
-        self.jobId = jobId
-        self.jobName = JobName
-        self.Parameter = Parameter
+@pytest.fixture
+def patched_ssh():
+    patcher = patch('rynner.host.paramiko.SSHClient')
+    paramiko_mock = self.patcher.start()
+    yield paramiko_mock
+    patcher.stop()
 
 
-class TestRun(unittest.TestCase):
-    def setUp(self):
+def plugins():
+    plugins = {}
+    plugins['rcv0'] = RunCreateView(
+        [TextField('param0', 'Parameter 0', default='Some default value 0')])
+    plugins['rcv1'] = RunCreateView(
+        [TextField('param1', 'Parameter 1', default='Some default value 1')])
 
-        # Create a fake run_create_view
-        self.run_create_view = RunCreateView([
-            TextField('Some Parameter', 'param', default='Some default value')
-        ])
+    plugins['view_keys1'] = ("id", "name", "some-other-data"),
 
-        option_map = [('#FAKE num_nodes={}', 'nodes'), ('#FAKE memory={}',
-                                                        'memory')]
-        defaults = []
+    plugins['runner0'] = MM()
+    plugins['runner1'] = MM()
 
-        # Set up some hosts
-        behaviour = Behaviour(option_map, 'submit_cmd', defaults)
+    # create Plugin objects
+    plugins['rt0'] = Plugin(
+        'swansea.ac.uk/1',
+        'My First Type',
+        plugins['rcv0'],
+        runner=plugins['runner0'])
+    plugins['rt1'] = Plugin(
+        'swansea.ac.uk/2',
+        'My Second Type',
+        plugins['rcv1'],
+        view_keys=plugins['view_keys1'],
+        runner=plugins['runner1'])
 
-        self.patcher = patch('rynner.host.paramiko.SSHClient')
-        self.paramiko_mock = self.patcher.start()
+    plugins['plugins'] = [plugins['rt0'], plugins['rt1']]
 
-        connection = Connection(Logger(), 'hawk', key_filename='keyfile')
-        self.datastore = MM()
-        self.hosts = [Host(behaviour, connection, self.datastore)]
+    return plugins
 
-        def runner(data):
 
-            a = Run(
-                nodes=10,
-                memory=10000,
-                host=self.hosts[0],
-                script='my_command')
+@pytest.fixture
+def host():
+    # Set up some hosts
+    behaviour = Behaviour(option_map, 'submit_cmd', defaults)
+    connection = Connection(
+        Logger(),
+        'hawklogin.cf.ac.uk',
+        user='s.mark.dawson',
+        rsa_file='/Users/phoebejoannamay/.ssh/id_rsa')
+    datastore = MM()
+    return [Host(behaviour, connection, datastore)]
 
-            job_id.append(a.id)
 
-        self.runner = runner
+def main_view(qtbot, host, plugins):
+    main = MainView(host, plugins)
+    qtbot.addWidget(main)
+    main.show()
+    return main
 
-        self.action = lambda x: print("TEST")
 
-    def tearDown(self):
-        self.patcher.stop()
+def select_tab(main, tab=1):
+    main.tabs.setCurrentIndex(tab)
+    tab = main.tabs.currentWidget()
+    return tab
 
-    def create_plugins(self):
 
-        # create Plugin objects
-        rt1 = Plugin('swansea.ac.uk/1', 'My First Type', self.run_create_view,
-                     self.runner)
-        rt2 = Plugin(
-            'swansea.ac.uk/2',
-            'My Second Type',
-            self.run_create_view,
-            self.runner,
-            view_keys=("id", "name", "some-other-data"))
+def new_job_window(tab, qtbot):
+    qtbot.waitUntil(lambda: tab.isVisible())
+    button = find_QPushButton(tab, 'new')
+    button.click()
+    return visible_config(qtbot, RunCreateView)
 
-        rt1.add_action("My Action", self.action)
 
-        self.plugins = [rt1, rt2]
+def click_button(widget, text):
+    ok = find_QPushButton(widget, text)
+    ok.click()
 
-        # create mock of jobs returned by datastore
-        jobs = {
-            rt1.domain: [{
-                'id': '1',
-                'name': 'JobType1-1',
-                'some-data': 'Some Data'
-            }, {
-                'id': '2',
-                'name': 'JobType1-2',
-                'some-data': 'Some Extra Data'
-            }],
-            rt2.domain: [{
-                'id': '1',
-                'name': 'JobType2-1',
-                'some-other-data': 'Other Data'
-            }, {
-                'id': '2',
-                'name': 'JobType2-2',
-                'some-other-data': 'Other Data'
-            }]
-        }
 
-        def jobsf(plugin=None):
-            return jobs[plugin]
+def find_QPushButton(widget, text):
+    for child in widget.findChildren(QPushButton):
+        if child.text().lower() == text.lower():
+            if child.isVisible():
+                return child
 
-        self.datastore.jobs = jobsf
+    return None
 
-    def test_show_groups(self):
-        self.create_plugins()
-        plugins = [PluginCollection("All", self.plugins)]
-        plugins.extend(self.plugins)
 
-        main = MainView(self.hosts, plugins)
-        main.tabs.setCurrentIndex(1)
-        current_tab = main.tabs.currentWidget()
-        tab_ok_button = find_QPushButton(current_tab, 'new')
-        tab_ok_button.click()
+def window_list(qtbot):
+    return QtWidgets.QApplication.topLevelWidgets()
 
-        def callback():
-            window = QApplication.activeWindow()
-            print("***" + str(window))
 
-        QTimer.singleShot(10, callback)
+def window_count(qtbot):
+    return len(window_list(qtbot))
 
-        main.exec_()
 
-    # TESTS for duplicate widgets in MainView taken for Plugin
-    # def test_error_if_initialised_with_same_view(self):
-    #     create_view = RunCreateView([TextField('key', 'label')])
-    #     self.instance(create_view=create_view)
-    #     with self.assertRaises(InvalidDuplicateWidget):
-    #         self.instance(create_view=create_view)
+def visible_config(qtbot, klass):
 
-    # def test_error_if_initialised_with_partially_same_view(self):
-    #     fields = [TextField('key', 'label')]
-    #     self.instance(create_view=RunCreateView(fields))
-    #     with self.assertRaises(InvalidDuplicateWidget):
-    #         self.instance(create_view=RunCreateView(fields))
+    plugin_win = [
+        w for w in window_list(qtbot)
+        if isinstance(w, klass) and w.isVisible()
+    ]
+
+    currnumwin = len(plugin_win)
+
+    if (currnumwin != 1):
+        raise Exception('duplicate windows')
+
+    return plugin_win[0]
+
+
+def test_call_first_runner(qtbot):
+    p = plugins()
+    main = main_view(qtbot, host(), p['plugins'])
+    tab = select_tab(main, 0)
+    config_window = new_job_window(tab, qtbot)
+
+    # no runners called before ok
+    assert not p['rt0'].runner.called
+    assert not p['rt1'].runner.called
+
+    # one runner called after ok
+    click_button(config_window, 'ok')
+    p['rt0'].runner.assert_called_once_with({'param0': 'Some default value 0'})
+    assert not p['rt1'].runner.called
+
+
+def test_call_second_runner(qtbot):
+    p = plugins()
+    main = main_view(qtbot, host(), p['plugins'])
+    tab = select_tab(main, 1)
+    config_window = new_job_window(tab, qtbot)
+
+    # config window is visible
+    assert config_window.isVisible()
+
+    # no runners called before ok
+    assert not p['rt0'].runner.called
+    assert not p['rt1'].runner.called
+
+    # one runner called after ok
+    click_button(config_window, 'ok')
+    p['rt1'].runner.assert_called_once_with({'param1': 'Some default value 1'})
+    assert not p['rt0'].runner.called
+
+    # config window has been closed
+    assert not config_window.isVisible()
+
+
+def test_cancel_run(qtbot):
+    p = plugins()
+    main = main_view(qtbot, host(), p['plugins'])
+    tab = select_tab(main, 1)
+    config_window = new_job_window(tab, qtbot)
+
+    # window is visible
+    assert config_window.isVisible()
+
+    click_button(config_window, 'cancel')
+
+    # window has been closed
+    assert not config_window.isVisible()
+
+    # no runners called before ok
+    assert not p['rt0'].runner.called
+    assert not p['rt1'].runner.called
+
+
+@pytest.mark.xfail(reason="PluginCollection missing create")
+def test_with_runner(qtbot):
+    p = plugins()
+    allp = [PluginCollection("All", p['plugins']), *p['plugins']]
+
+    main = main_view(qtbot, host(), allp)
+
+    # tab 1 has an ok button
+    tab = select_tab(main, 1)
+    ok_button = find_QPushButton(tab, 'new')
+    assert ok_button is None
+
+    # tab 0 does not
+    tab = select_tab(main, 0)
+    ok_button = find_QPushButton(tab, 'new')
+    assert ok_button is None
+
+    # def runner(data):
+    #     a = Run(
+    #         nodes=10,
+    #         memory=10000,
+    #         host=self.hosts[0],
+    #         script='my_command')
+
+    #     job_id.append(a.id)
+
+    # # create mock of jobs returned by datastore
+    # jobs = {
+    #     rt1.domain: [{
+    #         'id': '1',
+    #         'name': 'JobType1-1',
+    #         'some-data': 'Some Data'
+    #     }, {
+    #         'id': '2',
+    #         'name': 'JobType1-2',
+    #         'some-data': 'Some Extra Data'
+    #     }],
+    #     rt2.domain: [{
+    #         'id': '1',
+    #         'name': 'JobType2-1',
+    #         'some-other-data': 'Other Data'
+    #     }, {
+    #         'id': '2',
+    #         'name': 'JobType2-2',
+    #         'some-other-data': 'Other Data'
+    #     }]
+    # }
+
+    # def jobsf(plugin=None):
+    #     return jobs[plugin]
+
+    # self.datastore.jobs = jobsf

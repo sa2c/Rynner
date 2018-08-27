@@ -4,20 +4,16 @@ from rynner.behaviour import InvalidContextOption
 
 
 class Connection():
-    def __init__(self, logger, host, user=None, key_filename=None):
+    def __init__(self, logger, host, user=None, rsa_file=None):
         self.logger = logger
-        self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        #key = paramiko.RSAKey.from_private_key_file(rsa_file)
-        self.log(
-            f'connecting: host={host}, username={user}, key_filename={key_filename}'
-        )
-        self.log(f'connected {self.ssh}')
-        self.ssh.connect(host, username=user, key_filename=key_filename)
-        self.log('opening sftp')
-        self.sftp = self.ssh.open_sftp()
+        self.host = host
+        self.user = user
+        self.rsa_file = rsa_file
+        self.ssh = None
+        self.log(f'created connection object')
 
     def run_command(self, cmd, pwd=None):
+        self._ensure_connected()
         if pwd is not None:
             self._ensure_dir(pwd)
             cd_cmd = 'cd {pwd}'
@@ -37,11 +33,13 @@ class Connection():
         return (exit_status, out, err)
 
     def put_file(self, local_path, remote_path):
+        self._ensure_connected()
         self._ensure_dir(remote_path)
         self.log(f'transferring file: {local_path} -> {remote_path}')
         self.sftp.put(local_path, remote_path)
 
     def put_file_content(self, content, remote_path):
+        self._ensure_connected()
         self._ensure_dir(remote_path)
         self.log(f'''
 Creating remote file:
@@ -58,9 +56,22 @@ Creating remote file:
         self.log(f'File {remote_path} written')
 
     def get_file(self, remote_path, local_path):
+        self._ensure_connected()
         self.log(f'Transfer remote file: {remote_path} -> {local_path}')
         self.sftp.get(remote_path, local_path)
         self.log(f'File {remote_path} transferred')
+
+    def _ensure_connected(self):
+        if self.ssh is None:
+            self.ssh = paramiko.SSHClient()
+            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+            key = paramiko.RSAKey.from_private_key_file(rsa_file)
+            self.log(
+                f'connecting: host={host}, username={user}, key={rsa_file}')
+            self.ssh.connect(host, username=user, pkey=key)
+            self.log(f'connected {self.ssh}')
+            self.log('opening sftp')
+            self.sftp = self.ssh.open_sftp()
 
     def _ensure_dir(self, remote_path):
         parts = remote_path.split('/')

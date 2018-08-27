@@ -78,11 +78,14 @@ class Plugin(QObject):
             self._run({})
         else:
             # display configuration window
-            accepted = self.create_view.exec_()
+            self.create_view.show()
 
-            if accepted and len(self.create_view.invalid()) == 0:
-                data = self.create_view.data()
-                self._run(data)
+    def config_accepted(self):
+        if len(self.create_view.invalid()) == 0:
+            data = self.create_view.data()
+            self._run(data)
+        else:
+            raise Exception()
 
     def stop_run(self, run_data):
         raise NotImplementedError()

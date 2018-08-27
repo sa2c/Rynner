@@ -71,7 +71,7 @@ class MainView(QDialog):
                 ndups = len(intersection)
                 if ndups > 0:
                     raise InvalidDuplicateWidget(
-                        '{ndups} duplicate QWidgets found in different plugin instances'
+                        f'{ndups} duplicate QWidgets found in different plugin instances'
                     )
                 all_widgets = plugin_widgets | all_widgets
 

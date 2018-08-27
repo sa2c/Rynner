@@ -9,10 +9,12 @@ class Connection():
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         #key = paramiko.RSAKey.from_private_key_file(rsa_file)
-        self.logger.info(f'connecting: host={host}, username={user}, key_filename={key_filename}')
-        self.logger.info(f'connected {self.ssh}')
+        self.log(
+            f'connecting: host={host}, username={user}, key_filename={key_filename}'
+        )
+        self.log(f'connected {self.ssh}')
         self.ssh.connect(host, username=user, key_filename=key_filename)
-        self.logger.info('opening sftp')
+        self.log('opening sftp')
         self.sftp = self.ssh.open_sftp()
 
     def run_command(self, cmd, pwd=None):
@@ -20,7 +22,7 @@ class Connection():
             cd_cmd = 'cd {pwd}'
             cmd = '; '.join([cd_cmd, cmd])
 
-        self.logger.info(f'running command ({self.ssh}): {cmd}')
+        self.log(f'running command ({self.ssh}): {cmd}')
 
         stdin, stdout, stderr = self.ssh.exec_command(cmd)
 
@@ -28,17 +30,17 @@ class Connection():
         out = stdout.read().decode().split('\n')
         err = stderr.read().decode().split('\n')
 
-        self.logger.info(f'Standard Output:\n{out}')
-        self.logger.info(f'Standard Error:\n{err}')
+        self.log(f'Standard Output:\n{out}')
+        self.log(f'Standard Error:\n{err}')
 
         return (exit_status, out, err)
 
     def put_file(self, local_path, remote_path):
-        self.logger.info(f'transferring file: {local_path} -> {remote_path}')
+        self.log(f'transferring file: {local_path} -> {remote_path}')
         self.sftp.put(local_path, remote_path)
 
     def put_file_content(self, content, remote_path):
-        self.logger.info(f'''
+        self.log(f'''
 Creating remote file:
 * File path:
 {remote_path}
@@ -50,12 +52,21 @@ Creating remote file:
         file.write(content)
         file.flush()
 
-        self.logger.info(f'File {remote_path} written')
+        self.log(f'File {remote_path} written')
 
     def get_file(self, remote_path, local_path):
-        self.logger.info(f'Transfer remote file: {remote_path} -> {local_path}')
+        self.log(f'Transfer remote file: {remote_path} -> {local_path}')
         self.sftp.get(remote_path, local_path)
-        self.logger.info(f'File {remote_path} transferred')
+        self.log(f'File {remote_path} transferred')
+
+    def _ensure_dir(self, remote_path):
+        parts = remote_path.split('/')
+        if (len(parts) > 1):
+            dir = '/'.join(parts[0:-1])
+            self.sftp.mkdir(dir)
+
+    def log(self, message):
+        self.logger.info(message)
 
 
 class Host:

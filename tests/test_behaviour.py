@@ -212,8 +212,8 @@ class TestBehaviour(unittest.TestCase):
         connection = MM()
         context = {'options': ['one', 'two', 'three'], 'script': 'four'}
         self.behaviour.run(connection, context, '/some/remote/path')
-        connection.put_file_content('/some/remote/path/jobcard',
-                                    'one\ntwo\nthree\nfour\n')
+        connection.put_file_content('one\ntwo\nthree\nfour\n',
+                                    '/some/remote/path/jobcard')
 
     def test_run_calls_submit(self):
         self.instantiate()

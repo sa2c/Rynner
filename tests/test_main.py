@@ -1,4 +1,5 @@
 import unittest
+import os
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
 from tests.qtest_helpers import *
@@ -31,19 +32,30 @@ class TestRun(unittest.TestCase):
 
         # Set up some hosts
         behaviour = Behaviour(option_map, 'submit_cmd', defaults)
-        connection = Connection('hawk', 's.mark.dawson')
+
+        self.patcher = patch('rynner.host.paramiko.SSHClient')
+        self.paramiko_mock = self.patcher.start()
+
+        connection = Connection('hawk', key_filename='keyfile')
         self.datastore = MM()
         self.hosts = [Host(behaviour, connection, self.datastore)]
 
         def runner(data):
 
-            a = Run(nodes=10, memory=10000, host=hosts[0], script='my_command')
+            a = Run(
+                nodes=10,
+                memory=10000,
+                host=self.hosts[0],
+                script='my_command')
 
             job_id.append(a.id)
 
         self.runner = runner
 
         self.action = lambda x: print("TEST")
+
+    def tearDown(self):
+        self.patcher.stop()
 
     def create_plugins(self):
 

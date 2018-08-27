@@ -111,8 +111,8 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
         qtest_helpers.button_callback(method=rt.create, button=button)
 
         connection.put_file_content.assert_called_once_with(
-            f'{job_id[0]}/jobcard',
-            '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n')
+            '#FAKE num_nodes=10\n#FAKE memory=10000\nmy_command\n',
+            f'{job_id[0]}/jobcard')
         connection.run_command.assert_called_once_with(
             'submit_cmd', pwd=f'{job_id[0]}')
 

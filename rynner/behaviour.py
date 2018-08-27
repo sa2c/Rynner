@@ -81,6 +81,6 @@ class Behaviour:
 
         # upload the jobcard to the cluster
         remote_jobcard = '/'.join([remote_path, 'jobcard'])
-        connection.put_file_content(remote_jobcard, jobcard)
+        connection.put_file_content(jobcard, remote_jobcard)
 
         connection.run_command(self._submit_cmd, pwd=remote_path)

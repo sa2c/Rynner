@@ -1,25 +1,38 @@
-import fabric
+import paramiko
 import io
 from rynner.behaviour import InvalidContextOption
 
 
 class Connection():
-    def __init__(self, host, user):
-        self.conn = fabric.Connection(host=host, user=user)
+    def __init__(self, host, user=None, key_filename=None):
+        self.ssh = paramiko.SSHClient()
+        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        #key = paramiko.RSAKey.from_private_key_file(rsa_file)
+        self.ssh.connect(host, username=user, key_filename=key_filename)
+        self.sftp = self.ssh.open_sftp()
 
     def run_command(self, cmd, pwd=None):
         if pwd is not None:
-            self.conn.cd(pwd)
-        self.conn.run(cmd)
+            cd_cmd = 'cd {pwd}'
+            cmd = '; '.join([cd_cmd, cmd])
+        stdin, stdout, stderr = self.ssh.exec_command(cmd)
+
+        exit_status = stdout.channel.recv_exit_status()
+        out = stdout.read().decode().split('\n')
+        err = stderr.read().decode().split('\n')
+
+        return (exit_status, out, err)
 
     def put_file(self, local_path, remote_path):
-        self.conn.put(local_path, remote_path)
+        self.sftp.put(local_path, remote_path)
+
+    def put_file_content(self, content, remote_path):
+        file = self.sftp.file(remote_path, mode='w')
+        file.write(content)
+        file.flush()
 
     def get_file(self, remote_path, local_path):
-        self.conn.get(remote_path, local_path)
-
-    def put_file_content(self, remote_path, content):
-        self.conn.put(io.StringIO(content), remote_path)
+        self.sftp.get(remote_path, local_path)
 
 
 class Host:

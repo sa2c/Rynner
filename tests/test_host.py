@@ -1,9 +1,10 @@
 import unittest
+import os
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
 from rynner.host import *
 
-
+@unittest.skip('Fabric changed to paramiko')
 class TestConnection(unittest.TestCase):
     def setUp(self):
         self.cluster_host = 'example.cluster.com'
@@ -234,6 +235,64 @@ class TestHost(unittest.TestCase):
         self.mock_datastore.set_connection.assert_called_once_with(
             self.mock_connection)
 
+
+class TestHawk(unittest.TestCase):
+    def test_connect(self):
+        conn = Connection(
+            host='hawklogin.cf.ac.uk',
+            user='s.mark.dawson',
+            key_filename='/Users/phoebejoannamay/.ssh/id_rsa')
+        remote_file = '/home/s.mark.dawson/conn_test'
+        local_file = '/tmp/t'
+
+        # remote remove file
+        status, out, err = conn.run_command(f'rm {remote_file}')
+        status, file_list, err = conn.run_command('ls')
+        self.assertNotIn('conn_test', file_list)
+
+        # upload/download file
+        conn.put_file('/tmp/t', remote_file)
+        conn.get_file(remote_file, '/tmp/t.2')
+
+        from_remote_content = open('/tmp/t.2', 'r').read()
+        local_content = open(local_file, 'r').read()
+        self.assertEqual(local_content, from_remote_content)
+
+
+        # ls dir content
+        status, out, err = conn.run_command('ls')
+
+        self.assertIn('conn_test', out)
+
+    def test_put_file_content(self):
+        conn = Connection(
+            host='hawklogin.cf.ac.uk',
+            user='s.mark.dawson',
+            key_filename='/Users/phoebejoannamay/.ssh/id_rsa')
+        remote_file = '/home/s.mark.dawson/conn_test'
+
+        # remote remove file
+        status, out, err = conn.run_command(f'rm {remote_file}')
+        status, file_list, err = conn.run_command('ls')
+        self.assertNotIn('conn_test', file_list)
+
+        # upload/download file
+        conn.put_file_content('file contents', remote_file)
+        local_file = '/tmp/t.2'
+        try:
+            os.remove(local_file)
+        except Exception:
+            pass
+        conn.get_file(remote_file, local_file)
+
+        from_remote_content = open(local_file, 'r').read()
+        local_content = open(local_file, 'r').read()
+        self.assertEqual(local_content, from_remote_content)
+
+        # ls dir content
+        status, out, err = conn.run_command('ls')
+
+        self.assertIn('conn_test', out)
 
 if __name__ == '__main__':
     unittest.main()

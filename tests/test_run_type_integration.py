@@ -25,8 +25,7 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
 
     def instance(self):
         self.plugin = Plugin(self.domain, self.type_name, self.run_create_view,
-                                self.runner)
-
+                             self.runner)
 
         # find all buttons in
         view = self.plugin.create_view
@@ -72,7 +71,6 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
 
         qtest_helpers.button_callback(
             method=self.plugin.create, button=self.ok_button)
-
 
         self.runner.assert_called_once_with({
             'key': 'My Default',

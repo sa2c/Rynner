@@ -1,5 +1,5 @@
 import paramiko
-import io
+import os
 from rynner.behaviour import InvalidContextOption
 
 
@@ -74,15 +74,34 @@ Creating remote file:
             self.log('opening sftp')
             self.sftp = self.ssh.open_sftp()
 
-    def _ensure_dir(self, remote_path):
-        parts = remote_path.split('/')
-        dirs = [parts[i] for i in range(0, -1) if len(parts[i]) > 0]
-        for i in range(len(dirs)):
-            dir = '/'.join(parts[0:i + 1])
+    def _ensure_dir(self, remote_path, is_directory=False):
+        """
+        recursively create directories if they don't exist
+        remote_path - remote path to create.
+        is_directory - specifies if remote path is a directory
+        """
+
+        dirs_ = []
+
+        if is_directory:
+            dir_ = remote_path
+        else:
+            dir_, basename = os.path.split(remote_path)
+
+        while len(dir_) > 1:
+            dirs_.append(dir_)
+            dir_, _ = os.path.split(dir_)
+
+        if len(dir_) == 1 and not dir_.startswith("/"):
+            dirs_.append(dir_)  # For a remote_path path like y/x.txt
+
+        while len(dirs_):
+            dir_ = dirs_.pop()
             try:
-                self.sftp.stat(dir)
-            except IOError:
-                self.sftp.mkdir(dir)
+                self.sftp.stat(dir_)
+            except:
+                self.log(f'creating directory {dir_}')
+                self.sftp.mkdir(dir_)
 
     def log(self, message):
         self.logger.info(message)

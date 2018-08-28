@@ -39,11 +39,11 @@ class TestPlugin(unittest.TestCase):
         self.plugin.create()
         self.runner.assert_called_once_with(self.data)
 
-    lef test_create_view_show_method_called(self):
+    def test_create_view_show_method_called(self):
         self.instance(create_view=self.create_view, runner=self.runner)
-        self.assertFalse(self.create_view.exec_.called)
+        self.assertFalse(self.create_view.show.called)
         self.plugin.create()
-        self.assertTrue(self.create_view.exec_.called)
+        self.assertTrue(self.create_view.show.called)
 
     def test_call_runner_if_no_instance(self):
         self.instance(runner=self.runner, create_view=None)
@@ -109,7 +109,7 @@ class TestPlugin(unittest.TestCase):
         self.create_view.invalid.return_value = []
         self.create_view.exec_.return_value = False
         self.plugin.create()
-        self.assertTrue(self.create_view.exec_.called)
+        self.assertTrue(self.create_view.show.called)
         self.assertFalse(self.runner.called)
 
     @pytest.mark.xfail(reason='plugin.create is now non-blocking')

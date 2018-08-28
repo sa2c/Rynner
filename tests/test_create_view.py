@@ -195,14 +195,6 @@ class RunCreateViewTestInput(QTestCase):
 
         self.run_create_view.show()
 
-    def test_show_returns_the_output_of_dialog_show(self):
-        self.instance()
-
-        # patch super
-        with patch('rynner.create_view.super') as mock_super:
-            accepted = self.run_create_view.show()
-            self.assertEqual(accepted, mock_super().show())
-
     def test_resets_children(self):
         input1 = TextField("key1", "label", default="default", remember=False)
         input2 = TextField("key2", "label", default="default", remember=True)

@@ -46,10 +46,10 @@ class RunCreateView(QDialog):
         self._button_box.rejected.connect(self.reject)
         self.layout().addWidget(self._button_box)
 
-    def show(self, *args, **kwargs):
+    def show(self):
         # reset field values
         [field.init() for field in self.fields]
-        return super().show()
+        super().show()
 
     def data(self):
         return {field.key: field.value() for field in self.fields}

@@ -52,8 +52,8 @@ class MainView(QDialog):
 
             self.tabs.addTab(view, plugin.name)
 
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(self.tabs)
+        self.setCentralWidget(self.tabs)
+        self.setContentsMargins(10, 10, 10, 10)
 
     def _check_for_duplicate_widgets(self, plugins):
         all_widgets = set()

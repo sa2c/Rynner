@@ -77,7 +77,7 @@ class Behaviour:
 
     def run(self, connection, context, remote_path):
         # collect a list of all the lines in the resultant jobcard
-        lines = context['options'] + [context['script']]
+        lines = ['#!/bin/sh'] + context['options'] + [context['script']]
 
         # build the jobcard as a string
         jobcard = '\n'.join(lines) + '\n'

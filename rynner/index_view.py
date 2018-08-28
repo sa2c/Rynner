@@ -2,8 +2,10 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from rynner.plugin import RunAction
 
+
 class InvalidModelIndex(Exception):
     pass
+
 
 class IndexTableModel(QStandardItemModel):
     '''
@@ -50,7 +52,8 @@ class IndexTableModel(QStandardItemModel):
         data = []
         for index in model_indicies:
             if not index.isValid():
-                raise InvalidModelIndex(f'model index not found {model_indicies}')
+                raise InvalidModelIndex(
+                    f'model index not found {model_indicies}')
 
             data_index = self.index(index.row(), 0)
             data.append(self.data(data_index, Qt.UserRole))

@@ -21,6 +21,26 @@ def patched_ssh():
     patcher.stop()
 
 
+def hawk_host():
+
+    import os
+    homedir = os.environ['HOME']
+
+    # Set up some hosts
+    behaviour = Behaviour(option_map, 'submit_cmd', defaults)
+
+    rsa_file = f'{homedir}/.ssh/id_rsa'
+
+    connection = Connection(
+        Logger(),
+        'hawklogin.cf.ac.uk',
+        user='s.mark.dawson',
+        rsa_file=rsa_file)
+    datastore = MM()
+
+    return Host(behaviour, connection, datastore)
+
+
 def plugins():
     plugins = {}
     plugins['rcv0'] = RunCreateView(
@@ -108,17 +128,20 @@ def window_count(qtbot):
 
 def visible_config(qtbot, klass):
 
-    plugin_win = [
+    get_plugin_win = lambda : [
         w for w in window_list(qtbot)
         if isinstance(w, klass) and w.isVisible()
     ]
 
-    currnumwin = len(plugin_win)
+    qtbot.waitUntil(lambda: len(get_plugin_win()) > 0)
+
+    plugin_wins = get_plugin_win()
+    currnumwin = len(plugin_wins)
 
     if (currnumwin != 1):
         raise Exception('duplicate windows')
 
-    return plugin_win[0]
+    return plugin_wins[0]
 
 
 def test_call_first_runner(qtbot):
@@ -176,6 +199,19 @@ def test_cancel_run(qtbot):
     # no runners called before ok
     assert not p['rt0'].runner.called
     assert not p['rt1'].runner.called
+
+
+def test_run_on_hawk(qtbot):
+    p = plugins()
+    hosts = [hawk_host()]
+    main = main_view(qtbot, hosts, p['plugins'])
+    tab = select_tab(main, 1)
+    config_window = new_job_window(tab, qtbot)
+
+    # window is visible
+    assert config_window.isVisible()
+
+    click_button(config_window, 'ok')
 
 
 @pytest.mark.xfail(reason="PluginCollection missing create")

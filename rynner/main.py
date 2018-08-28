@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QTableView, QTableWidgetItem, QDialog, QAbstractItemView, QTabWidget, QPushButton, QHBoxLayout, QAbstractItemView, QComboBox, QLabel, QSpacerItem, QSizePolicy, QItemDelegate
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QTableView, QTableWidgetItem, QDialog, QAbstractItemView, QTabWidget, QPushButton, QHBoxLayout, QAbstractItemView, QComboBox, QLabel, QSpacerItem, QSizePolicy, QItemDelegate, QMainWindow
 import collections
 from PySide2.QtCore import QAbstractTableModel, Qt, QObject, Signal
 from PySide2.QtGui import QStandardItemModel, QStandardItem
@@ -16,7 +16,7 @@ class InvalidDuplicateWidget(Exception):
     pass
 
 
-class MainView(QDialog):
+class MainView(QMainWindow):
     '''
     Periodically, for each host, we should fetch a job list of the data visible
     (e.g. from the datastore of the job) for all jobs of the currently visible

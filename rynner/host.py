@@ -129,7 +129,7 @@ class Host:
         self.datastore.isrunning(id, isrunning)
 
     def _remote_path(self, id):
-        return str(id)
+        return f"rynner/{id}"
 
     def type(self, string):
         '''

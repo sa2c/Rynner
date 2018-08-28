@@ -1,7 +1,7 @@
 import uuid
 
 
-class Run:
+class RunManager:
     '''
     This object is created by a 'setup' function, or 'runner'
     (see design.org example)
@@ -9,8 +9,11 @@ class Run:
     allowed_types = [int, str]
     key_filter = ['host', 'uploads']
 
-    def __init__(self, **options):
-        self.id = uuid.uuid1().int
+    def __init__(self, plugin_id):
+        self.plugin_id = plugin_id
+
+    def new(self, **options):
+        self.id = str(uuid.uuid1())
 
         data = options.copy()
 
@@ -28,12 +31,14 @@ class Run:
             raise InvalidHostSpecifiedException(
                 'The object specified by host key should have a parse method')
 
-        context = options['host'].parse(self.id, host_dict)
+        context = options['host'].parse(self.plugin_id, self.id, host_dict)
 
         if 'uploads' in data.keys():
-            options['host'].upload(self.id, data['uploads'])
+            options['host'].upload(self.plugin_id, self.id, data['uploads'])
 
-        options['host'].run(self.id, context)
+        options['host'].run(self.plugin_id, self.id, context)
+
+        return self.id
 
     def __convert(self, value):
         if type(value) in self.allowed_types:

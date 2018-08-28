@@ -120,10 +120,9 @@ class Host:
     def __init__(self, behaviour, connection, datastore):
         self.connection = connection
         self.behaviour = behaviour
-        datastore.set_connection(connection)
         self.datastore = datastore
 
-    def upload(self, id, uploads):
+    def upload(self, plugin_id, id, uploads):
         '''
         Uploads files through the connection.
         '''
@@ -131,24 +130,31 @@ class Host:
             if len(upload) != 2:
                 raise InvalidContextOption(
                     'invalid format for uploads options: {uploads}')
-            self.connection.put_file(upload[0], upload[1])
+            local, remote = upload
 
-    def parse(self, id, options):
+            basedir = self._remote_basedir(plugin_id, id)
+            basedir = os.path.join(basedir, remote)
+            self.connection.put_file(local, remote)
+        self.datastore.set(plugin_id, id, uploads=uploads)
+
+    def parse(self, plugin_id, run_id, options):
         '''
         Gets context from behaviour, which takes 'run options' as argument.
         Context is to be passed to the run method
         '''
         context = self.behaviour.parse(options)
-        self.datastore.store(id, options)
+        self.datastore.set(plugin_id, run_id, **options)
+        self.datastore.set(plugin_id, run_id, plugin_id=plugin_id)
+        self.datastore.set(plugin_id, run_id, isrunning=False)
         return context
 
-    def run(self, id, context):
-        isrunning = self.behaviour.run(self.connection, context,
-                                       self._remote_path(id))
-        self.datastore.isrunning(id, isrunning)
+    def run(self, plugin_id, run_id, context):
+        exit_status = self.behaviour.run(
+            self.connection, context, self._remote_basedir(plugin_id, run_id))
+        self.datastore.set(plugin_id, run_id, exit_status=exit_status)
 
-    def _remote_path(self, id):
-        return f"rynner/{id}"
+    def _remote_basedir(self, plugin_id, run_id):
+        return os.path.join("rynner", plugin_id, run_id)
 
     def type(self, string):
         '''

@@ -2,7 +2,7 @@
 - options (e.g. walltime) don't have any concept of a type, e.g. 10:0:00 should have some defined type/format (e.g. time delta) and some cluster-specific conversion to the correct data type. There should be some validation on user input here. And some errors thrown if it's wrong.
 - How does a plugin KNOW what interfaces can support it?
 - How do we do multi-cluster configurations? a host each? how are they identified? [by name? domain? both?]
-* Run
+* Run(Manager)
 - OK FOR NOW: uploads should be handled in the run method of the host rather than in the run? Note: should this be added to the context first, then uploaded when run is called?
 - Could make Run a method on Host actually? Since parse and run are all called at once.
 - Are there cases where I might want to parse and THEN run?
@@ -14,6 +14,7 @@
 - Rather than parsing script out, it makes sense to make script a positional argument (since it is mandatory)
 - Need to work out where the remote base path is computed??
 - Double-click an entry in the index to bring up a simulation view
+- setting interpreter (#!/bin/bash) not tested
 * RunCreateView
 - this "knows" about the dialog which contains it - it shouldn't!
 - tidy this up?

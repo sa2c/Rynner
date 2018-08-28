@@ -6,6 +6,7 @@ from rynner.behaviour import *
 class TestBehaviour(unittest.TestCase):
     def setUp(self):
         self.mock_conn = MM()
+        self.mock_conn.run_command.return_value = (0, "std out", "std error")
         self.submit_cmd = 'some_submission_cmd'
 
     def instantiate(self, opt_map=None):
@@ -31,9 +32,8 @@ class TestBehaviour(unittest.TestCase):
 
     def test_behaviour_can_call_run(self):
         self.instantiate()
-        connection = MM()
         self.behaviour.run(
-            connection, {
+            self.mock_conn, {
                 'options': ['Some Option Result', 'Another Option Result'],
                 'script': 'command'
             }, '/some/remote/path')
@@ -209,18 +209,16 @@ class TestBehaviour(unittest.TestCase):
 
     def test_run_method_calls_connection(self):
         self.instantiate()
-        connection = MM()
         context = {'options': ['one', 'two', 'three'], 'script': 'four'}
-        self.behaviour.run(connection, context, '/some/remote/path')
-        connection.put_file_content('one\ntwo\nthree\nfour\n',
-                                    '/some/remote/path/jobcard')
+        self.behaviour.run(self.mock_conn, context, '/some/remote/path')
+        self.mock_conn.put_file_content('one\ntwo\nthree\nfour\n',
+                                        '/some/remote/path/jobcard')
 
     def test_run_calls_submit(self):
         self.instantiate()
-        connection = MM()
         context = {'options': ['one', 'two', 'three'], 'script': 'four'}
-        self.behaviour.run(connection, context, '/some/remote/path')
-        connection.run_command.assert_called_once_with(
+        self.behaviour.run(self.mock_conn, context, '/some/remote/path')
+        self.mock_conn.run_command.assert_called_once_with(
             'some_submission_cmd', pwd='/some/remote/path')
 
     @unittest.skip("not impletemented yet by default")

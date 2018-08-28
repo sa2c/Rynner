@@ -7,7 +7,7 @@ from rynner.behaviour import Behaviour
 from rynner.main import MainView
 from rynner.create_view import RunCreateView, TextField
 from rynner.plugin import Plugin, PluginCollection, RunAction
-from rynner.run import Run
+from rynner.run import RunManager
 from rynner.option_maps import slurm1711_option_map as option_map
 from rynner.logs import Logger
 
@@ -24,8 +24,8 @@ view1 = RunCreateView(
     [TextField('Message', 'message', default='Hello, World!')])
 
 
-def runner(data):
-    run = Run(
+def runner(run_manager, data):
+    run = run_manager.new(
         ntasks=1,
         memory_per_task_MB=10000,
         host=hosts[0],
@@ -45,26 +45,28 @@ view2 = RunCreateView([
     TextField('Angle', 'angle', default='10'),
 ])
 
+
+def runner2(run_manager, data):
+    print('running...')
+
+
 plugin2 = Plugin(
     'swansea.ac.uk/2',
     'simpleCFD',
     view2,
-    runner,
+    runner2,
     view_keys=("id", "name", "some-other-data"))
 
 #---------------------------------------------------------
 # INITIALISATION
 #---------------------------------------------------------
 
+# submit the job and write output to
+submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
 # Set up some hosts
-import re
-pid_from_stdout = re.compile('Submitted batch job (?P<id>[0-9]+)')
-
-behaviour = Behaviour(option_map, 'sbatch {jobcard}', pid_from_stdout,
-                      defaults)
+behaviour = Behaviour(option_map, submit_cmd, defaults)
 
 rsa_file = f'{homedir}/.ssh/id_rsa'
-print(f'rsa file: {rsa_file}')
 print('connecting')
 connection = Connection(
     Logger(), 'hawklogin.cf.ac.uk', user='s.mark.dawson', rsa_file=rsa_file)

@@ -11,13 +11,15 @@ class TestRun(unittest.TestCase):
         # patch uuid
         self.uuid_patch = patch('rynner.run.uuid')
         uuid = self.uuid_patch.start()
-        self.mock_uuid = uuid.uuid1().int
+        self.mock_uuid = str(uuid.uuid1())
 
     def tearDown(self):
         self.uuid_patch.stop()
 
     def instantiate(self):
-        self.run = Run(**self.mock_data)
+        self.plugin_id = 'my-plugin-id'
+        self.runner = RunManager(self.plugin_id)
+        self.run_id = self.runner.new(**self.mock_data)
 
     def test_instantiation(self):
         self.instantiate()
@@ -30,7 +32,8 @@ class TestRun(unittest.TestCase):
         self.instantiate()
         data = self.mock_data.copy()
         del data['host']
-        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
+        self.mock_host.parse.assert_called_once_with(self.plugin_id,
+                                                     self.mock_uuid, data)
 
     def test_filter_uploads(self):
         # prepare data to compare against
@@ -40,7 +43,8 @@ class TestRun(unittest.TestCase):
         # add uploads to mock data
         self.mock_data['uploads'] = MagicMock()
         self.instantiate()
-        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
+        self.mock_host.parse.assert_called_once_with(self.plugin_id,
+                                                     self.mock_uuid, data)
 
     def test_raises_host_not_specified(self):
         del self.mock_data['host']
@@ -49,13 +53,13 @@ class TestRun(unittest.TestCase):
 
     def test_run_knows_id(self):
         self.instantiate()
-        self.run.id == self.mock_uuid
+        self.run_id == self.mock_uuid
 
     def test_run_uploads(self):
         self.mock_data['uploads'] = MagicMock()
         self.instantiate()
         self.mock_host.upload.assert_called_once_with(
-            self.mock_uuid, self.mock_data['uploads'])
+            self.plugin_id, self.mock_uuid, self.mock_data['uploads'])
 
     def test_upload_not_called_if_no_uploads(self):
         self.instantiate()
@@ -64,12 +68,16 @@ class TestRun(unittest.TestCase):
     def test_run_called_with_the_output_of_parse(self):
         self.instantiate()
         context = self.mock_host.parse()
-        self.mock_host.run.assert_called_once_with(self.run.id, context)
+        self.mock_host.run.assert_called_once_with(self.plugin_id, self.run_id,
+                                                   context)
 
     def test_upload_called_before_run(self):
         self.mock_data['uploads'] = MagicMock()
         self.instantiate()
-        calls = [call.upload(ANY, ANY), call.run(self.run.id, ANY)]
+        calls = [
+            call.upload(ANY, ANY, ANY),
+            call.run(self.plugin_id, self.run_id, ANY)
+        ]
         self.mock_host.assert_has_calls(calls)
 
     def test_converts_integer_classes_to_integers(self):
@@ -84,7 +92,9 @@ class TestRun(unittest.TestCase):
         data = self.mock_data.copy()
         data['memory'] = 1234
         del data['host']
-        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
+
+        self.mock_host.parse.assert_called_once_with(self.plugin_id,
+                                                     self.mock_uuid, data)
 
     def test_converts_string_classes_to_strings(self):
         class SomeStringType:
@@ -98,7 +108,8 @@ class TestRun(unittest.TestCase):
         data = self.mock_data.copy()
         data['memory'] = "Test String"
         del data['host']
-        self.mock_host.parse.assert_called_once_with(self.mock_uuid, data)
+        self.mock_host.parse.assert_called_once_with(self.plugin_id,
+                                                     self.mock_uuid, data)
 
     def test_throws_exception_if_object_not_convertable(self):
         class SomeRandomType:
@@ -111,8 +122,9 @@ class TestRun(unittest.TestCase):
         assert 'no __rynner_value__ method' in str(context.exception)
 
     def test_throws_exception(self):
+        runner = RunManager('my-plugin-id')
         with self.assertRaises(InvalidHostSpecifiedException):
-            run = Run(host='InvalidHost')
+            runner.new(host='InvalidHost')
 
 
 if __name__ == '__main__':

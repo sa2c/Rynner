@@ -1,4 +1,4 @@
-from rynner.run import Run
+from rynner.run import RunManager
 from PySide2.QtCore import Signal, QObject
 
 
@@ -58,11 +58,13 @@ class Plugin(QObject):
         if create_view is not None:
             self.create_view.accepted.connect(self.config_accepted)
 
+        self.run_manager = RunManager(self.domain)
+
     def _run(self, data):
         if self.runner is None:
-            run = Run(**data)
+            run = self.run_manager.new(**data)
         else:
-            self.runner(data)
+            self.runner(self.run_manager, data)
 
     def add_action(self, label, function):
         action = RunAction(label, function)

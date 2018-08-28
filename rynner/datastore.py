@@ -1,13 +1,9 @@
 class Datastore:
-    def store(self, id, options):
-        raise NotImplementedError()
+    def __init__(self, connection):
+        self.connection = connection
 
-    def isrunning(self, id, isrunning):
+    def store(self, plugin_id, run_id, **kwargs):
         raise NotImplementedError()
 
     def jobs(self, plugin_id):
         raise NotImplementedError()
-
-    def set_connection(self, connection):
-        raise NotImplementedError()
-        self.connection = connection

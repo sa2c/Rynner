@@ -1,3 +1,6 @@
+import re
+
+
 class InvalidContextOption(Exception):
     pass
 
@@ -83,4 +86,8 @@ class Behaviour:
         remote_jobcard = '/'.join([remote_path, 'jobcard'])
         connection.put_file_content(jobcard, remote_jobcard)
 
-        connection.run_command(self._submit_cmd, pwd=remote_path)
+        # run using the submit command provided
+        exitstatus, stdout, stderr = connection.run_command(
+            self._submit_cmd, pwd=remote_path)
+
+        return exitstatus

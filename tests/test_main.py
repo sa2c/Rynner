@@ -156,7 +156,8 @@ def test_call_first_runner(qtbot):
 
     # one runner called after ok
     click_button(config_window, 'ok')
-    p['rt0'].runner.assert_called_once_with({'param0': 'Some default value 0'})
+    p['rt0'].runner.assert_called_once_with(p['rt0'].run_manager,
+                                            {'param0': 'Some default value 0'})
     assert not p['rt1'].runner.called
 
 
@@ -175,7 +176,8 @@ def test_call_second_runner(qtbot):
 
     # one runner called after ok
     click_button(config_window, 'ok')
-    p['rt1'].runner.assert_called_once_with({'param1': 'Some default value 1'})
+    p['rt1'].runner.assert_called_once_with(p['rt1'].run_manager,
+                                            {'param1': 'Some default value 1'})
     assert not p['rt0'].runner.called
 
     # config window has been closed

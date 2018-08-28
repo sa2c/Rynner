@@ -6,7 +6,7 @@ from unittest.mock import MagicMock as MM
 from rynner.plugin import Plugin, RunAction
 from rynner.create_view import RunCreateView, TextField
 from tests import qtest_helpers
-from rynner.run import Run, HostNotSpecifiedException
+from rynner.run import RunManager, HostNotSpecifiedException
 from rynner.host import Host, Connection
 from rynner.behaviour import Behaviour
 from PySide2.QtTest import QTest
@@ -20,7 +20,7 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
                 'another_key', 'My Other Label', default="My Other Default"),
         ]
         self.run_create_view = RunCreateView(self.widgets)
-        self.runner = lambda data: None
+        self.runner = lambda run_manager, data: None
         self.domain = 'swansea.ac.uk'
         self.type_name = 'My Run Type'
 
@@ -75,7 +75,7 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
         qtest_helpers.button_callback(
             method=self.plugin.create, button=self.ok_button)
 
-        self.runner.assert_called_once_with({
+        self.runner.assert_called_once_with(self.plugin.run_manager, {
             'key': 'My Default',
             'another_key': 'My Other Default'
         })
@@ -87,11 +87,12 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
         ])
 
         connection = MM()
+        connection.run_command.return_value = (0, "std out", "std err")
 
         # job_id is a hack to get the run id out of the runner function
         job_id = []
 
-        def runner(self):
+        def runner(run_manager, data):
             datastore = MM()
             defaults = []
             option_map = [('#FAKE num_nodes={}', 'nodes'), ('#FAKE memory={}',
@@ -99,13 +100,13 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
 
             behaviour = Behaviour(option_map, 'submit_cmd', defaults)
 
-            a = Run(
+            rid = run_manager.new(
                 nodes=10,
                 memory=10000,
                 host=Host(behaviour, connection, datastore),
                 script='my_command')
 
-            job_id.append(a.id)
+            job_id.append(rid)
 
         rt = Plugin(self.domain, self.type_name, run_create_view, runner)
 

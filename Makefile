@@ -16,4 +16,7 @@ activate:
 test:
 	pipenv run -- python -m unittest discover
 
+run:
+	pipenv run  python -m pdb -c continue rynner.py
+
 .PHONY: help activate test

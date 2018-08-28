@@ -63,6 +63,7 @@ delete keys within the function
 or
 ('{}', 'pbs')
 - Lists of strings should be flattened/joined with newlines before being passed to parser
+- the interpreter string in the jobcard should be customisable
 * Datastore
 - store.store
 - store.running=
@@ -72,6 +73,7 @@ or
 - make remote paths relative for u/l and d/l? what about local ones? Encoding them with id or pass in a directory name? Or should that be in behaviour?
 - needs to be shut down when application closes
 - AutoAddPolicy used by paramiko for now - change this
+- should error when job fails
 * Scheduler definitions
 - what about different version number of SLURM??
 * TextInput

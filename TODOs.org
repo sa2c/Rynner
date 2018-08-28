@@ -13,6 +13,7 @@
 #       self.host.sync(self.runid, self.downloads)
 - Rather than parsing script out, it makes sense to make script a positional argument (since it is mandatory)
 - Need to work out where the remote base path is computed??
+- Double-click an entry in the index to bring up a simulation view
 * RunCreateView
 - this "knows" about the dialog which contains it - it shouldn't!
 - tidy this up?
@@ -94,3 +95,4 @@ or
 - change valid() to check with validator
 * Other
 - setup gitter!
+- simulation actions should be able to get hold of the parent window, to do plotting

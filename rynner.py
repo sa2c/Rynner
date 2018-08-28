@@ -15,18 +15,53 @@ homedir = os.environ['HOME']
 
 defaults = []
 
+#---------------------------------------------------------
+# PLUGIN SCRIPT
+#---------------------------------------------------------
+
 # Create a fake run_create_view
-run_create_view1 = RunCreateView(
+view1 = RunCreateView(
     [TextField('Message', 'message', default='Hello, World!')])
 
-run_create_view2 = RunCreateView([
+
+def runner(data):
+    run = Run(
+        ntasks=1,
+        memory_per_task_MB=10000,
+        host=hosts[0],
+        script='echo "Hello from Sunbird!" > "my-job-output"')
+
+
+# create Plugin objects
+plugin1 = Plugin('swansea.ac.uk/1', 'Hello, World!', view1, runner)
+
+#---------------------------------------------------------
+# PLUGIN 2 SCRIPT
+#---------------------------------------------------------
+
+view2 = RunCreateView([
     TextField('Velocity', 'velocity', default="10"),
     TextField('Altitude', 'altitude', default="40,000"),
     TextField('Angle', 'angle', default='10'),
 ])
 
+plugin2 = Plugin(
+    'swansea.ac.uk/2',
+    'simpleCFD',
+    view2,
+    runner,
+    view_keys=("id", "name", "some-other-data"))
+
+#---------------------------------------------------------
+# INITIALISATION
+#---------------------------------------------------------
+
 # Set up some hosts
-behaviour = Behaviour(option_map, 'sbatch {jobcard}', defaults)
+import re
+pid_from_stdout = re.compile('Submitted batch job (?P<id>[0-9]+)')
+
+behaviour = Behaviour(option_map, 'sbatch {jobcard}', pid_from_stdout,
+                      defaults)
 
 rsa_file = f'{homedir}/.ssh/id_rsa'
 print(f'rsa file: {rsa_file}')
@@ -38,32 +73,13 @@ hosts = [Host(behaviour, connection, datastore)]
 
 print('define rynner')
 
-
-def runner(data):
-
-    a = Run(
-        ntasks=10,
-        memory_per_task_MB=10000,
-        host=hosts[0],
-        script='echo "Hello from Sunbird!" > "my-job-output"')
-
-
 print('create plugins')
 
-# create Plugin objects
-rt1 = Plugin('swansea.ac.uk/1', 'Hello, World!', run_create_view1, runner)
-rt2 = Plugin(
-    'swansea.ac.uk/2',
-    'simpleCFD',
-    run_create_view2,
-    runner,
-    view_keys=("id", "name", "some-other-data"))
-
-plugins = [PluginCollection("All Runs", [rt1, rt2]), rt1, rt2]
+plugins = [PluginCollection("All Runs", [plugin1, plugin2]), plugin1, plugin2]
 
 # create mock of jobs returned by datastore
 jobs = {
-    rt1.domain: [{
+    plugin1.domain: [{
         'id': '12508',
         'name': 'JobType1-1',
         'some-data': 'Some Data'
@@ -72,7 +88,7 @@ jobs = {
         'name': 'JobType1-2',
         'some-data': 'Some Extra Data'
     }],
-    rt2.domain: [{
+    plugin2.domain: [{
         'id': '12435',
         'name': 'JobType2-1',
         'some-other-data': 'Other Data'

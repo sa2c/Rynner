@@ -76,8 +76,9 @@ Creating remote file:
 
     def _ensure_dir(self, remote_path):
         parts = remote_path.split('/')
-        if (len(parts) > 1):
-            dir = '/'.join(parts[0:-1])
+        dirs = [parts[i] for i in range(0, -1) if len(parts[i]) > 0]
+        for i in range(len(dirs)):
+            dir = '/'.join(parts[0:i + 1])
             try:
                 self.sftp.stat(dir)
             except IOError:

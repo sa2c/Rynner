@@ -16,7 +16,7 @@ class Connection():
         self._ensure_connected()
         if pwd is not None:
             self._ensure_dir(pwd)
-            cd_cmd = 'cd {pwd}'
+            cd_cmd = f'cd {pwd}'
             cmd = '; '.join([cd_cmd, cmd])
 
         self.log(f'running command ({self.ssh}): {cmd}')

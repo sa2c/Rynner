@@ -38,16 +38,23 @@ class Connection():
         self.log(f'transferring file: {local_path} -> {remote_path}')
         self.sftp.put(local_path, remote_path)
 
+    def get_file_content(self, remote_path):
+        self._ensure_connected()
+        file = self.sftp.file(remote_path, mode='r')
+        try:
+            contents = file.read()
+        except:
+            pass
+        file.close()
+
+        return contents
+
     def put_file_content(self, content, remote_path):
         self._ensure_connected()
         self._ensure_dir(remote_path)
-        self.log(f'''
-Creating remote file:
-* File path:
-{remote_path}
-* File content:
-{content}
-        ''')
+        self.log(
+            f' Creating remote file:\n* File path:\n{remote_path}\n* File content:\n{content}'
+        )
 
         file = self.sftp.file(remote_path, mode='w')
         file.write(content)
@@ -122,7 +129,7 @@ class Host:
         self.behaviour = behaviour
         self.datastore = datastore
 
-    def upload(self, plugin_id, id, uploads):
+    def upload(self, plugin_id, run_id, uploads):
         '''
         Uploads files through the connection.
         '''
@@ -132,10 +139,9 @@ class Host:
                     'invalid format for uploads options: {uploads}')
             local, remote = upload
 
-            basedir = self._remote_basedir(plugin_id, id)
+            basedir = self._remote_basedir(plugin_id, run_id)
             basedir = os.path.join(basedir, remote)
             self.connection.put_file(local, remote)
-        self.datastore.set(plugin_id, id, uploads=uploads)
 
     def parse(self, plugin_id, run_id, options):
         '''
@@ -143,15 +149,20 @@ class Host:
         Context is to be passed to the run method
         '''
         context = self.behaviour.parse(options)
-        self.datastore.set(plugin_id, run_id, **options)
-        self.datastore.set(plugin_id, run_id, plugin_id=plugin_id)
-        self.datastore.set(plugin_id, run_id, isrunning=False)
+
+        # set data to store in context['datastore']
+        options['plugin_id'] = plugin_id
+        options['run_id'] = run_id
+        context['datastore'] = options
+
         return context
 
     def run(self, plugin_id, run_id, context):
         exit_status = self.behaviour.run(
             self.connection, context, self._remote_basedir(plugin_id, run_id))
-        self.datastore.set(plugin_id, run_id, exit_status=exit_status)
+
+        basedir = self._remote_basedir(plugin_id, run_id)
+        self.datastore.store(basedir, context)
 
     def _remote_basedir(self, plugin_id, run_id):
         return os.path.join("rynner", plugin_id, run_id)

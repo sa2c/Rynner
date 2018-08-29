@@ -69,9 +69,7 @@ or
 - Lists of strings should be flattened/joined with newlines before being passed to parser
 - the interpreter string in the jobcard should be customisable
 * Datastore
-- store.store
-- store.running=
-- store.running
+- calls to datastore do not appear to be implemented
 * Connection
 - lazily creates base directory, but does not create any subdirectories
 - make remote paths relative for u/l and d/l? what about local ones? Encoding them with id or pass in a directory name? Or should that be in behaviour?

@@ -151,8 +151,7 @@ class Host:
         context = self.behaviour.parse(options)
 
         # set data to store in context['datastore']
-        options['plugin_id'] = plugin_id
-        options['run_id'] = run_id
+        context['rynner'] = {'plugin_id': plugin_id, 'run_id': run_id}
         context['datastore'] = options
 
         return context
@@ -160,6 +159,8 @@ class Host:
     def run(self, plugin_id, run_id, context):
         exit_status = self.behaviour.run(
             self.connection, context, self._remote_basedir(plugin_id, run_id))
+
+        context['rynner']['submit_exit_status'] = exit_status
 
         basedir = self._remote_basedir(plugin_id, run_id)
         self.datastore.store(basedir, context)

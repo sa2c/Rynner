@@ -15,6 +15,8 @@
 - Need to work out where the remote base path is computed??
 - Double-click an entry in the index to bring up a simulation view
 - setting interpreter (#!/bin/bash) not tested
+- need to be able to get hols of main window in actions
+- Rather than parsing script argument out, does it makes sense to make it script a positional argument (since it is mandatory)? Should I put all the mandatory arguments first?
 * RunCreateView
 - this "knows" about the dialog which contains it - it shouldn't!
 - tidy this up?
@@ -97,3 +99,5 @@ or
 * Other
 - setup gitter!
 - simulation actions should be able to get hold of the parent window, to do plotting
+* Possible Input Types:
+TextField, OptionField NumericField, Directory, File, HiddenField, GitCommitField, HostSelection

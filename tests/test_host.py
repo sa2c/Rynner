@@ -6,6 +6,7 @@ from unittest.mock import MagicMock as MM
 from rynner.host import *
 from rynner.run import RunManager
 from rynner.logs import Logger
+from tests.host_env import homedir, test_host, test_user, remote_homedir
 
 
 @unittest.skip('Fabric changed to paramiko')
@@ -251,11 +252,12 @@ class TestHawk(unittest.TestCase):
     def test_connect(self):
         conn = Connection(
             logger=Logger(),
-            host='hawklogin.cf.ac.uk',
-            user='s.mark.dawson',
+            host=test_host,
+            user=test_user,
             rsa_file=f'{homedir}/.ssh/id_rsa')
-        remote_file = '/home/s.mark.dawson/conn_test'
-        local_file = '/tmp/t'
+        remote_file = f'{remote_homedir}/conn_test'
+        local_file = f'{homedir}/t'
+        local_file_from_remote = f'{homedir}/t2'
 
         # remote remove file
         status, out, err = conn.run_command(f'rm {remote_file}')
@@ -263,12 +265,12 @@ class TestHawk(unittest.TestCase):
         self.assertNotIn('conn_test', file_list)
 
         # upload/download file
-        conn.put_file('/tmp/t', remote_file)
-        conn.get_file(remote_file, '/tmp/t.2')
+        conn.put_file(local_file, remote_file)
+        conn.get_file(remote_file, local_file_from_remote)
 
-        from_remote_content = open('/tmp/t.2', 'r').read()
+        remote_content = open(local_file_from_remote, 'r').read()
         local_content = open(local_file, 'r').read()
-        self.assertEqual(local_content, from_remote_content)
+        self.assertEqual(local_content, remote_content)
 
         # ls dir content
         status, out, err = conn.run_command('ls')
@@ -276,12 +278,14 @@ class TestHawk(unittest.TestCase):
         self.assertIn('conn_test', out)
 
     def test_put_file_content(self):
+        # 'hacky' filesystem test for now, requires that file ~/t exists
+        # should be replaced
         conn = Connection(
             logger=Logger(),
-            host='hawklogin.cf.ac.uk',
-            user='s.mark.dawson',
+            host=test_host,
+            user=test_user,
             rsa_file=f'{homedir}/.ssh/id_rsa')
-        remote_file = '/home/s.mark.dawson/conn_test'
+        remote_file = f'{remote_homedir}/conn_test'
 
         # remote remove file
         status, out, err = conn.run_command(f'rm {remote_file}')
@@ -289,7 +293,8 @@ class TestHawk(unittest.TestCase):
         self.assertNotIn('conn_test', file_list)
 
         # upload/download file
-        conn.put_file_content('file contents', remote_file)
+        remote_content = 'my remote content'
+        conn.put_file_content(remote_content, remote_file)
         local_file = '/tmp/t.2'
         try:
             os.remove(local_file)
@@ -297,9 +302,8 @@ class TestHawk(unittest.TestCase):
             pass
         conn.get_file(remote_file, local_file)
 
-        from_remote_content = open(local_file, 'r').read()
         local_content = open(local_file, 'r').read()
-        self.assertEqual(local_content, from_remote_content)
+        self.assertEqual(local_content, remote_content)
 
         # ls dir content
         status, out, err = conn.run_command('ls')

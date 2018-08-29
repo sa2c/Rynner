@@ -10,8 +10,7 @@ from rynner.plugin import Plugin, PluginCollection, RunAction
 from rynner.run import RunManager
 from rynner.option_maps import slurm1711_option_map as option_map
 from rynner.logs import Logger
-
-homedir = os.environ['HOME']
+from tests.host_env import *
 
 defaults = []
 
@@ -68,8 +67,7 @@ behaviour = Behaviour(option_map, submit_cmd, defaults)
 
 rsa_file = f'{homedir}/.ssh/id_rsa'
 print('connecting')
-connection = Connection(
-    Logger(), 'hawklogin.cf.ac.uk', user='s.mark.dawson', rsa_file=rsa_file)
+connection = Connection(Logger(), test_host, user=test_user, rsa_file=rsa_file)
 datastore = MM()
 hosts = [Host(behaviour, connection, datastore)]
 

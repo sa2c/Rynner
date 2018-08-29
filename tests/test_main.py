@@ -8,6 +8,7 @@ from rynner.host import Host, Connection
 from rynner.logs import Logger
 from rynner.create_view import RunCreateView, TextField
 from unittest.mock import MagicMock as MM
+from tests.host_env import test_host, test_user, homedir
 import pytest
 
 defaults = []
@@ -32,10 +33,7 @@ def hawk_host():
     rsa_file = f'{homedir}/.ssh/id_rsa'
 
     connection = Connection(
-        Logger(),
-        'hawklogin.cf.ac.uk',
-        user='s.mark.dawson',
-        rsa_file=rsa_file)
+        Logger(), test_host, user=test_user, rsa_file=rsa_file)
     datastore = MM()
 
     return Host(behaviour, connection, datastore)
@@ -76,10 +74,7 @@ def host():
     # Set up some hosts
     behaviour = Behaviour(option_map, 'submit_cmd', defaults)
     connection = Connection(
-        Logger(),
-        'hawklogin.cf.ac.uk',
-        user='s.mark.dawson',
-        rsa_file='/Users/phoebejoannamay/.ssh/id_rsa')
+        Logger(), test_host, user=test_user, rsa_file=f'{homedir}/.ssh/id_rsa')
     datastore = MM()
     return [Host(behaviour, connection, datastore)]
 

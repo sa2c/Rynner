@@ -95,10 +95,10 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
         def runner(run_manager, data):
             datastore = MM()
             defaults = []
-            option_map = [('#FAKE num_nodes={}', 'nodes'), ('#FAKE memory={}',
-                                                            'memory')]
+            host_pattern = [('#FAKE num_nodes={}', 'nodes'),
+                            ('#FAKE memory={}', 'memory')]
 
-            option_parser = OptionParser(option_map, 'submit_cmd', defaults)
+            option_parser = OptionParser(host_pattern, 'submit_cmd', defaults)
 
             rid = run_manager.new(
                 nodes=10,

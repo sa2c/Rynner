@@ -1,15 +1,15 @@
-import os
+import os, glob
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
 from tests.qtest_helpers import *
-from rynner.host import SlurmHost
+import rynner
 from rynner.datastore import Datastore
 from rynner.option_parser import OptionParser
 from rynner.main import MainView
 from rynner.create_view import RunCreateView, TextField
 from rynner.plugin import Plugin, PluginCollection, RunAction
 from rynner.run import RunManager
-from rynner.option_maps import slurm1711_option_map as option_map
+from rynner.host_patterns import slurm1711_host_pattern as host_pattern
 from rynner.logs import Logger
 from tests.host_env import *
 

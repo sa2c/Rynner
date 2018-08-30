@@ -12,7 +12,7 @@ class ScriptNotSpecifiedException(Exception):
 class OptionParser:
     '''
     This models a scheduler (slurm, pbs, lsf,...)
-    The information about how the scheduler works is stored in a 'option_map' object,
+    The information about how the scheduler works is stored in a 'host_pattern' object,
 
     '''
 

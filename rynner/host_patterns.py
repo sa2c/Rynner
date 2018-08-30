@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-In this file, various 'option_map' objects for the different schedulers are
+In this file, various patterns for matching host options for the different schedulers are
 written.
 
 NOTES:
@@ -10,7 +10,7 @@ In many cases, there are conflicting/redundant ways to require resources.
 2. --mem/--mem-per-cpu : these are mutually exclusive. We assume 1 task per core.
 '''
 
-slurm1711_option_map = [
+slurm1711_patterns = [
     ('#SBATCH --job-name={}', 'name'),
     # this is 'share' in older versions of slurm
     ('#SBATCH --oversubscribe', 'oversubscribe'),
@@ -28,7 +28,7 @@ slurm1711_option_map = [
 # obtained from here
 # https://hpcc.usc.edu/support/documentation/pbs-to-slurm/
 # and from the pbs and pbs_resources man pages.
-pbs_option_map = [
+pbs_patterns = [
     ('#PBS -N={}', 'name'),
     ('#PBS -l placement=shared ', 'oversubscribe'),
     ('#PBS -o {}', 'output_file'),
@@ -41,3 +41,5 @@ pbs_option_map = [
     ('#PBS -q {}', 'queue'),
     ('#PBS -A {}', 'account')
 ]
+
+host_patterns = {'slurm1711': slurm1711_patterns, 'pbs': pbs_patterns}

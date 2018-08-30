@@ -14,12 +14,12 @@ class TestOptionParserIntegration(unittest.TestCase):
         self.connection.run_command.return_value = (0, "std out", "std err")
 
     def instantiate(self, opt_map=None):
-        option_map = [
+        host_pattern = [
             ('#FAKE --walltime={}', 'walltime'),
             ('#FAKE --num-nodes={}', 'num_nodes'),
         ]
         defaults = MM()
-        self.option_parser = OptionParser(option_map, 'submit_cmd', defaults)
+        self.option_parser = OptionParser(host_pattern, 'submit_cmd', defaults)
         self.datastore = Datastore(self.connection)
         self.host = Host(self.option_parser, self.connection, self.datastore)
 

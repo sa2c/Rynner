@@ -1,6 +1,5 @@
-import paramiko
-import os
-from rynner.option_maps import slurm1711_option_map as slurm_option_map, pbs_option_map
+import paramiko, os, yaml
+from rynner.host_patterns import slurm1711_host_pattern as slurm_host_pattern, pbs_host_pattern
 from rynner.option_parser import OptionParser, InvalidContextOption
 from rynner.datastore import Datastore
 from PySide2.QtCore import QObject, Signal
@@ -246,13 +245,13 @@ class GenericClusterHost(Host):
                  host,
                  username,
                  rsa_file,
-                 option_map,
+                 host_pattern,
                  submit_cmd,
                  defaults=[]):
 
         self.logger = Logger('host-logger')
 
-        option_parser = OptionParser(option_map, submit_cmd, defaults)
+        option_parser = OptionParser(host_pattern, submit_cmd, defaults)
 
         connection = Connection(
             self.logger, host, user=username, rsa_file=rsa_file)
@@ -261,38 +260,29 @@ class GenericClusterHost(Host):
 
         super().__init__(option_parser, connection, datastore)
 
+    def load_hostfile(self, identifier):
+        basedir = '~/rynner/hosts/'
+        path = os.path.join(basedir, identifier)
+        return yaml.load(path)
+
 
 class SlurmHost(GenericClusterHost):
-    def __init__(self,
-                 host,
-                 username,
-                 rsa_file,
-                 option_map=None,
-                 submit_cmd=None,
-                 defaults=[]):
+    def __init__(self, hostfile):
+        host = self.load_hostfile(hostfile)
 
-        if submit_cmd is None:
-            submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
+        submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
+        host_pattern = slurm_host_pattern
 
-        if option_map is None:
-            option_map = slurm_option_map
-
-        super().__init__(host, username, rsa_file, option_map, submit_cmd)
+        super().__init__(host.domain, host.username, host.rsa_file,
+                         host_pattern, submit_cmd)
 
 
 class PBSHost(GenericClusterHost):
-    def __init__(self,
-                 host,
-                 username,
-                 rsa_file,
-                 option_map=None,
-                 submit_cmd=None,
-                 defaults=[]):
+    def __init__(self, hostfile):
+        host = self.load_hostfile(hostfile)
 
-        if submit_cmd is None:
-            submit_cmd = 'qsub jobcard > jobid'
+        submit_cmd = 'qsub jobcard > jobid'
+        host_pattern = pbs_host_pattern
 
-        if option_map is None:
-            option_map = slurm_option_map
-
-        super().__init__(host, username, rsa_file, option_map, submit_cmd)
+        super().__init__(host.domain, host.username, host.rsa_file,
+                         host_pattern, submit_cmd)

@@ -9,7 +9,7 @@ from rynner.logs import Logger
 from rynner.datastore import Datastore
 from rynner.option_parser import OptionParser
 from tests.host_env import homedir, test_host, test_user, remote_homedir
-from rynner.option_maps import slurm1711_option_map as option_map
+from rynner.host_patterns import slurm1711_host_pattern as host_pattern
 
 
 @unittest.skip('Fabric changed to paramiko')
@@ -346,7 +346,7 @@ class TestLiveConnection(unittest.TestCase):
     def test_update_jobs(self):
         datastore = Datastore(conn)
         defaults = []
-        option_parser = OptionParser(option_map, 'echo 12134 > jobid',
+        option_parser = OptionParser(host_pattern, 'echo 12134 > jobid',
                                      defaults)
         host = Host(option_parser, conn, datastore)
 

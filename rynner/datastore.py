@@ -14,9 +14,27 @@ class Datastore:
         self.connection.put_file_content(content, path)
 
     def read(self, basedir):
+        # get datastore
         path = os.path.join(basedir, self.store_name)
         content = self.connection.get_file_content(path)
-        return yaml.load(content)
+        data = yaml.load(content)
+
+        # if datastore doesn't have qid yet then add it
+        # and write it back
+        if not hasattr(data, 'qid'):
+            qid_path = os.path.join(basedir, 'qid')
+
+            content = self.connection.get_file_content(
+                qid_path).decode().split()
+
+            if len(content) > 0:
+                content = content[0]
+
+            data['qid'] = content
+
+            self.write(basedir, data)
+
+        return data
 
     def read_multiple(self, basedict):
         '''

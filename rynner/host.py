@@ -1,5 +1,5 @@
 import paramiko, os, yaml
-from rynner.host_patterns import slurm1711_host_pattern as slurm_host_pattern, pbs_host_pattern
+from rynner.host_patterns import host_patterns
 from rynner.pattern_parser import PatternParser, InvalidContextOption
 from rynner.datastore import Datastore
 from PySide2.QtCore import QObject, Signal
@@ -232,12 +232,25 @@ class Host(QObject):
 
         new_runs = self.datastore.read_multiple(new_ids)
 
+        # update cache with new runs
         if plugin_id not in self._cached_runs.keys():
             self._cached_runs[plugin_id] = {}
 
         self._cached_runs[plugin_id].update(new_runs)
 
+        # get queue
+        queue = self.get_queue()
+
+        # merge queue info into all cached run data
+        for run_data in self._cached_runs[plugin_id].values():
+            qid = run_data['qid']
+            if qid in queue.keys():
+                run_data['queue'] = queue[qid]
+
         self.runs_updated.emit(self._cached_runs)
+
+    def get_queue(self):
+        return {}
 
 
 class GenericClusterHost(Host):
@@ -260,29 +273,45 @@ class GenericClusterHost(Host):
 
         super().__init__(pattern_parser, connection, datastore)
 
-    def load_hostfile(self, identifier):
-        basedir = '~/rynner/hosts/'
-        path = os.path.join(basedir, identifier)
-        return yaml.load(path)
-
 
 class SlurmHost(GenericClusterHost):
-    def __init__(self, hostfile):
-        host = self.load_hostfile(hostfile)
+    def __init__(self, domain, username, rsa_file):
 
-        submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
-        host_pattern = slurm_host_pattern
+        submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > qid'
+        host_pattern = host_patterns['slurm']
 
-        super().__init__(host.domain, host.username, host.rsa_file,
-                         host_pattern, submit_cmd)
+        super().__init__(domain, username, rsa_file, host_pattern, submit_cmd)
+
+    def get_queue(self):
+        exitstatus, stdout, stderr = self.connection.run_command('squeue')
+
+        data = {}
+
+        for line in stdout.split('\n'):
+            line_split = line.split()
+            if len(line_split) == 0:
+                continue
+
+            jid, queue, name, user, state, time, nodes, nodelist = line.split()
+
+            if jid == 'JOBID':
+                continue
+
+            data[jid] = {}
+            data[jid]['queue'] = queue
+            data[jid]['name'] = name
+            data[jid]['user'] = user
+            data[jid]['state'] = state
+            data[jid]['time'] = time
+            data[jid]['nodes'] = nodes
+
+        return data
 
 
 class PBSHost(GenericClusterHost):
-    def __init__(self, hostfile):
-        host = self.load_hostfile(hostfile)
+    def __init__(self, domain, username, rsa_file):
 
-        submit_cmd = 'qsub jobcard > jobid'
-        host_pattern = pbs_host_pattern
+        submit_cmd = 'qsub jobcard > qid'
+        host_pattern = host_patterns['pbs']
 
-        super().__init__(host.domain, host.username, host.rsa_file,
-                         host_pattern, submit_cmd)
+        super().__init__(domain, username, rsa_file, host_pattern, submit_cmd)

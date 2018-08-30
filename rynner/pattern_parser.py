@@ -90,4 +90,4 @@ class PatternParser:
         exitstatus, stdout, stderr = connection.run_command(
             self._submit_cmd, pwd=remote_path)
 
-        return exitstatus
+        return exitstatus, stdout, stderr

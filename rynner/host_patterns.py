@@ -42,4 +42,4 @@ pbs_patterns = [
     ('#PBS -A {}', 'account')
 ]
 
-host_patterns = {'slurm1711': slurm1711_patterns, 'pbs': pbs_patterns}
+host_patterns = {'slurm': slurm1711_patterns, 'pbs': pbs_patterns}

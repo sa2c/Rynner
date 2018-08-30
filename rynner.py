@@ -68,8 +68,6 @@ submit_cmd = 'echo 1234 > jobid'
 rsa_file = f'{homedir}/.ssh/id_rsa'
 hosts = [SlurmHost(test_host, test_user, rsa_file)]
 
-print('define rynner')
-
 print('create plugins')
 
 plugins = [PluginCollection("All Runs", [plugin1, plugin2]), plugin1, plugin2]

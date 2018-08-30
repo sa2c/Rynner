@@ -74,7 +74,7 @@ class Plugin(QObject):
     def list_jobs(self):
         jobs = []
         for host in self.hosts:
-            for job in host.jobs(self.plugin_id):
+            for job in host.runs(self.plugin_id):
                 jobs.append(job)
         return jobs
 
@@ -125,7 +125,7 @@ class PluginCollection(QObject):
     def list_jobs(self):
         jobs = [
             job for host in self.hosts for plugin in self.plugins
-            for job in host.jobs(plugin.plugin_id)
+            for job in host.runs(plugin.plugin_id)
         ]
         return jobs
 

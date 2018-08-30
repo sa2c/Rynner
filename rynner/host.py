@@ -135,11 +135,13 @@ class Connection():
         self.logger.info(message)
 
 
-class Host:
+class Host(QObject):
     '''
     Host object abstracts the interface between the plugin
     and a remote machine.
     '''
+
+    self.runs_updated = Signal(str)
 
     def __init__(self, behaviour, connection, datastore):
         '''
@@ -152,6 +154,8 @@ class Host:
         self.behaviour = behaviour
         self.datastore = datastore
         self._cached_runs = {}  #NoUT
+
+        super().__init__(parent=None)
 
     def upload(self, plugin_id, run_id, uploads):
         '''
@@ -205,7 +209,7 @@ class Host:
         '''
         return self.behaviour.type(string)
 
-    def jobs(self, plugin_id):
+    def runs(self, plugin_id):
         '''
         Uses the datastore to return a list of all data for jobs
         for a given plugin.
@@ -232,6 +236,8 @@ class Host:
             self._cached_runs[plugin_id] = {}
 
         self._cached_runs[plugin_id].update(new_runs)
+
+        self.runs_updated.emit(plugin_id)
 
 
 class GenericClusterHost(Host):

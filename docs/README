@@ -1,0 +1,2 @@
+Auto generate the documentation starting the server 
+sphinx-autobuild . _build/html

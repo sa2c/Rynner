@@ -59,7 +59,32 @@ class RunCreateView(QDialog):
 
 
 class BaseField(ABC):
+    '''
+    A base class for input fields.
+
+    Object of this class interface themself with Rynner through a key
+    (or set of keys). The value(s) of the fields can be retrieved through the value()
+    method.
+    '''
+
     def __init__(self, key, label, default=None, remember=True):
+        '''
+        Parameters
+        ----------
+
+        Attributes
+        ----------
+        `key` : str
+           The in the
+           
+        `widget` : QWidget
+           The underlying Qt widget (which contains a layout and the set of checkboxes.)
+
+
+
+
+
+        '''
 
         self.__default_value = default
         self.__remember = remember
@@ -115,14 +140,31 @@ class NumericField(TextField):
 
 
 class CheckBoxesField(BaseField):
+    '''
+    A set of checkboxes which can be interacted with separately.
+
+    The statuses (checked or not) can be retrieved with value().
+    '''
+
     def __init__(
             self,
             keys,  # list N
             labels,  # list N
             title=None,
-            layout=None,
             defaults=None,  #list N
     ):
+        '''
+        Parameters
+        ----------
+        `keys` : list of strings
+        `labels` : list of strings
+           Must have the same lenght as `keys`.
+        `title` : str, optional
+           The title of the widget, which contains all the checkboxes.
+        `defaults` : List of bools, optional
+           Default values. If provided, it must have the same length as `keys`.
+
+        '''
         if defaults is None:
             defaults = [False for k in keys]
 
@@ -148,11 +190,11 @@ class CheckBoxesField(BaseField):
             if type(default) is not bool:
                 raise TypeError('defaults are not booleans.')
 
-        self.widget = self._widget(keys, labels, title, layout, defaults)
+        self.widget = self._widget(keys, labels, title, defaults)
         self.key = keys
         self.label = labels
 
-    def _widget(self, keys, labels, title, layout, defaults):
+    def _widget(self, keys, labels, title, defaults):
         w = QGroupBox(title)
         layout = QVBoxLayout()
         self._optionwidgets = {}

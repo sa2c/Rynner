@@ -10,10 +10,54 @@ class RunAction:
 
 class Plugin(QObject):
     '''
-    The runner object (function) it the thing that is responsible for running
+    The runner object (function) is the thing that is responsible for running
     the job, usually by creating a Run object.
     Links the GUI/UI and the 'run' logic.
     (see design.org example)
+
+
+    Parameters
+    ----------
+
+    `plugin_id`: str
+       A string giving a globally unique name for the plugin. Clients on
+       different machines will use this name to associate jobs with a given
+       Plugin class. The recommended appraoach is to use a web URL (such as
+       a github repository URL) which is unique for this plugin. This
+       string is never displayed in the UI by default.
+    `name`: str
+       A string giving the human readable Plugin name. This is the string
+       which is displayed to the user in the UI to identify the runs of
+       this plugin.
+    `create_view` : RynCreateView
+       Defines the view used by the application user to configure a job,
+       and the mapping of that configuration to a set of options which will
+       be passed to Run.
+    `runner`: callable
+       A function which will be called to run a job. Typically this
+       function will instantiate one or more objects of type Run. The input
+       to the method will be a dictionary in which the keys correspond to
+       the 'key' properties of the visible UI objects in the . See the
+       RynCreateView class documentation for details of keys. If not
+       specified, all keys of the RynCreateView object will be passed as
+       keyword arguments to instantiate a single Run object. In this case,
+       the keys of the children of the RynCreateView should correspond
+       directly to keyword arguments of Run.
+    `view_keys`: iterable of strings
+       A list of keys to show in the (default) main/index view
+    `labels`: dict ,optional
+       Dictionary giving a human readable name for each label. If not
+       specified, the values of the key of each entry in  is used.
+    `view`: callable
+       A callable that when called returns a QWidget object (this should be
+       a QWidget class or a function which returns a QWidget instance). If
+       not set, RynCreateView will be used. view keyword argument which can
+       be used to override the default main/index view to render for a
+       Plugin.
+
+    Attributes
+    ----------
+ 
     '''
 
     build_index_view = None
@@ -32,14 +76,7 @@ class Plugin(QObject):
                  build_index_view=None,
                  parent=None):
         '''
-        plugin_id: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given Plugin class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
-        name: a string giving the human readable Plugin name. This is the string which is displayed to the user in the UI to identify the runs of this plugin.
-        create_view : an instance of RynCreateView, which defines the view used by the application user to configure a job, and the mapping of that configuration to a set of options which will be passed to Run
-        runner: a function which will be called to run a job. Typically this function will instantiate one or more objects of type Run. The input to the method will be a dictionary in which the keys correspond to the 'key' properties of the visible UI objects in the . See the RynCreateView class documentation for details of keys. If not specified, all keys of the RynCreateView object will be passed as keyword arguments to instantiate a single Run object. In this case, the keys of the children of the RynCreateView should correspond directly to keyword arguments of Run.
-        view_keys: iterable of strings giving a list of keys to show in the (default) main/index view
-        labels: (optional) dictionary giving a human readable name for each label. If not specified, the values of the key of each entry in  is used.
-        view: a callable that when called returns a QWidget object (this should be a QWidget class or a function which returns a QWidget instance). If not set, RynCreateView will be used. view keyword argument which can be used to override the default main/index view to render for a Plugin.
-        '''
+       '''
         super().__init__(parent)
         self.name = name
         self.plugin_id = plugin_id
@@ -93,8 +130,9 @@ class Plugin(QObject):
 
     def manages(self, plugin_id):
         '''
-        Checks if plugin_id is the id of this plugin instance. Implemented
-        to maintain compatibility with PluginCollection.
+        Checks if plugin_id is the id of this plugin instance.
+
+        Implemented to maintain compatibility with PluginCollection.
         '''
         return plugin_id == self.plugin_id
 

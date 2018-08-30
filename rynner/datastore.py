@@ -3,6 +3,9 @@ import yaml
 
 
 class Datastore:
+    ''' A class to manage job data storage on the cluster.
+
+    '''
     store_name = 'datastore.yaml'
 
     def __init__(self, connection):

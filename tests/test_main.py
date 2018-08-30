@@ -1,7 +1,7 @@
 from PySide2 import QtWidgets
 from PySide2.QtWidgets import QPushButton
 from rynner.main import MainView
-from rynner.option_parser import OptionParser
+from rynner.pattern_parser import PatternParser
 from rynner.plugin import Plugin, PluginCollection
 from rynner.host_patterns import slurm1711_host_pattern as host_pattern
 from rynner.host import Host, SlurmHost, Connection

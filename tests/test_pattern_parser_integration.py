@@ -1,14 +1,14 @@
 import unittest
 import pytest
 from unittest.mock import MagicMock as MM
-from rynner.option_parser import OptionParser, InvalidContextOption
+from rynner.pattern_parser import PatternParser, InvalidContextOption
 from rynner.host import Host
 from rynner.run import RunManager
 from rynner.template import Template
 from rynner.datastore import Datastore
 
 
-class TestOptionParserIntegration(unittest.TestCase):
+class TestPatternParserIntegration(unittest.TestCase):
     def setUp(self):
         self.connection = MM()
         self.connection.run_command.return_value = (0, "std out", "std err")
@@ -19,9 +19,10 @@ class TestOptionParserIntegration(unittest.TestCase):
             ('#FAKE --num-nodes={}', 'num_nodes'),
         ]
         defaults = MM()
-        self.option_parser = OptionParser(host_pattern, 'submit_cmd', defaults)
+        self.pattern_parser = PatternParser(host_pattern, 'submit_cmd',
+                                            defaults)
         self.datastore = Datastore(self.connection)
-        self.host = Host(self.option_parser, self.connection, self.datastore)
+        self.host = Host(self.pattern_parser, self.connection, self.datastore)
 
     def create_run(self, **kwargs):
         runner = RunManager('my-plugin-id', {})

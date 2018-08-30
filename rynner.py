@@ -4,7 +4,7 @@ from unittest.mock import MagicMock as MM
 from tests.qtest_helpers import *
 import rynner
 from rynner.datastore import Datastore
-from rynner.option_parser import OptionParser
+from rynner.pattern_parser import PatternParser
 from rynner.main import MainView
 from rynner.create_view import RunCreateView, TextField
 from rynner.plugin import Plugin, PluginCollection, RunAction
@@ -72,6 +72,17 @@ plugin2 = Plugin(
 # submit the job and write output to
 submit_cmd = 'echo 1234 > jobid'
 # Set up some hosts
+
+globdir = '~/.rynner/hosts/*'
+host_config_files = glob.glob(globdir)
+
+if len(host_config_files) == 0:
+    raise Exception(f'No host config files found in {globdir}')
+
+for file in host_config_files:
+    host_config = yaml.load(file)
+    host_class = getattr(rynner.hosts, host_config.classname)
+    host_class(host_config.domain, host_config.username, host_config.rsa_key)
 
 rsa_file = f'{homedir}/.ssh/id_rsa'
 hosts = [SlurmHost(identifier)]

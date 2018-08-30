@@ -9,7 +9,7 @@ class ScriptNotSpecifiedException(Exception):
     pass
 
 
-class OptionParser:
+class PatternParser:
     '''
     This models a scheduler (slurm, pbs, lsf,...)
     The information about how the scheduler works is stored in a 'host_pattern' object,

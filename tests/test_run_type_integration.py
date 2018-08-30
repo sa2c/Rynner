@@ -8,7 +8,7 @@ from rynner.create_view import RunCreateView, TextField
 from tests import qtest_helpers
 from rynner.run import RunManager, HostNotSpecifiedException
 from rynner.host import Host, Connection
-from rynner.option_parser import OptionParser
+from rynner.pattern_parser import PatternParser
 from PySide2.QtTest import QTest
 
 
@@ -98,12 +98,13 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
             host_pattern = [('#FAKE num_nodes={}', 'nodes'),
                             ('#FAKE memory={}', 'memory')]
 
-            option_parser = OptionParser(host_pattern, 'submit_cmd', defaults)
+            pattern_parser = PatternParser(host_pattern, 'submit_cmd',
+                                           defaults)
 
             rid = run_manager.new(
                 nodes=10,
                 memory=10000,
-                host=Host(option_parser, connection, datastore),
+                host=Host(pattern_parser, connection, datastore),
                 script='my_command')
 
             job_id.append(rid)
@@ -120,7 +121,7 @@ class TestPluginIntegration(qtest_helpers.QTestCase):
             'submit_cmd', pwd=f'{job_id[0]}')
 
     @unittest.skip('expected failure')
-    def test_dialog_window_test_option_parser(self):
+    def test_dialog_window_test_pattern_parser(self):
         # run_create_view can be accepted
         # - window title
         # - validation

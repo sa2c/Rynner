@@ -1,6 +1,6 @@
 import paramiko, os, yaml
 from rynner.host_patterns import slurm1711_host_pattern as slurm_host_pattern, pbs_host_pattern
-from rynner.option_parser import OptionParser, InvalidContextOption
+from rynner.pattern_parser import PatternParser, InvalidContextOption
 from rynner.datastore import Datastore
 from PySide2.QtCore import QObject, Signal
 from logging import Logger
@@ -143,15 +143,15 @@ class Host(QObject):
 
     runs_updated = Signal(dict)
 
-    def __init__(self, option_parser, connection, datastore):
+    def __init__(self, pattern_parser, connection, datastore):
         '''
         arguments:
             connection : a rynner Connection object
-            option_parser : a rynner OptionParser object
+            pattern_parser : a rynner PatternParser object
             datastore : a rynner Datastore object
         '''
         self.connection = connection
-        self.option_parser = option_parser
+        self.pattern_parser = pattern_parser
         self.datastore = datastore
         self._cached_runs = {}  #NoUT
 
@@ -173,10 +173,10 @@ class Host(QObject):
 
     def parse(self, plugin_id, run_id, options):
         '''
-        Ask option_parser to build a context object from the options supplied by
+        Ask pattern_parser to build a context object from the options supplied by
         calls to RunManager.
         '''
-        context = self.option_parser.parse(options)
+        context = self.pattern_parser.parse(options)
 
         return context
 
@@ -184,9 +184,9 @@ class Host(QObject):
         '''
         Run a job for a context, which was returned previously from a call to
         self.parse. Details of creating a job on a remote machine according to
-        the context object is delegated to option_parser object.
+        the context object is delegated to pattern_parser object.
         '''
-        exit_status = self.option_parser.run(
+        exit_status = self.pattern_parser.run(
             self.connection, context, self._remote_basedir(plugin_id, run_id))
 
     def store(self, plugin_id, run_id, data):
@@ -205,9 +205,9 @@ class Host(QObject):
 
     def type(self, string):
         '''
-        Gets type from this option_parser and returns it.
+        Gets type from this pattern_parser and returns it.
         '''
-        return self.option_parser.type(string)
+        return self.pattern_parser.type(string)
 
     def runs(self, plugin_id):
         '''
@@ -251,14 +251,14 @@ class GenericClusterHost(Host):
 
         self.logger = Logger('host-logger')
 
-        option_parser = OptionParser(host_pattern, submit_cmd, defaults)
+        pattern_parser = PatternParser(host_pattern, submit_cmd, defaults)
 
         connection = Connection(
             self.logger, host, user=username, rsa_file=rsa_file)
 
         datastore = Datastore(connection)
 
-        super().__init__(option_parser, connection, datastore)
+        super().__init__(pattern_parser, connection, datastore)
 
     def load_hostfile(self, identifier):
         basedir = '~/rynner/hosts/'

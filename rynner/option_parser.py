@@ -9,7 +9,7 @@ class ScriptNotSpecifiedException(Exception):
     pass
 
 
-class Behaviour:
+class OptionParser:
     '''
     This models a scheduler (slurm, pbs, lsf,...)
     The information about how the scheduler works is stored in a 'option_map' object,

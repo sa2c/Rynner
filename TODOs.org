@@ -44,19 +44,19 @@
 - would be nice if I could specify string as 'safdf {memory} sdfdsf {cpus}' -
   and the variables being out of order, would that mess with when it's
   order-based
-- behaviour.update should be async (calls datastore, datastore fires a signal when done).
+- option_parser.update should be async (calls datastore, datastore fires a signal when done).
 * General
 - move exceptions to their own file
-* Behaviour
+* OptionParser
 - should submit command go somewhere else? maybe sub-classing is the way to go?
-- behaviour should implement default options if they're passed in
+- option_parser should implement default options if they're passed in
 - the interface for a generic host needs to be enforced somehow/somewhere??
 - custom options specific to a given host need to be passable
 - ...and the interface should not break??
-- behaviour should check that the option map is valid, i.e.:
+- option_parser should check that the option map is valid, i.e.:
   - all expected mappings are present
   - identical keys don't appear twice
-- behaviour should check that upload completed before starting run!
+- option_parser should check that upload completed before starting run!
 - how can I override/subclass this for radiacally different behaviour
 - "template" functions can't currently decide that it will defer keys to a later function,
 this could be useful, but could also be a source of errors if users forget to
@@ -74,7 +74,7 @@ or
 - calls to datastore do not appear to be implemented
 * Connection
 - lazily creates base directory, but does not create any subdirectories
-- make remote paths relative for u/l and d/l? what about local ones? Encoding them with id or pass in a directory name? Or should that be in behaviour?
+- make remote paths relative for u/l and d/l? what about local ones? Encoding them with id or pass in a directory name? Or should that be in option_parser?
 - needs to be shut down when application closes
 - AutoAddPolicy used by paramiko for now - change this
 - should error when job fails

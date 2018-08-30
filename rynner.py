@@ -4,7 +4,7 @@ from unittest.mock import MagicMock as MM
 from tests.qtest_helpers import *
 from rynner.host import SlurmHost
 from rynner.datastore import Datastore
-from rynner.behaviour import Behaviour
+from rynner.option_parser import OptionParser
 from rynner.main import MainView
 from rynner.create_view import RunCreateView, TextField
 from rynner.plugin import Plugin, PluginCollection, RunAction

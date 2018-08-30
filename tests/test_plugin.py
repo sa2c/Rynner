@@ -66,7 +66,7 @@ class TestPlugin(unittest.TestCase):
         actions = self.plugin.actions
         self.assertIs(type(actions[0]), RunAction)
 
-    def test_action_created_with_behaviour_and_label(self):
+    def test_action_created_with_option_parser_and_label(self):
         self.instance()
 
         action_function = MM()

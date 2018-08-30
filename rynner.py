@@ -74,29 +74,19 @@ print('create plugins')
 
 plugins = [PluginCollection("All Runs", [plugin1, plugin2]), plugin1, plugin2]
 
-# create mock of jobs returned by datastore
-jobs = {
-    plugin1.domain: [{
-        'id': '12508',
-        'name': 'JobType1-1',
-        'some-data': 'Some Data'
-    }, {
-        'id': '23045',
-        'name': 'JobType1-2',
-        'some-data': 'Some Extra Data'
-    }],
-    plugin2.domain: [{
-        'id': '12435',
-        'name': 'JobType2-1',
-        'some-other-data': 'Other Data'
-    }, {
-        'id': '24359',
-        'name': 'JobType2-2',
-        'some-other-data': 'Other Data'
-    }]
-}
 
-datastore.jobs = lambda plugin=None: jobs[plugin]
+def update_plugins():
+    print('update')
+    for plugin in [plugin1, plugin2]:
+        plugin_id = plugin.plugin_id
+        for host in hosts:
+            host.update(plugin_id)
+
+
+timer = QTimer()
+timer.timeout.connect(update_plugins)
+secs = 10
+timer.start(secs * 1000)
 
 main = MainView(hosts, plugins)
 main.show()

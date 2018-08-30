@@ -71,9 +71,23 @@ class Connection():
         self.sftp.get(remote_path, local_path)
         self.log(f'File {remote_path} transferred')
 
+    def dir_exists(self, remote_path):
+        try:
+            self.sftp.stat(remote_path)
+            return True
+        except IOError:
+            return False
+
     def list_dir(self, remote_path):
+        '''
+        Returns True if a remote directory exists and False otherwise
+        '''
         self._ensure_connected()
-        return self.sftp.listdir(remote_path)
+        self.log(f'listing directory: {remote_path}')
+        if self.dir_exists(remote_path):
+            return self.sftp.listdir(remote_path)
+        else:
+            return []
 
     def _ensure_connected(self):
         if self.ssh is None:
@@ -191,12 +205,15 @@ class Host:
         '''
         return self.behaviour.type(string)
 
-    def jobs(self, plugin_id=None):
+    def jobs(self, plugin_id):
         '''
         Uses the datastore to return a list of all data for jobs
         for a given plugin.
         '''
-        return self._cached_runs
+        if plugin_id in self._cached_runs.keys():
+            return self._cached_runs[plugin_id]
+        else:
+            return []
 
     def update(self, plugin_id):
         '''
@@ -211,7 +228,10 @@ class Host:
 
         new_runs = self.datastore.read_multiple(new_ids)
 
-        self._cached_runs.update(new_runs)
+        if plugin_id not in self._cached_runs.keys():
+            self._cached_runs[plugin_id] = {}
+
+        self._cached_runs[plugin_id].update(new_runs)
 
 
 class GenericClusterHost(Host):

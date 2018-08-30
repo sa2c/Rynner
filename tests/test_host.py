@@ -216,35 +216,46 @@ class TestHost(unittest.TestCase):
         self.instantiate()
         plugin = MM()
         self.assertFalse(self.mock_datastore.jobs.called)
-        self.host.jobs(plugin)
-        self.mock_datastore.jobs.assert_called_once_with(plugin)
+        self.host.update(self.plugin_id)
+        self.mock_datastore.read_multiple.assert_called_once()
 
     def test_jobs_calls_datastore_with_none_by_default(self):
         self.instantiate()
-        self.assertFalse(self.mock_datastore.jobs.called)
-        self.host.jobs()
-        self.mock_datastore.jobs.assert_called_once_with(None)
+        self.mock_datastore.read_multiple.return_value = {'read': 'multiple'}
+        self.assertFalse(self.mock_datastore.read_multiple.called)
+        self.host.update(self.plugin_id)
+        assert self.host.jobs(
+            self.plugin_id) == self.mock_datastore.read_multiple()
 
-    def test_jobs_returns_datastore_result(self):
+    def test_jobs_returns_empty_list_if_no_jobs(self):
         self.instantiate()
-        ret = self.host.jobs()
-        self.assertEqual(ret, self.mock_datastore.jobs())
+        ret = self.host.jobs(self.plugin_id)
+        self.assertEqual(ret, [])
 
+    def test_populated_job_list_from_read_multiple(self):
+        self.instantiate()
+        self.mock_datastore.read_multiple.return_value = {'return': 'value'}
+        self.host.update(self.plugin_id)
+        ret = self.host.jobs(self.plugin_id)
+        self.assertEqual(ret, self.mock_datastore.read_multiple())
+
+    @pytest.mark.xfail(reason='the argument needs to change')
     def test_jobs_datastore_args(self):
         self.instantiate()
         ret = self.host.jobs('some-id')
-        self.mock_datastore.jobs.assert_called_once_with('some-id')
+        self.mock_datastore.read_multiple.assert_called_once_with('some-id')
 
+    @pytest.mark.xfail(reason='the argument needs to change')
     def test_jobs_datastore_no_args(self):
         self.instantiate()
-        ret = self.host.jobs()
+        ret = self.host.jobs(self.plugin_id)
         self.mock_datastore.jobs.assert_called_once_with(None)
 
     def test_jobs_updates_datastore(self):
         self.instantiate()
-        mock_plugin = MM()
-        ret = self.host.update(mock_plugin)
-        self.mock_datastore.update.assert_called_once_with(mock_plugin)
+        ret = self.host.update(self.plugin_id)
+        self.mock_datastore.all_job_ids.assert_called_once_with(
+            f'rynner/{ self.plugin_id }/')
 
 
 conn = Connection(

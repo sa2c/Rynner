@@ -1,5 +1,10 @@
 (require 'cl) 
 
+(progn
+  (setenv "RYNNER_TEST_HOST" "hawklogin.cf.ac.uk")
+  (setenv "RYNNER_TEST_USER" "s.mark.dawson")
+  (setenv "RYNNER_REMOTE_HOME" "/home/s.mark.dawson"))
+
 (defun rynner-get-all-test-files ()
   (remove-if-not '(lambda (file)
                     (and (string-match ".py" file)

@@ -19,13 +19,13 @@ class Connection():
             cd_cmd = f'cd {pwd}'
             cmd = '; '.join([cd_cmd, cmd])
 
-        self.log(f'running command ({self.ssh}): {cmd}')
+        self.log(f'run command ({self.ssh}):\n{cmd}')
 
         stdin, stdout, stderr = self.ssh.exec_command(cmd)
 
         exit_status = stdout.channel.recv_exit_status()
-        out = stdout.read().decode().split('\n')
-        err = stderr.read().decode().split('\n')
+        out = stdout.read().decode()
+        err = stderr.read().decode()
 
         self.log(f'Standard Output:\n{out}')
         self.log(f'Standard Error:\n{err}')
@@ -35,7 +35,7 @@ class Connection():
     def put_file(self, local_path, remote_path):
         self._ensure_connected()
         self._ensure_dir(remote_path)
-        self.log(f'transferring file: {local_path} -> {remote_path}')
+        self.log(f'transferring file:\n{local_path} -> {remote_path}')
         self.sftp.put(local_path, remote_path)
 
     def get_file_content(self, remote_path):
@@ -67,6 +67,10 @@ class Connection():
         self.log(f'Transfer remote file: {remote_path} -> {local_path}')
         self.sftp.get(remote_path, local_path)
         self.log(f'File {remote_path} transferred')
+
+    def list_dir(self, remote_path):
+        self._ensure_connected()
+        return self.sftp.listdir(remote_path)
 
     def _ensure_connected(self):
         if self.ssh is None:
@@ -116,22 +120,25 @@ class Connection():
 
 class Host:
     '''
-    Host is initialized with
-    - a Connection object (1 to 1 to ssh connection/remote server)
-    - a 'behaviour': 1 to 1 to 'scheduler' (slurm, pbs...)
-    - a datastore object which is used to store status
-
-    It basically connects 'behaviour' and 'connection'
+    Host object abstracts the interface between the plugin
+    and a remote machine.
     '''
 
     def __init__(self, behaviour, connection, datastore):
+        '''
+        arguments:
+            connection : a rynner Connection object
+            behaviour : a rynner Behaviour object
+            datastore : a rynner Datastore object
+        '''
         self.connection = connection
         self.behaviour = behaviour
         self.datastore = datastore
+        self._cached_runs = {}  #NoUT
 
     def upload(self, plugin_id, run_id, uploads):
         '''
-        Uploads files through the connection.
+        Uploads files using connection.
         '''
         for upload in uploads:
             if len(upload) != 2:
@@ -145,37 +152,60 @@ class Host:
 
     def parse(self, plugin_id, run_id, options):
         '''
-        Gets context from behaviour, which takes 'run options' as argument.
-        Context is to be passed to the run method
+        Ask behaviour to build a context object from the options supplied by
+        calls to RunManager.
         '''
         context = self.behaviour.parse(options)
-
-        # set data to store in context['datastore']
-        context['rynner'] = {'plugin_id': plugin_id, 'run_id': run_id}
-        context['datastore'] = options
 
         return context
 
     def run(self, plugin_id, run_id, context):
+        '''
+        Run a job for a context, which was returned previously from a call to
+        self.parse. Details of creating a job on a remote machine according to
+        the context object is delegated to behaviour object.
+        '''
         exit_status = self.behaviour.run(
             self.connection, context, self._remote_basedir(plugin_id, run_id))
 
-        context['rynner']['submit_exit_status'] = exit_status
-
+    def store(self, plugin_id, run_id, data):
+        '''
+        Persists data for a run using the datastore object
+        '''
         basedir = self._remote_basedir(plugin_id, run_id)
-        self.datastore.store(basedir, context)
+        self.datastore.write(basedir, data)
 
-    def _remote_basedir(self, plugin_id, run_id):
+    def _remote_basedir(self, plugin_id, run_id=''):
+        '''
+        Returns the remote base directory. Typically a working
+        directory of a run on the remote filesystem.
+        '''
         return os.path.join("rynner", plugin_id, run_id)
 
     def type(self, string):
         '''
-        Gets type from behaviour and returns it.
+        Gets type from this behaviour and returns it.
         '''
         return self.behaviour.type(string)
 
     def jobs(self, plugin_id=None):
-        return self.datastore.jobs(plugin_id)
+        '''
+        Uses the datastore to return a list of all data for jobs
+        for a given plugin.
+        '''
+        return self._cached_runs
 
-    def update(self, plugin_id=None):
-        self.datastore.update(plugin_id)
+    def update(self, plugin_id):
+        '''
+        Triggers an update of job data from datastore
+        '''
+        basedir = self._remote_basedir(plugin_id)
+        all_ids = self.datastore.all_job_ids(basedir)
+        new_ids = {
+            i: self._remote_basedir(plugin_id, i)
+            for i in all_ids if i not in self._cached_runs.keys()
+        }
+
+        new_runs = self.datastore.read_multiple(new_ids)
+
+        self._cached_runs.update(new_runs)

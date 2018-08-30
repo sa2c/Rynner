@@ -5,6 +5,7 @@ from rynner.behaviour import Behaviour, InvalidContextOption
 from rynner.host import Host
 from rynner.run import RunManager
 from rynner.template import Template
+from rynner.datastore import Datastore
 
 
 class TestBehaviourIntegration(unittest.TestCase):
@@ -19,7 +20,7 @@ class TestBehaviourIntegration(unittest.TestCase):
         ]
         defaults = MM()
         self.behaviour = Behaviour(option_map, 'submit_cmd', defaults)
-        self.datastore = MM()
+        self.datastore = Datastore(self.connection)
         self.host = Host(self.behaviour, self.connection, self.datastore)
 
     def create_run(self, **kwargs):

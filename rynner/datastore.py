@@ -18,5 +18,13 @@ class Datastore:
         content = self.connection.get_file_content(path)
         return yaml.load(content)
 
-    def jobs(self, plugin_id):
-        raise NotImplementedError()
+    def read_multiple(self, basedict):
+        '''
+        Accepts a dict where the values are base directories
+        of a run, and replaces the value with the content of
+        the datastore for that run, leaving the keys untouched.
+        '''
+        return {key: self.read(dir) for key, dir in basedict.items()}
+
+    def all_job_ids(self, basedir):
+        return self.connection.list_dir(basedir)

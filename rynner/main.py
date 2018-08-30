@@ -6,7 +6,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtQuick import QQuickView
 from PySide2.QtCore import QUrl, Slot
 from rynner.plugin import Plugin, RunAction
-from rynner.index_view import IndexTableModel
+from rynner.index_view import RunListModel
 from rynner.ui import load_ui
 
 # TODO - no unit testing on this file (but some integration tests)
@@ -42,7 +42,7 @@ class MainView(QMainWindow):
         # Add a new tab for each run type
         models = {}
         for plugin in plugins:
-            models[plugin] = IndexTableModel(plugin)
+            models[plugin] = RunListModel(plugin)
             if plugin.build_index_view is not None:
                 view = plugin.build_index_view(models[plugin])
             else:

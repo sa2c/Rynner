@@ -7,7 +7,7 @@ class InvalidModelIndex(Exception):
     pass
 
 
-class IndexTableModel(QStandardItemModel):
+class RunListModel(QStandardItemModel):
     '''
     Public API:
     self.plugin : the plugin instance to display

@@ -6,7 +6,7 @@ from rynner.index_view import *
 from rynner.plugin import *
 
 
-class TestIndexTableModel(unittest.TestCase):
+class TestRunListModel(unittest.TestCase):
     def setUp(self):
         self.plugin = Plugin('some-domain', 'plugin name')
         self.jobs = [{
@@ -22,7 +22,7 @@ class TestIndexTableModel(unittest.TestCase):
         self.plugin.list_jobs = lambda: self.jobs
 
     def instance(self):
-        return IndexTableModel(self.plugin)
+        return RunListModel(self.plugin)
 
     def test_instance(self):
         self.instance()

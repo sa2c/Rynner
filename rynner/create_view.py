@@ -69,13 +69,8 @@ class BaseField(ABC):
 
     def __init__(self, key, label, default=None, remember=True):
         '''
-        Parameters
-        ----------
-
-        Attributes
-        ----------
         `key` : str
-           The in the
+           The key in the corresponding dictionary 
            
         `widget` : QWidget
            The underlying Qt widget (which contains a layout and the set of checkboxes.)
@@ -140,10 +135,10 @@ class NumericField(TextField):
 
 
 class CheckBoxesField(BaseField):
-    '''
-    A set of checkboxes which can be interacted with separately.
+    ''' A set of checkboxes which can be interacted with separately.
 
-    The statuses (checked or not) can be retrieved with value().
+    The dictionary of statuses (checked or not) can be retrieved with value().
+
     '''
 
     def __init__(
@@ -154,13 +149,14 @@ class CheckBoxesField(BaseField):
             defaults=None,  #list N
     ):
         '''
-        Parameters
-        ----------
         `keys` : list of strings
+
         `labels` : list of strings
            Must have the same lenght as `keys`.
+
         `title` : str, optional
            The title of the widget, which contains all the checkboxes.
+
         `defaults` : List of bools, optional
            Default values. If provided, it must have the same length as `keys`.
 
@@ -208,6 +204,7 @@ class CheckBoxesField(BaseField):
         return w
 
     def value(self):
+        ''' Returns a dictionary containing the statuses for the checkboxes.'''
         values = {}
         for k in self.key:
             values[k] = self._optionwidgets[k].isChecked()

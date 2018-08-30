@@ -33,7 +33,14 @@ def runner(run_manager, data):
 
 
 # create Plugin objects
-plugin1 = Plugin('swansea.ac.uk/1', 'Hello, World!', view1, runner)
+plugin1 = Plugin(
+    'swansea.ac.uk/1',
+    'Hello, World!',
+    view1,
+    runner,
+    view_keys=[
+        ('Message', 'config-options.Message'),
+    ])
 
 #---------------------------------------------------------
 # PLUGIN 2 SCRIPT
@@ -55,8 +62,9 @@ plugin2 = Plugin(
     'simpleCFD',
     view2,
     runner2,
-    view_keys=("id", "name", "some-other-data"))
-
+    view_keys=[
+        ('Velocity', 'config-options.Velocity'),
+    ])
 #---------------------------------------------------------
 # INITIALISATION
 #---------------------------------------------------------
@@ -83,8 +91,9 @@ def update_plugins():
 
 timer = QTimer()
 timer.timeout.connect(update_plugins)
-secs = 10
+secs = 1
 timer.start(secs * 1000)
+QTimer.singleShot(10, update_plugins)
 
 main = MainView(hosts, plugins)
 main.show()

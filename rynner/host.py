@@ -3,6 +3,7 @@ import os
 from rynner.option_maps import slurm1711_option_map as slurm_option_map, pbs_option_map
 from rynner.behaviour import Behaviour, InvalidContextOption
 from rynner.datastore import Datastore
+from PySide2.QtCore import QObject, Signal
 from logging import Logger
 
 
@@ -141,7 +142,7 @@ class Host(QObject):
     and a remote machine.
     '''
 
-    self.runs_updated = Signal(str)
+    runs_updated = Signal(dict)
 
     def __init__(self, behaviour, connection, datastore):
         '''
@@ -237,7 +238,7 @@ class Host(QObject):
 
         self._cached_runs[plugin_id].update(new_runs)
 
-        self.runs_updated.emit(plugin_id)
+        self.runs_updated.emit(self._cached_runs)
 
 
 class GenericClusterHost(Host):

@@ -18,7 +18,7 @@ class Plugin(QObject):
 
     build_index_view = None
 
-    view_keys = ("id", "name")
+    view_keys = []
 
     runs_changed = Signal()
 
@@ -54,6 +54,10 @@ class Plugin(QObject):
         if view_keys is not None:
             self.view_keys = view_keys
 
+        if isinstance(view_keys, str):
+            raise ValueError(
+                'view_keys kwarg tuple or list expected, not string')
+
         if create_view is not None:
             self.create_view.accepted.connect(self.config_accepted)
 
@@ -87,6 +91,13 @@ class Plugin(QObject):
     def stop_run(self, run_data):
         raise NotImplementedError()
 
+    def manages(self, plugin_id):
+        '''
+        Checks if plugin_id is the id of this plugin instance. Implemented
+        to maintain compatibility with PluginCollection.
+        '''
+        return plugin_id == self.plugin_id
+
 
 class PluginCollection(QObject):
     '''
@@ -114,3 +125,13 @@ class PluginCollection(QObject):
 
     def create(self):
         raise NotImplementedError()
+
+    def manages(self, plugin_id):
+        '''
+        Returns True if this plugin is managed by PluginCollection and False otherwise
+        '''
+        for plugin in self.plugins:
+            if plugin_id == plugin.plugin_id:
+                return True
+
+        return False

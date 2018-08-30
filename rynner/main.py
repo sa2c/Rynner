@@ -40,20 +40,24 @@ class MainView(QMainWindow):
         self.resize(800, 600)
 
         # Add a new tab for each run type
-        models = {}
+        self.models = {}
         for plugin in plugins:
-            models[plugin] = RunListModel(plugin)
+            self.models[plugin] = RunListModel(plugin)
             if plugin.build_index_view is not None:
-                view = plugin.build_index_view(models[plugin])
+                view = plugin.build_index_view(self.models[plugin])
             else:
                 # TODO - passing plugin in here is dubious at best...
                 # maybe pass be a proxy object with a bunch of slots?
-                view = build_index_view(models[plugin], 'list_view.ui')
+                view = build_index_view(self.models[plugin], 'list_view.ui')
 
             self.tabs.addTab(view, plugin.name)
 
         self.setCentralWidget(self.tabs)
         self.setContentsMargins(10, 10, 10, 10)
+
+        for model in self.models.values():
+            for host in hosts:
+                host.runs_updated.connect(model.update_runs)
 
     def _check_for_duplicate_widgets(self, plugins):
         all_widgets = set()

@@ -45,7 +45,6 @@ class Plugin(QObject):
         self.plugin_id = plugin_id
         self.create_view = create_view
         self.actions = []
-        self.hosts = []
         self.runner = runner
         self.labels = labels
 
@@ -70,13 +69,6 @@ class Plugin(QObject):
         action = RunAction(label, function)
         self.actions.append(action)
         return action
-
-    def list_jobs(self):
-        jobs = []
-        for host in self.hosts:
-            for job in host.runs(self.plugin_id):
-                jobs.append(job)
-        return jobs
 
     def create(self):
         if self.create_view is None:
@@ -119,15 +111,6 @@ class PluginCollection(QObject):
 
         self.labels = labels
         self.create_view = None
-
-        self.hosts = []
-
-    def list_jobs(self):
-        jobs = [
-            job for host in self.hosts for plugin in self.plugins
-            for job in host.runs(plugin.plugin_id)
-        ]
-        return jobs
 
     def create(self):
         raise NotImplementedError()

@@ -74,7 +74,7 @@ submit_cmd = 'echo 1234 > jobid'
 # Set up some hosts
 
 rsa_file = f'{homedir}/.ssh/id_rsa'
-hosts = [SlurmHost(test_host, test_user, rsa_file)]
+hosts = [SlurmHost(identifier)]
 
 print('create plugins')
 

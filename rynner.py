@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
 from tests.qtest_helpers import *
-from rynner.host import Host, Connection
+from rynner.host import SlurmHost
 from rynner.datastore import Datastore
 from rynner.behaviour import Behaviour
 from rynner.main import MainView
@@ -62,16 +62,11 @@ plugin2 = Plugin(
 #---------------------------------------------------------
 
 # submit the job and write output to
-submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
 submit_cmd = 'echo 1234 > jobid'
 # Set up some hosts
-behaviour = Behaviour(option_map, submit_cmd, defaults)
 
 rsa_file = f'{homedir}/.ssh/id_rsa'
-print('connecting')
-connection = Connection(Logger(), test_host, user=test_user, rsa_file=rsa_file)
-datastore = Datastore(connection)
-hosts = [Host(behaviour, connection, datastore)]
+hosts = [SlurmHost(test_host, test_user, rsa_file)]
 
 print('define rynner')
 

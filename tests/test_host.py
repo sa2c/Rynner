@@ -346,6 +346,7 @@ class TestLiveConnection(unittest.TestCase):
         host.update(plugin_id)
 
         jobs = host.jobs()
+
         expected = {
             'config-options': {
                 'config': 'options'

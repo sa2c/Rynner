@@ -4,7 +4,7 @@ from rynner.main import MainView
 from rynner.behaviour import Behaviour
 from rynner.plugin import Plugin, PluginCollection
 from rynner.option_maps import slurm1711_option_map as option_map
-from rynner.host import Host, Connection
+from rynner.host import Host, SlurmHost, Connection
 from rynner.logs import Logger
 from rynner.create_view import RunCreateView, TextField
 from unittest.mock import MagicMock as MM
@@ -23,20 +23,9 @@ def patched_ssh():
 
 
 def hawk_host():
-
-    import os
-    homedir = os.environ['HOME']
-
-    # Set up some hosts
-    behaviour = Behaviour(option_map, 'submit_cmd', defaults)
-
     rsa_file = f'{homedir}/.ssh/id_rsa'
 
-    connection = Connection(
-        Logger(), test_host, user=test_user, rsa_file=rsa_file)
-    datastore = MM()
-
-    return Host(behaviour, connection, datastore)
+    return SlurmHost(test_host, test_user, rsa_file)
 
 
 def plugins():
@@ -71,12 +60,7 @@ def plugins():
 
 @pytest.fixture
 def host():
-    # Set up some hosts
-    behaviour = Behaviour(option_map, 'submit_cmd', defaults)
-    connection = Connection(
-        Logger(), test_host, user=test_user, rsa_file=f'{homedir}/.ssh/id_rsa')
-    datastore = MM()
-    return [Host(behaviour, connection, datastore)]
+    return hawk_host()
 
 
 def main_view(qtbot, host, plugins):

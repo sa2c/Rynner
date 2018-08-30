@@ -1,6 +1,9 @@
 import paramiko
 import os
-from rynner.behaviour import InvalidContextOption
+from rynner.option_maps import slurm1711_option_map as slurm_option_map, pbs_option_map
+from rynner.behaviour import Behaviour, InvalidContextOption
+from rynner.datastore import Datastore
+from logging import Logger
 
 
 class Connection():
@@ -209,3 +212,58 @@ class Host:
         new_runs = self.datastore.read_multiple(new_ids)
 
         self._cached_runs.update(new_runs)
+
+
+class GenericClusterHost(Host):
+    def __init__(self,
+                 host,
+                 username,
+                 rsa_file,
+                 option_map,
+                 submit_cmd,
+                 defaults=[]):
+
+        self.logger = Logger('host-logger')
+
+        behaviour = Behaviour(option_map, submit_cmd, defaults)
+
+        connection = Connection(
+            self.logger, host, user=username, rsa_file=rsa_file)
+
+        datastore = Datastore(connection)
+
+        super().__init__(behaviour, connection, datastore)
+
+
+class SlurmHost(GenericClusterHost):
+    def __init__(self,
+                 host,
+                 username,
+                 rsa_file,
+                 option_map=None,
+                 submit_cmd=None,
+                 defaults=[]):
+        if submit_cmd is None:
+            submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
+
+        if option_map is None:
+            option_map = slurm_option_map
+
+        super().__init__(host, username, rsa_file, option_map, submit_cmd)
+
+
+class PBSHost(GenericClusterHost):
+    def __init__(self,
+                 host,
+                 username,
+                 rsa_file,
+                 option_map=None,
+                 submit_cmd=None,
+                 defaults=[]):
+        if submit_cmd is None:
+            submit_cmd = 'qsub jobcard > jobid'
+
+        if option_map is None:
+            option_map = slurm_option_map
+
+        super().__init__(host, username, rsa_file, option_map, submit_cmd)

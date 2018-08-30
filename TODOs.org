@@ -17,6 +17,7 @@
 - setting interpreter (#!/bin/bash) not tested
 - need to be able to get hols of main window in actions
 - Rather than parsing script argument out, does it makes sense to make it script a positional argument (since it is mandatory)? Should I put all the mandatory arguments first?
+- In principle, the same run manager could create runs for multiple hosts - how is this handled
 * RunCreateView
 - this "knows" about the dialog which contains it - it shouldn't!
 - tidy this up?
@@ -43,6 +44,7 @@
 - would be nice if I could specify string as 'safdf {memory} sdfdsf {cpus}' -
   and the variables being out of order, would that mess with when it's
   order-based
+- behaviour.update should be async (calls datastore, datastore fires a signal when done).
 * General
 - move exceptions to their own file
 * Behaviour

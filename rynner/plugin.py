@@ -58,13 +58,13 @@ class Plugin(QObject):
         if create_view is not None:
             self.create_view.accepted.connect(self.config_accepted)
 
-        self.run_manager = RunManager(self.domain)
-
-    def _run(self, data):
+    def _run(self, config):
+        run_manager = RunManager(self.plugin_id, config)
         if self.runner is None:
-            run = self.run_manager.new(**data)
+            run = run_manager.new(**data)
         else:
-            self.runner(self.run_manager, data)
+            self.runner(run_manager, config)
+        run_manager.store()
 
     def add_action(self, label, function):
         action = RunAction(label, function)

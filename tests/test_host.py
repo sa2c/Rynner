@@ -6,7 +6,10 @@ from unittest.mock import MagicMock as MM
 from rynner.host import *
 from rynner.run import RunManager
 from rynner.logs import Logger
+from rynner.datastore import Datastore
+from rynner.behaviour import Behaviour
 from tests.host_env import homedir, test_host, test_user, remote_homedir
+from rynner.option_maps import slurm1711_option_map as option_map
 
 
 @unittest.skip('Fabric changed to paramiko')
@@ -197,7 +200,7 @@ class TestHost(unittest.TestCase):
         options = MM()
         id = MM()
         self.host.parse(self.plugin_id, self.run_id, options)
-        self.mock_datastore.set.assert_called_once_with(
+        self.mock_datastore.write.assert_called_once_with(
             self.plugin_id, self.run_id, options)
 
     @pytest.mark.xfail(reason='refactor of datastore.set')
@@ -244,17 +247,15 @@ class TestHost(unittest.TestCase):
         self.mock_datastore.update.assert_called_once_with(mock_plugin)
 
 
-import os
-homedir = os.getenv('HOME')
+conn = Connection(
+    logger=Logger(),
+    host=test_host,
+    user=test_user,
+    rsa_file=f'{homedir}/.ssh/id_rsa')
 
 
-class TestHawk(unittest.TestCase):
+class TestLiveConnection(unittest.TestCase):
     def test_connect(self):
-        conn = Connection(
-            logger=Logger(),
-            host=test_host,
-            user=test_user,
-            rsa_file=f'{homedir}/.ssh/id_rsa')
         remote_file = f'{remote_homedir}/conn_test'
         local_file = f'{homedir}/t'
         local_file_from_remote = f'{homedir}/t2'
@@ -280,11 +281,6 @@ class TestHawk(unittest.TestCase):
     def test_put_file_content(self):
         # 'hacky' filesystem test for now, requires that file ~/t exists
         # should be replaced
-        conn = Connection(
-            logger=Logger(),
-            host=test_host,
-            user=test_user,
-            rsa_file=f'{homedir}/.ssh/id_rsa')
         remote_file = f'{remote_homedir}/conn_test'
 
         # remote remove file
@@ -309,6 +305,62 @@ class TestHawk(unittest.TestCase):
         status, out, err = conn.run_command('ls')
 
         self.assertIn('conn_test', out)
+
+    def test_fetch_datastore_content(self):
+        remote_file = f'{remote_homedir}/conn_test'
+
+        # remote remove file
+        status, out, err = conn.run_command(f'rm {remote_file}')
+        status, file_list, err = conn.run_command('ls')
+        self.assertNotIn('conn_test', file_list)
+
+        # upload/download file
+        remote_content = 'my remote content'
+        conn.put_file_content(remote_content, remote_file)
+        local_file = '/tmp/t.2'
+        try:
+            os.remove(local_file)
+        except Exception:
+            pass
+        conn.get_file(remote_file, local_file)
+
+        local_content = open(local_file, 'r').read()
+        self.assertEqual(local_content, remote_content)
+
+        # ls dir content
+        status, out, err = conn.run_command('ls')
+
+        self.assertIn('conn_test', out)
+
+    def test_update_jobs(self):
+        datastore = Datastore(conn)
+        defaults = []
+        behaviour = Behaviour(option_map, 'echo 12134 > jobid', defaults)
+        host = Host(behaviour, conn, datastore)
+
+        plugin_id = 'test-plugin-id'
+        run_mang = RunManager(plugin_id, {'config': 'options'})
+        run_id = run_mang.new(host=host, script='ls')
+        run_mang.userdata({'some-user': 'data'})
+        run_mang.store()
+        host.update(plugin_id)
+
+        jobs = host.jobs()
+        expected = {
+            'config-options': {
+                'config': 'options'
+            },
+            'framework': {
+                'submit-exit-status': None
+            },
+            'plugin-identifier': 'test-plugin-id',
+            'run-options': {
+                'script': 'ls'
+            },
+            'userdata': {}
+        }
+
+        assert jobs[run_id]['config-options'] == expected
 
 
 if __name__ == '__main__':

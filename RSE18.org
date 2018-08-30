@@ -1,0 +1,21 @@
+* Presentation
+- what is the probability of UUID
+- ssh auth
+- intro to qt
+- future: QMLintro to qt
+- we're rse, superpowers - ever had a mate who no matter how much to tell them about regular expression, or how expressive text is as a control mechanism
+- programming is (sometimes) about empowering others, without them having to learn more..
+- if you have "options", I want to hear from you - don't like the API, don't like the architecture, think it would be better to do it differently?
+- technology preview, not recommended
+- untested after 
+
+          9cf5eaa scratch *** UNTESTED *** added jid to Behaviour
+          5e72f54 *** UNTESTED *** added interpreter to Behaviour
+HERE====> 2a5db2a housekeeping rynner.py 
+          911ba12 .gitignore - added rynner_logs.txt
+          16d3439 TODOs.org
+          746d5c0 bugfix to Host (incorrect cd string)
+          a441782 bugfixes in Connection to _ensure_dir
+          8f2a7c2 changed Plugin to show CreateRunView with show (not exec_)
+          8991b21 mark expected failures due to non-blocking calls to plugin.create
+          bea04a6 store runs inside subdirectory "rynner"

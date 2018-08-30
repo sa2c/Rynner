@@ -24,7 +24,7 @@ class TestBehaviourIntegration(unittest.TestCase):
         self.host = Host(self.behaviour, self.connection, self.datastore)
 
     def create_run(self, **kwargs):
-        runner = RunManager('my-plugin-id')
+        runner = RunManager('my-plugin-id', {})
         return runner.new(**kwargs)
 
     def test_instantiation(self):

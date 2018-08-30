@@ -1,5 +1,5 @@
-from PySide2.QtCore import *
-from PySide2.QtGui import *
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QStandardItemModel, QStandardItem
 from rynner.plugin import RunAction
 
 
@@ -7,7 +7,7 @@ class InvalidModelIndex(Exception):
     pass
 
 
-class IndexTableModel(QStandardItemModel):
+class RunListModel(QStandardItemModel):
     '''
     Public API:
     self.plugin : the plugin instance to display
@@ -19,23 +19,53 @@ class IndexTableModel(QStandardItemModel):
         # TODO should handle a plugin which has no "view_keys" property
         self.plugin = plugin
 
-        self.setHorizontalHeaderLabels(plugin.view_keys)
+        # Add header labels, leaving the first for "ID"
+        headers = ["ID"]
+        headers.extend([label for label, index in plugin.view_keys])
 
-        self.plugin.runs_changed.connect(self.update_jobs)
+        self.setHorizontalHeaderLabels(headers)
 
-        self.update_jobs()
+        self._visible_runs = []
 
-    @Slot()
-    def update_jobs(self):
-        jobs = self.plugin.list_jobs()
+        self.plugin.runs_changed.connect(self.update_runs)
 
-        for col, key in enumerate(self.plugin.view_keys):
-            for row, job in enumerate(jobs):
-                value = job[key]
+    def update_runs(self, all_runs):
+        '''
+        Update the run data according to data made available in all_runs. Note that currently the order is arbitrarily.
+        Some sorting method should be implemented here.
+        '''
+
+        relevant_runs = {}
+
+        for pid, runs in all_runs.items():
+            if self.plugin.manages(pid):
+                relevant_runs.update(all_runs[pid])
+
+        new_run_ids = list(set(relevant_runs.keys()) - set(self._visible_runs))
+
+        # show the runs
+        row = len(self._visible_runs)
+        for run_id in new_run_ids:
+            run_data = relevant_runs[run_id]
+
+            # set first column to id
+            value = run_id[0:8]
+            item = QStandardItem(value)
+            self.setItem(row, 0, item)
+            item.setData(run_data, Qt.UserRole)
+
+            # set remaining columns
+            for col, key_string in enumerate(self.plugin.view_keys):
+                keys = key_string[1].split('.')
+                value = run_data[keys[0]]
+                for key in keys[1:]:
+                    value = value[key]
                 item = QStandardItem(value)
-                self.setItem(row, col, item)
-                if col == 0:
-                    item.setData(job, Qt.UserRole)
+                self.setItem(row, col + 1, item)
+
+            row = row + 1
+
+        self._visible_runs.extend(new_run_ids)
 
     def create_new_run(self):
         self.plugin.create()

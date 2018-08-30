@@ -83,7 +83,7 @@ or
 * TextInput
 - the fact that addWidget adds to layout isn't tested (only that it's a child of this parent)
 
-* IndexTableModel
+* RunListModel
 - self.view_keys should be translated to human readable form using labels from run_type
 - this means that run_type.labels should be set up even if it isn't provided
 * Need way of testing files created easily

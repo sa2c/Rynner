@@ -18,12 +18,12 @@ class Plugin(QObject):
 
     build_index_view = None
 
-    view_keys = ("id", "name")
+    view_keys = []
 
     runs_changed = Signal()
 
     def __init__(self,
-                 domain,
+                 plugin_id,
                  name,
                  create_view=None,
                  runner=None,
@@ -32,7 +32,7 @@ class Plugin(QObject):
                  build_index_view=None,
                  parent=None):
         '''
-        domain: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given Plugin class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
+        plugin_id: a string giving a globally unique name for the plugin. Clients on different machines will use this name to associate jobs with a given Plugin class. The recommended appraoach is to use a web URL (such as a github repository URL) which is unique for this plugin. This string is never displayed in the UI by default.
         name: a string giving the human readable Plugin name. This is the string which is displayed to the user in the UI to identify the runs of this plugin.
         create_view : an instance of RynCreateView, which defines the view used by the application user to configure a job, and the mapping of that configuration to a set of options which will be passed to Run
         runner: a function which will be called to run a job. Typically this function will instantiate one or more objects of type Run. The input to the method will be a dictionary in which the keys correspond to the 'key' properties of the visible UI objects in the . See the RynCreateView class documentation for details of keys. If not specified, all keys of the RynCreateView object will be passed as keyword arguments to instantiate a single Run object. In this case, the keys of the children of the RynCreateView should correspond directly to keyword arguments of Run.
@@ -42,10 +42,9 @@ class Plugin(QObject):
         '''
         super().__init__(parent)
         self.name = name
-        self.domain = domain
+        self.plugin_id = plugin_id
         self.create_view = create_view
         self.actions = []
-        self.hosts = []
         self.runner = runner
         self.labels = labels
 
@@ -54,6 +53,10 @@ class Plugin(QObject):
 
         if view_keys is not None:
             self.view_keys = view_keys
+
+        if isinstance(view_keys, str):
+            raise ValueError(
+                'view_keys kwarg tuple or list expected, not string')
 
         if create_view is not None:
             self.create_view.accepted.connect(self.config_accepted)
@@ -71,13 +74,6 @@ class Plugin(QObject):
         self.actions.append(action)
         return action
 
-    def list_jobs(self):
-        jobs = []
-        for host in self.hosts:
-            for job in host.jobs(self.domain):
-                jobs.append(job)
-        return jobs
-
     def create(self):
         if self.create_view is None:
             self._run({})
@@ -94,6 +90,13 @@ class Plugin(QObject):
 
     def stop_run(self, run_data):
         raise NotImplementedError()
+
+    def manages(self, plugin_id):
+        '''
+        Checks if plugin_id is the id of this plugin instance. Implemented
+        to maintain compatibility with PluginCollection.
+        '''
+        return plugin_id == self.plugin_id
 
 
 class PluginCollection(QObject):
@@ -120,14 +123,15 @@ class PluginCollection(QObject):
         self.labels = labels
         self.create_view = None
 
-        self.hosts = []
-
-    def list_jobs(self):
-        jobs = [
-            job for host in self.hosts for plugin in self.plugins
-            for job in host.jobs(plugin.domain)
-        ]
-        return jobs
-
     def create(self):
         raise NotImplementedError()
+
+    def manages(self, plugin_id):
+        '''
+        Returns True if this plugin is managed by PluginCollection and False otherwise
+        '''
+        for plugin in self.plugins:
+            if plugin_id == plugin.plugin_id:
+                return True
+
+        return False

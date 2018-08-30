@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
 from tests.qtest_helpers import *
-from rynner.host import Host, Connection
+from rynner.host import SlurmHost
 from rynner.datastore import Datastore
 from rynner.behaviour import Behaviour
 from rynner.main import MainView
@@ -33,7 +33,14 @@ def runner(run_manager, data):
 
 
 # create Plugin objects
-plugin1 = Plugin('swansea.ac.uk/1', 'Hello, World!', view1, runner)
+plugin1 = Plugin(
+    'swansea.ac.uk/1',
+    'Hello, World!',
+    view1,
+    runner,
+    view_keys=[
+        ('Message', 'config-options.Message'),
+    ])
 
 #---------------------------------------------------------
 # PLUGIN 2 SCRIPT
@@ -55,53 +62,38 @@ plugin2 = Plugin(
     'simpleCFD',
     view2,
     runner2,
-    view_keys=("id", "name", "some-other-data"))
-
+    view_keys=[
+        ('Velocity', 'config-options.Velocity'),
+    ])
 #---------------------------------------------------------
 # INITIALISATION
 #---------------------------------------------------------
 
 # submit the job and write output to
-submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
 submit_cmd = 'echo 1234 > jobid'
 # Set up some hosts
-behaviour = Behaviour(option_map, submit_cmd, defaults)
 
 rsa_file = f'{homedir}/.ssh/id_rsa'
-print('connecting')
-connection = Connection(Logger(), test_host, user=test_user, rsa_file=rsa_file)
-datastore = Datastore(connection)
-hosts = [Host(behaviour, connection, datastore)]
-
-print('define rynner')
+hosts = [SlurmHost(test_host, test_user, rsa_file)]
 
 print('create plugins')
 
 plugins = [PluginCollection("All Runs", [plugin1, plugin2]), plugin1, plugin2]
 
-# create mock of jobs returned by datastore
-jobs = {
-    plugin1.domain: [{
-        'id': '12508',
-        'name': 'JobType1-1',
-        'some-data': 'Some Data'
-    }, {
-        'id': '23045',
-        'name': 'JobType1-2',
-        'some-data': 'Some Extra Data'
-    }],
-    plugin2.domain: [{
-        'id': '12435',
-        'name': 'JobType2-1',
-        'some-other-data': 'Other Data'
-    }, {
-        'id': '24359',
-        'name': 'JobType2-2',
-        'some-other-data': 'Other Data'
-    }]
-}
 
-datastore.jobs = lambda plugin=None: jobs[plugin]
+def update_plugins():
+    print('update')
+    for plugin in [plugin1, plugin2]:
+        plugin_id = plugin.plugin_id
+        for host in hosts:
+            host.update(plugin_id)
+
+
+timer = QTimer()
+timer.timeout.connect(update_plugins)
+secs = 1
+timer.start(secs * 1000)
+QTimer.singleShot(10, update_plugins)
 
 main = MainView(hosts, plugins)
 main.show()

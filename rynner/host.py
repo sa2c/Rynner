@@ -1,6 +1,10 @@
 import paramiko
 import os
-from rynner.behaviour import InvalidContextOption
+from rynner.option_maps import slurm1711_option_map as slurm_option_map, pbs_option_map
+from rynner.behaviour import Behaviour, InvalidContextOption
+from rynner.datastore import Datastore
+from PySide2.QtCore import QObject, Signal
+from logging import Logger
 
 
 class Connection():
@@ -68,9 +72,23 @@ class Connection():
         self.sftp.get(remote_path, local_path)
         self.log(f'File {remote_path} transferred')
 
+    def dir_exists(self, remote_path):
+        try:
+            self.sftp.stat(remote_path)
+            return True
+        except IOError:
+            return False
+
     def list_dir(self, remote_path):
+        '''
+        Returns True if a remote directory exists and False otherwise
+        '''
         self._ensure_connected()
-        return self.sftp.listdir(remote_path)
+        self.log(f'listing directory: {remote_path}')
+        if self.dir_exists(remote_path):
+            return self.sftp.listdir(remote_path)
+        else:
+            return []
 
     def _ensure_connected(self):
         if self.ssh is None:
@@ -118,11 +136,13 @@ class Connection():
         self.logger.info(message)
 
 
-class Host:
+class Host(QObject):
     '''
     Host object abstracts the interface between the plugin
     and a remote machine.
     '''
+
+    runs_updated = Signal(dict)
 
     def __init__(self, behaviour, connection, datastore):
         '''
@@ -135,6 +155,8 @@ class Host:
         self.behaviour = behaviour
         self.datastore = datastore
         self._cached_runs = {}  #NoUT
+
+        super().__init__(parent=None)
 
     def upload(self, plugin_id, run_id, uploads):
         '''
@@ -188,12 +210,15 @@ class Host:
         '''
         return self.behaviour.type(string)
 
-    def jobs(self, plugin_id=None):
+    def runs(self, plugin_id):
         '''
         Uses the datastore to return a list of all data for jobs
         for a given plugin.
         '''
-        return self._cached_runs
+        if plugin_id in self._cached_runs.keys():
+            return self._cached_runs[plugin_id]
+        else:
+            return []
 
     def update(self, plugin_id):
         '''
@@ -208,4 +233,64 @@ class Host:
 
         new_runs = self.datastore.read_multiple(new_ids)
 
-        self._cached_runs.update(new_runs)
+        if plugin_id not in self._cached_runs.keys():
+            self._cached_runs[plugin_id] = {}
+
+        self._cached_runs[plugin_id].update(new_runs)
+
+        self.runs_updated.emit(self._cached_runs)
+
+
+class GenericClusterHost(Host):
+    def __init__(self,
+                 host,
+                 username,
+                 rsa_file,
+                 option_map,
+                 submit_cmd,
+                 defaults=[]):
+
+        self.logger = Logger('host-logger')
+
+        behaviour = Behaviour(option_map, submit_cmd, defaults)
+
+        connection = Connection(
+            self.logger, host, user=username, rsa_file=rsa_file)
+
+        datastore = Datastore(connection)
+
+        super().__init__(behaviour, connection, datastore)
+
+
+class SlurmHost(GenericClusterHost):
+    def __init__(self,
+                 host,
+                 username,
+                 rsa_file,
+                 option_map=None,
+                 submit_cmd=None,
+                 defaults=[]):
+        if submit_cmd is None:
+            submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
+
+        if option_map is None:
+            option_map = slurm_option_map
+
+        super().__init__(host, username, rsa_file, option_map, submit_cmd)
+
+
+class PBSHost(GenericClusterHost):
+    def __init__(self,
+                 host,
+                 username,
+                 rsa_file,
+                 option_map=None,
+                 submit_cmd=None,
+                 defaults=[]):
+        if submit_cmd is None:
+            submit_cmd = 'qsub jobcard > jobid'
+
+        if option_map is None:
+            option_map = slurm_option_map
+
+        super().__init__(host, username, rsa_file, option_map, submit_cmd)

@@ -623,7 +623,7 @@ class TestCheckBoxesField(unittest.TestCase):
 
     def test_getwidget(self):
         '''
-        field 'label' must be part of the run_create_view.
+        field 'widget' must be part of the run_create_view.
         '''
         keys = ['key1', 'key2', 'key3']
         labs = ['lab1', 'lab2', 'lab3']

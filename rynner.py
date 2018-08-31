@@ -1,15 +1,16 @@
-import os
+import os, glob
+import yaml
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
 from tests.qtest_helpers import *
-from rynner.host import SlurmHost
+import rynner.host
 from rynner.datastore import Datastore
-from rynner.behaviour import Behaviour
+from rynner.pattern_parser import PatternParser
 from rynner.main import MainView
 from rynner.create_view import RunCreateView, TextField
 from rynner.plugin import Plugin, PluginCollection, RunAction
 from rynner.run import RunManager
-from rynner.option_maps import slurm1711_option_map as option_map
+from rynner.host_patterns import host_patterns
 from rynner.logs import Logger
 from tests.host_env import *
 
@@ -66,23 +67,37 @@ plugin2 = Plugin(
         ('Velocity', 'config-options.Velocity'),
     ])
 #---------------------------------------------------------
-# INITIALISATION
+# LOAD HOSTS
 #---------------------------------------------------------
 
-# submit the job and write output to
-submit_cmd = 'echo 1234 > jobid'
-# Set up some hosts
+globdir = f'{homedir}/.rynner/hosts/*'
+host_config_files = glob.glob(globdir)
 
-rsa_file = f'{homedir}/.ssh/id_rsa'
-hosts = [SlurmHost(test_host, test_user, rsa_file)]
+if len(host_config_files) == 0:
+    raise Exception(f'No host config files found in {globdir}')
 
-print('create plugins')
+hosts = []
+
+for filename in host_config_files:
+    with open(filename, 'r') as file:
+        host_config = yaml.load(file)
+    host_class = getattr(rynner.host, host_config['classname'])
+    host = host_class(host_config['domain'], host_config['username'],
+                      host_config['rsa_file'])
+    hosts.append(host)
+
+#---------------------------------------------------------
+# INITIALISE PLUGINS
+#---------------------------------------------------------
 
 plugins = [PluginCollection("All Runs", [plugin1, plugin2]), plugin1, plugin2]
 
+#---------------------------------------------------------
+# Run application
+#---------------------------------------------------------
+
 
 def update_plugins():
-    print('update')
     for plugin in [plugin1, plugin2]:
         plugin_id = plugin.plugin_id
         for host in hosts:
@@ -91,7 +106,7 @@ def update_plugins():
 
 timer = QTimer()
 timer.timeout.connect(update_plugins)
-secs = 1
+secs = 10
 timer.start(secs * 1000)
 QTimer.singleShot(10, update_plugins)
 

@@ -9,10 +9,10 @@ class ScriptNotSpecifiedException(Exception):
     pass
 
 
-class Behaviour:
+class PatternParser:
     '''
     This models a scheduler (slurm, pbs, lsf,...)
-    The information about how the scheduler works is stored in a 'option_map' object,
+    The information about how the scheduler works is stored in a 'host_pattern' object,
 
     '''
 
@@ -90,4 +90,4 @@ class Behaviour:
         exitstatus, stdout, stderr = connection.run_command(
             self._submit_cmd, pwd=remote_path)
 
-        return exitstatus
+        return exitstatus, stdout, stderr

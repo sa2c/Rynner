@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import MagicMock as MM
-from rynner.behaviour import *
+from rynner.pattern_parser import *
 
 
-class TestBehaviour(unittest.TestCase):
+class TestPatternParser(unittest.TestCase):
     def setUp(self):
         self.mock_conn = MM()
         self.mock_conn.run_command.return_value = (0, "std out", "std error")
@@ -15,30 +15,30 @@ class TestBehaviour(unittest.TestCase):
             self.opt_map = opt_map
 
         self.defaults = MM()
-        self.behaviour = Behaviour(self.opt_map, self.submit_cmd,
-                                   self.defaults)
+        self.pattern_parser = PatternParser(self.opt_map, self.submit_cmd,
+                                            self.defaults)
 
     def assert_parse(self, opt_map, input, output):
         '''
         assert that passing input results in output (expected), for a given opt_map
         '''
         self.instantiate(opt_map)
-        context = self.behaviour.parse(input)
+        context = self.pattern_parser.parse(input)
         self.assertEqual(context['options'], output)
         return context
 
     def test_instantiation(self):
         self.instantiate()
 
-    def test_behaviour_can_call_run(self):
+    def test_pattern_parser_can_call_run(self):
         self.instantiate()
-        self.behaviour.run(
+        self.pattern_parser.run(
             self.mock_conn, {
                 'options': ['Some Option Result', 'Another Option Result'],
                 'script': 'command'
             }, '/some/remote/path')
 
-    def test_behaviour_single_string_opt_map_parsed(self):
+    def test_pattern_parser_single_string_opt_map_parsed(self):
         opt_map = [
             ('#FAKE --memory={}', 'memory'),
         ]
@@ -49,7 +49,7 @@ class TestBehaviour(unittest.TestCase):
 
         self.assert_parse(opt_map, input, output)
 
-    def test_behaviour_multiple_string_opt_map_parsed(self):
+    def test_pattern_parser_multiple_string_opt_map_parsed(self):
         opt_map = [
             ('#FAKE --memory={}', 'memory'),
             ('#FAKE --cpus={}', 'cpus'),
@@ -66,7 +66,7 @@ class TestBehaviour(unittest.TestCase):
 
         self.assert_parse(opt_map, input, output)
 
-    def test_behaviour_duplicate_string_matches(self):
+    def test_pattern_parser_duplicate_string_matches(self):
         opt_map = [
             ('#FAKE --memory={}', 'memory'),
             ('#SHOULD SKIP ME', 'memory'),
@@ -84,7 +84,7 @@ class TestBehaviour(unittest.TestCase):
 
         self.assert_parse(opt_map, input, output)
 
-    def test_behaviour_compound_string_matches(self):
+    def test_pattern_parser_compound_string_matches(self):
         opt_map = [
             ('#FAKE --memory={} --cpus={}', ('memory', 'cpus')),
             ('#FAKE --memory={}', 'memory'),
@@ -135,7 +135,7 @@ class TestBehaviour(unittest.TestCase):
 
         self.instantiate(opt_map)
         with self.assertRaises(InvalidContextOption) as context:
-            context = self.behaviour.parse(input)
+            context = self.pattern_parser.parse(input)
 
         assert 'invalid option(s): ' in str(context.exception)
         assert 'another-var' in str(context.exception)
@@ -165,7 +165,7 @@ class TestBehaviour(unittest.TestCase):
             ('#FAKE --cpus={}', 'cpus'),
         ]
         self.instantiate(opt_map)
-        self.behaviour.parse(input)
+        self.pattern_parser.parse(input)
         self.assertEqual(input, input_copy)
 
     def test_script_returned_seperately(self):
@@ -210,14 +210,14 @@ class TestBehaviour(unittest.TestCase):
     def test_run_method_calls_connection(self):
         self.instantiate()
         context = {'options': ['one', 'two', 'three'], 'script': 'four'}
-        self.behaviour.run(self.mock_conn, context, '/some/remote/path')
+        self.pattern_parser.run(self.mock_conn, context, '/some/remote/path')
         self.mock_conn.put_file_content('one\ntwo\nthree\nfour\n',
                                         '/some/remote/path/jobcard')
 
     def test_run_calls_submit(self):
         self.instantiate()
         context = {'options': ['one', 'two', 'three'], 'script': 'four'}
-        self.behaviour.run(self.mock_conn, context, '/some/remote/path')
+        self.pattern_parser.run(self.mock_conn, context, '/some/remote/path'):
         self.mock_conn.run_command.assert_called_once_with(
             'some_submission_cmd', pwd='/some/remote/path')
 

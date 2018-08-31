@@ -1,7 +1,6 @@
-import paramiko
-import os
-from rynner.option_maps import slurm1711_option_map as slurm_option_map, pbs_option_map
-from rynner.behaviour import Behaviour, InvalidContextOption
+import paramiko, os, yaml
+from rynner.host_patterns import host_patterns
+from rynner.pattern_parser import PatternParser, InvalidContextOption
 from rynner.datastore import Datastore
 from PySide2.QtCore import QObject, Signal
 from logging import Logger
@@ -144,15 +143,15 @@ class Host(QObject):
 
     runs_updated = Signal(dict)
 
-    def __init__(self, behaviour, connection, datastore):
+    def __init__(self, pattern_parser, connection, datastore):
         '''
         arguments:
             connection : a rynner Connection object
-            behaviour : a rynner Behaviour object
+            pattern_parser : a rynner PatternParser object
             datastore : a rynner Datastore object
         '''
         self.connection = connection
-        self.behaviour = behaviour
+        self.pattern_parser = pattern_parser
         self.datastore = datastore
         self._cached_runs = {}  #NoUT
 
@@ -174,10 +173,10 @@ class Host(QObject):
 
     def parse(self, plugin_id, run_id, options):
         '''
-        Ask behaviour to build a context object from the options supplied by
+        Ask pattern_parser to build a context object from the options supplied by
         calls to RunManager.
         '''
-        context = self.behaviour.parse(options)
+        context = self.pattern_parser.parse(options)
 
         return context
 
@@ -185,9 +184,9 @@ class Host(QObject):
         '''
         Run a job for a context, which was returned previously from a call to
         self.parse. Details of creating a job on a remote machine according to
-        the context object is delegated to behaviour object.
+        the context object is delegated to pattern_parser object.
         '''
-        exit_status = self.behaviour.run(
+        exit_status = self.pattern_parser.run(
             self.connection, context, self._remote_basedir(plugin_id, run_id))
 
     def store(self, plugin_id, run_id, data):
@@ -206,9 +205,9 @@ class Host(QObject):
 
     def type(self, string):
         '''
-        Gets type from this behaviour and returns it.
+        Gets type from this pattern_parser and returns it.
         '''
-        return self.behaviour.type(string)
+        return self.pattern_parser.type(string)
 
     def runs(self, plugin_id):
         '''
@@ -233,12 +232,25 @@ class Host(QObject):
 
         new_runs = self.datastore.read_multiple(new_ids)
 
+        # update cache with new runs
         if plugin_id not in self._cached_runs.keys():
             self._cached_runs[plugin_id] = {}
 
         self._cached_runs[plugin_id].update(new_runs)
 
+        # get queue
+        queue = self.get_queue()
+
+        # merge queue info into all cached run data
+        for run_data in self._cached_runs[plugin_id].values():
+            qid = run_data['qid']
+            if qid in queue.keys():
+                run_data['queue'] = queue[qid]
+
         self.runs_updated.emit(self._cached_runs)
+
+    def get_queue(self):
+        return {}
 
 
 class GenericClusterHost(Host):
@@ -246,51 +258,60 @@ class GenericClusterHost(Host):
                  host,
                  username,
                  rsa_file,
-                 option_map,
+                 host_pattern,
                  submit_cmd,
                  defaults=[]):
 
         self.logger = Logger('host-logger')
 
-        behaviour = Behaviour(option_map, submit_cmd, defaults)
+        pattern_parser = PatternParser(host_pattern, submit_cmd, defaults)
 
         connection = Connection(
             self.logger, host, user=username, rsa_file=rsa_file)
 
         datastore = Datastore(connection)
 
-        super().__init__(behaviour, connection, datastore)
+        super().__init__(pattern_parser, connection, datastore)
 
 
 class SlurmHost(GenericClusterHost):
-    def __init__(self,
-                 host,
-                 username,
-                 rsa_file,
-                 option_map=None,
-                 submit_cmd=None,
-                 defaults=[]):
-        if submit_cmd is None:
-            submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > jobid'
+    def __init__(self, domain, username, rsa_file):
 
-        if option_map is None:
-            option_map = slurm_option_map
+        submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > qid'
+        host_pattern = host_patterns['slurm']
 
-        super().__init__(host, username, rsa_file, option_map, submit_cmd)
+        super().__init__(domain, username, rsa_file, host_pattern, submit_cmd)
+
+    def get_queue(self):
+        exitstatus, stdout, stderr = self.connection.run_command('squeue')
+
+        data = {}
+
+        for line in stdout.split('\n'):
+            line_split = line.split()
+            if len(line_split) == 0:
+                continue
+
+            jid, queue, name, user, state, time, nodes, nodelist = line.split()
+
+            if jid == 'JOBID':
+                continue
+
+            data[jid] = {}
+            data[jid]['queue'] = queue
+            data[jid]['name'] = name
+            data[jid]['user'] = user
+            data[jid]['state'] = state
+            data[jid]['time'] = time
+            data[jid]['nodes'] = nodes
+
+        return data
 
 
 class PBSHost(GenericClusterHost):
-    def __init__(self,
-                 host,
-                 username,
-                 rsa_file,
-                 option_map=None,
-                 submit_cmd=None,
-                 defaults=[]):
-        if submit_cmd is None:
-            submit_cmd = 'qsub jobcard > jobid'
+    def __init__(self, domain, username, rsa_file):
 
-        if option_map is None:
-            option_map = slurm_option_map
+        submit_cmd = 'qsub jobcard > qid'
+        host_pattern = host_patterns['pbs']
 
-        super().__init__(host, username, rsa_file, option_map, submit_cmd)
+        super().__init__(domain, username, rsa_file, host_pattern, submit_cmd)

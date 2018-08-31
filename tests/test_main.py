@@ -1,9 +1,9 @@
 from PySide2 import QtWidgets
 from PySide2.QtWidgets import QPushButton
 from rynner.main import MainView
-from rynner.behaviour import Behaviour
+from rynner.pattern_parser import PatternParser
 from rynner.plugin import Plugin, PluginCollection
-from rynner.option_maps import slurm1711_option_map as option_map
+from rynner.host_patterns import slurm1711_host_pattern as host_pattern
 from rynner.host import Host, SlurmHost, Connection
 from rynner.logs import Logger
 from rynner.create_view import RunCreateView, TextField
@@ -211,39 +211,3 @@ def test_with_runner(qtbot):
     tab = select_tab(main, 0)
     ok_button = find_QPushButton(tab, 'new')
     assert ok_button is None
-
-    # def runner(data):
-    #     a = Run(
-    #         nodes=10,
-    #         memory=10000,
-    #         host=self.hosts[0],
-    #         script='my_command')
-
-    #     job_id.append(a.id)
-
-    # # create mock of jobs returned by datastore
-    # jobs = {
-    #     rt1.domain: [{
-    #         'id': '1',
-    #         'name': 'JobType1-1',
-    #         'some-data': 'Some Data'
-    #     }, {
-    #         'id': '2',
-    #         'name': 'JobType1-2',
-    #         'some-data': 'Some Extra Data'
-    #     }],
-    #     rt2.domain: [{
-    #         'id': '1',
-    #         'name': 'JobType2-1',
-    #         'some-other-data': 'Other Data'
-    #     }, {
-    #         'id': '2',
-    #         'name': 'JobType2-2',
-    #         'some-other-data': 'Other Data'
-    #     }]
-    # }
-
-    # def jobsf(plugin=None):
-    #     return jobs[plugin]
-
-    # self.datastore.jobs = jobsf

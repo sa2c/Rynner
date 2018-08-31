@@ -1,27 +1,28 @@
 import unittest
 import pytest
 from unittest.mock import MagicMock as MM
-from rynner.behaviour import Behaviour, InvalidContextOption
+from rynner.pattern_parser import PatternParser, InvalidContextOption
 from rynner.host import Host
 from rynner.run import RunManager
 from rynner.template import Template
 from rynner.datastore import Datastore
 
 
-class TestBehaviourIntegration(unittest.TestCase):
+class TestPatternParserIntegration(unittest.TestCase):
     def setUp(self):
         self.connection = MM()
         self.connection.run_command.return_value = (0, "std out", "std err")
 
     def instantiate(self, opt_map=None):
-        option_map = [
+        host_pattern = [
             ('#FAKE --walltime={}', 'walltime'),
             ('#FAKE --num-nodes={}', 'num_nodes'),
         ]
         defaults = MM()
-        self.behaviour = Behaviour(option_map, 'submit_cmd', defaults)
+        self.pattern_parser = PatternParser(host_pattern, 'submit_cmd',
+                                            defaults)
         self.datastore = Datastore(self.connection)
-        self.host = Host(self.behaviour, self.connection, self.datastore)
+        self.host = Host(self.pattern_parser, self.connection, self.datastore)
 
     def create_run(self, **kwargs):
         runner = RunManager('my-plugin-id', {})

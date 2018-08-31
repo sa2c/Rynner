@@ -54,12 +54,15 @@ class RunListModel(QStandardItemModel):
             self.setItem(row, 0, item)
             item.setData(run_data, Qt.UserRole)
 
-            # set remaining columns
+            # set remaining
             for col, key_string in enumerate(self.plugin.view_keys):
-                keys = key_string[1].split('.')
-                value = run_data[keys[0]]
-                for key in keys[1:]:
-                    value = value[key]
+                try:
+                    keys = key_string[1].split('.')
+                    value = run_data[keys[0]]
+                    for key in keys[1:]:
+                        value = value[key]
+                except KeyError:
+                    value = 'N/A'
                 item = QStandardItem(value)
                 self.setItem(row, col + 1, item)
 

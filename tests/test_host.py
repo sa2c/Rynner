@@ -7,9 +7,9 @@ from rynner.host import *
 from rynner.run import RunManager
 from rynner.logs import Logger
 from rynner.datastore import Datastore
-from rynner.behaviour import Behaviour
+from rynner.pattern_parser import PatternParser
 from tests.host_env import homedir, test_host, test_user, remote_homedir
-from rynner.option_maps import slurm1711_option_map as option_map
+from rynner.host_patterns import slurm1711_host_pattern as host_pattern
 
 
 @unittest.skip('Fabric changed to paramiko')
@@ -99,9 +99,9 @@ class TestHost(unittest.TestCase):
 
     def instantiate(self):
         # instantiate Host
-        self.mock_behaviour = MM()
+        self.mock_pattern_parser = MM()
         self.mock_datastore = MM()
-        self.host = Host(self.mock_behaviour, self.mock_connection,
+        self.host = Host(self.mock_pattern_parser, self.mock_connection,
                          self.mock_datastore)
 
         self.context = MM()
@@ -155,41 +155,41 @@ class TestHost(unittest.TestCase):
         dict = {}
         context = self.host.parse(self.plugin_id, self.run_id, dict)
 
-    def test_parse_handled_by_behaviour_method(self):
+    def test_parse_handled_by_pattern_parser_method(self):
         self.instantiate()
         options = {'some': 'test', 'options': 'dict'}
         context = self.host.parse(self.plugin_id, self.run_id, options)
-        self.mock_behaviour.parse.assert_called_once_with(options)
+        self.mock_pattern_parser.parse.assert_called_once_with(options)
 
-    def test_parse_returns_context_from_behaviour(self):
+    def test_parse_returns_context_from_pattern_parser(self):
         self.instantiate()
         options = {'some': 'test', 'options': 'dict'}
         context = self.host.parse(self.plugin_id, self.run_id, options)
-        assert context == self.mock_behaviour.parse()
+        assert context == self.mock_pattern_parser.parse()
 
-    def test_run_handled_by_behaviour_method(self):
+    def test_run_handled_by_pattern_parser_method(self):
         self.instantiate()
         context = MM()
         self.host.run(self.plugin_id, self.run_id, context)
-        self.mock_behaviour.run.assert_called_once_with(
+        self.mock_pattern_parser.run.assert_called_once_with(
             ANY, context, f'rynner/{self.plugin_id}/{self.run_id}')
 
-    def test_type_handled_by_behaviour(self):
+    def test_type_handled_by_pattern_parser(self):
         self.instantiate()
         string = MM()
         self.host.type(string)
-        self.mock_behaviour.type.assert_called_once_with(string)
+        self.mock_pattern_parser.type.assert_called_once_with(string)
 
-    def test_returns_value_of_behaviour(self):
+    def test_returns_value_of_pattern_parser(self):
         self.instantiate()
         ret = self.host.type(MM())
-        assert ret == self.mock_behaviour.type()
+        assert ret == self.mock_pattern_parser.type()
 
     def test_run_passes_connection(self):
         self.instantiate()
         options = MM()
         self.host.run(self.plugin_id, self.run_id, options)
-        self.mock_behaviour.run.assert_called_once_with(
+        self.mock_pattern_parser.run.assert_called_once_with(
             self.mock_connection, options,
             f'rynner/{self.plugin_id}/{self.run_id}')
 
@@ -210,7 +210,7 @@ class TestHost(unittest.TestCase):
         id = MM()
         self.host.run(self.plugin_id, self.run_id, context)
         self.mock_datastore.isrunning.assert_called_once_with(
-            self.plugin_id, self.run_id, self.mock_behaviour.run())
+            self.plugin_id, self.run_id, self.mock_pattern_parser.run())
 
     def test_jobs_returns_jobs_from_datastore(self):
         self.instantiate()
@@ -346,8 +346,9 @@ class TestLiveConnection(unittest.TestCase):
     def test_update_jobs(self):
         datastore = Datastore(conn)
         defaults = []
-        behaviour = Behaviour(option_map, 'echo 12134 > jobid', defaults)
-        host = Host(behaviour, conn, datastore)
+        pattern_parser = PatternParser(host_pattern, 'echo 12134 > jobid',
+                                       defaults)
+        host = Host(pattern_parser, conn, datastore)
 
         plugin_id = 'test-plugin-id'
         run_mang = RunManager(plugin_id, {'config': 'options'})

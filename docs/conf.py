@@ -169,6 +169,9 @@ texinfo_documents = [
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+
+# in order to extract documentation from the __init__ methods as well
+# (which are neglected by default by sphinx)
 def skip(app, what, name, obj, skip, options):
     if name == "__init__":
         return False

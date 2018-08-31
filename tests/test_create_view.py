@@ -623,7 +623,7 @@ class TestCheckBoxesField(unittest.TestCase):
 
     def test_getwidget(self):
         '''
-        field 'label' must be part of the run_create_view.
+        field 'widget' must be part of the run_create_view.
         '''
         keys = ['key1', 'key2', 'key3']
         labs = ['lab1', 'lab2', 'lab3']
@@ -631,3 +631,98 @@ class TestCheckBoxesField(unittest.TestCase):
         cb = CheckBoxesField(keys=keys, labels=labs, title=title)
 
         thewidget = cb.widget
+
+    def test_remember_1(self):
+        '''constructor should accept 'remember' '''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        title = 'a title'
+        cb = CheckBoxesField(
+            keys=keys, labels=labs, title=title, remember=True)
+
+    def test_init(self):
+        '''Ojbect should have init() method'''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        defaults = [True, False, True]
+        cb = CheckBoxesField(
+            keys=keys, labels=labs, defaults=defaults, remember=False)
+
+        vals = [False, True, True]
+
+        valuesToSet = dict(zip(keys, vals))
+
+        cb.set_value(valuesToSet)
+        cb.init()
+
+    def test_remember_2(self):
+        ''' If remember is set to false, init() should restore the value to the default '''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        defaults = [True, False, True]
+        cb = CheckBoxesField(
+            keys=keys, labels=labs, defaults=defaults, remember=False)
+
+        vals = [False, True, True]
+
+        valuesToSet = dict(zip(keys, vals))
+
+        cb.set_value(valuesToSet)
+        cb.init()
+
+        expectedValues = dict(zip(keys, defaults))
+
+        self.assertEqual(expectedValues, cb.value())
+
+    def test_remember_2(self):
+        ''' If remember is set to true, init() should not change the value '''
+        keys = ['key1', 'key2', 'key3']
+        labs = ['lab1', 'lab2', 'lab3']
+        defaults = [True, False, True]
+        cb = CheckBoxesField(
+            keys=keys, labels=labs, defaults=defaults, remember=True)
+
+        vals = [False, True, True]
+
+        valuesToSet = dict(zip(keys, vals))
+
+        cb.set_value(valuesToSet)
+        expectedValues = cb.value()
+        cb.init()
+        self.assertEqual(expectedValues, cb.value())
+
+
+class TestDropDownField(unittest.TestCase):
+    def test_instance1(self):
+        ''' Basic instantiation test'''
+        options = ['1', '2', '3']
+        dd = DropDownField('testOption', 'testLabel', options=options)
+
+    def test_instance2(self):
+        ''' instantiation with default (default in the option list)'''
+        options = ['1', '2', '3']
+        default = '2'
+        dd = DropDownField(
+            'testOption', 'testLabel', options=options, default=default)
+        self.assertEqual(dd.value(), default)
+
+    def test_setvalue_fail1(self):
+        ''' setting value (value NOT in the option list)'''
+        options = ['1', '2', '3']
+        valtoset = '4'
+        dd = DropDownField('testOption', 'testLabel', options=options)
+
+        with self.assertRaises(ValueError) as cm:
+            dd.set_value(valtoset)
+
+        self.assertEqual(str(cm.exception), 'Value not in options.')
+
+    def test_setgetvalue(self):
+        ''' setting value (value NOT in the option list)'''
+        options = ['1', '2', '3']
+        valtoset = '3'
+        dd = DropDownField('testOption', 'testLabel', options=options)
+
+        dd.set_value(valtoset)
+
+        self.assertEqual(dd.value(), valtoset)

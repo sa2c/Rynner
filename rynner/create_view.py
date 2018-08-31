@@ -1,12 +1,13 @@
 import sys
 from abc import ABC, abstractmethod
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox, QGroupBox, QCheckBox
+from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox, QGroupBox, QCheckBox, QComboBox
 from PySide2.QtCore import QSize, Signal
 
 # an empty/blank QWidget wrapper?
 # TODO : validation
 # TODO : clis should do something sensible on exception (e.g. loop)
 # TODO some reset method to reset the value to default (so it doesn't maintain previous value)
+# TODO : cli should be implemented for checkboxes
 
 
 class DuplicateKeyException(Exception):
@@ -59,7 +60,27 @@ class RunCreateView(QDialog):
 
 
 class BaseField(ABC):
+    '''
+    A base class for input fields.
+
+    Object of this class interface themself with Rynner through a key
+    (or set of keys). The value(s) of the fields can be retrieved through the value()
+    method.
+    '''
+
     def __init__(self, key, label, default=None, remember=True):
+        '''
+        `key` : str
+           The key in the corresponding dictionary 
+           
+        `widget` : QWidget
+           The underlying Qt widget (which contains a layout and the set of checkboxes.)
+
+
+
+
+
+        '''
 
         self.__default_value = default
         self.__remember = remember
@@ -96,6 +117,10 @@ class BaseField(ABC):
 
 
 class TextField(BaseField):
+    '''A simple Text field.
+
+    '''
+
     def _widget(self):
         return QLineEdit()
 
@@ -107,6 +132,10 @@ class TextField(BaseField):
 
 
 class NumericField(TextField):
+    '''A simple text field accepting numeric values.
+
+    '''
+
     def value(self):
         pass
 
@@ -114,15 +143,39 @@ class NumericField(TextField):
         pass
 
 
-class CheckBoxesField(BaseField):
+class CheckBoxesField():
+    ''' A set of checkboxes which can be interacted with separately.
+
+    The dictionary of statuses (checked or not) can be retrieved with value().
+
+    '''
+
     def __init__(
             self,
             keys,  # list N
             labels,  # list N
             title=None,
-            layout=None,
             defaults=None,  #list N
-    ):
+            remember=True):
+        '''
+        Parameters
+        ----------
+
+        `keys` : list of strings
+
+        `labels` : list of strings
+           Must have the same lenght as `keys`.
+
+        `title` : str, optional
+           The title of the widget, which contains all the checkboxes.
+
+        `defaults` : List of bools, optional
+           Default values. If provided, it must have the same length as `keys`.
+
+        `remember` : bool, optional
+           When set to false, the field will reset to default when init() is called.
+
+        '''
         if defaults is None:
             defaults = [False for k in keys]
 
@@ -148,11 +201,13 @@ class CheckBoxesField(BaseField):
             if type(default) is not bool:
                 raise TypeError('defaults are not booleans.')
 
-        self.widget = self._widget(keys, labels, title, layout, defaults)
+        self.widget = self._widget(keys, labels, title, defaults)
         self.key = keys
         self.label = labels
+        self.__default_value = dict(zip(keys, defaults))
+        self.__remember = remember
 
-    def _widget(self, keys, labels, title, layout, defaults):
+    def _widget(self, keys, labels, title, defaults):
         w = QGroupBox(title)
         layout = QVBoxLayout()
         self._optionwidgets = {}
@@ -166,6 +221,7 @@ class CheckBoxesField(BaseField):
         return w
 
     def value(self):
+        ''' Returns a dictionary containing the statuses for the checkboxes.'''
         values = {}
         for k in self.key:
             values[k] = self._optionwidgets[k].isChecked()
@@ -181,3 +237,36 @@ class CheckBoxesField(BaseField):
 
         for k, v in value_to_set.items():
             self._optionwidgets[k].setChecked(v)
+
+    def init(self):
+        if not self.__remember:
+            self.set_value(self.__default_value)
+
+
+class DropDownField(BaseField):
+    '''A field representing a choice amongst a number of options.
+
+    '''
+
+    def __init__(self, key, label, options, default=None, remember=True):
+        '''
+
+        '''
+        self.__options = options
+
+        super().__init__(key, label, default, remember)
+
+    def value(self):
+        return self.widget.currentText()
+
+    def set_value(self, value):
+        if value is not None:
+            if value not in self.__options:
+                raise ValueError('Value not in options.')
+            self.widget.setCurrentText(value)
+
+    def _widget(self):
+        widget = QComboBox()
+        widget.addItems(self.__options)
+        widget.setEditable(False)
+        return widget

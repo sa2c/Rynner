@@ -3,6 +3,9 @@ import yaml
 
 
 class Datastore:
+    ''' A class to manage job data storage on the cluster.
+
+    '''
     store_name = 'datastore.yaml'
 
     def __init__(self, connection):
@@ -41,6 +44,7 @@ class Datastore:
         Accepts a dict where the values are base directories
         of a run, and replaces the value with the content of
         the datastore for that run, leaving the keys untouched.
+
         '''
         return {key: self.read(dir) for key, dir in basedict.items()}
 

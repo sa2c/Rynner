@@ -16,8 +16,8 @@ software they need on their own PC.
 It consist of a set of Python classes that a developer can use to manage input
 from the user, file transfers, job submission and monitoring, and it is flexible 
 enough to allow the developer to add any operation on the local machine.
+It works through `SSH` and `SFTP`, using the library `paramiko`.
 
-It works through `SSH` and `SFTP`, using the library `paramiko`. 
 
 
 Usage

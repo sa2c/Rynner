@@ -70,8 +70,16 @@ class BaseField(ABC):
 
     def __init__(self, key, label, default=None, remember=True):
         '''
+        Parameters
+        ----------
         `key` : str
-           The key in the corresponding dictionary 
+           The key in the corresponding dictionary
+
+
+        Attributes
+        ----------
+        `key` : string
+           The key passed to the constructor. 
            
         `widget` : QWidget
            The underlying Qt widget (which contains a layout and the set of checkboxes.)
@@ -250,6 +258,9 @@ class DropDownField(BaseField):
 
     def __init__(self, key, label, options, default=None, remember=True):
         '''
+        Parameters
+        ----------
+        `key`: 
 
         '''
         self.__options = options

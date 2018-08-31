@@ -7,7 +7,24 @@ from logging import Logger
 
 
 class Connection():
+    '''A class representing the connection to a cluster frontend.
+
+    Contains methods to run commands on the remote machine, move files to and
+    from the remote machine, query the remote filesystem.
+
+    '''
+
     def __init__(self, logger, host, user=None, rsa_file=None):
+        '''
+        Parameters
+        ----------
+        `logger` : TODO docs
+        `host` : TODO docs
+        `user` : string, optional
+           TODO docs
+        `rsa_file` : TODO docs
+
+        '''
         self.logger = logger
         self.host = host
         self.user = user
@@ -16,6 +33,14 @@ class Connection():
         self.log(f'created connection object')
 
     def run_command(self, cmd, pwd=None):
+        '''
+        Parameters
+        ----------
+        `cmd` : string
+           The command to execute.
+        `pwd` : string, optional
+           The working directory for the command.
+        '''
         self._ensure_connected()
         if pwd is not None:
             self._ensure_dir(pwd)
@@ -145,10 +170,12 @@ class Host(QObject):
 
     def __init__(self, pattern_parser, connection, datastore):
         '''
-        arguments:
-            connection : a rynner Connection object
-            pattern_parser : a rynner PatternParser object
-            datastore : a rynner Datastore object
+        Parameters
+        ----------
+            `connection` : rynner Connection
+                See :class:`Connection <rynner.host.Connection>`
+            `pattern_parser` : rynner PatternParser
+            `datastore` : rynner Datastore
         '''
         self.connection = connection
         self.pattern_parser = pattern_parser

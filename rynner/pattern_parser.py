@@ -10,17 +10,50 @@ class ScriptNotSpecifiedException(Exception):
 
 
 class PatternParser:
-    '''
-    This models a scheduler (slurm, pbs, lsf,...)
-    The information about how the scheduler works is stored in a 'host_pattern' object,
+    '''This models a scheduler (slurm, pbs, lsf,...)
+
+    The information about how the scheduler works is stored in a 'host_pattern'
+    object. See the module :mod:`host_patterns<rynner.host_patterns>`, and the
+    :data:`host_pattern dictionary<rynner.host_patterns.host_patterns>`.
 
     '''
 
     def __init__(self, parameter_map, submit_cmd, defaults):
+        '''
+        Parameters
+        ----------
+        `parameter_map` : TODO docs
+            TODO docs
+        `submit_cmd` : TODO docs
+            TODO docs
+        `defaults` : TODO docs
+           TODO docs
+
+        '''
         self._map = parameter_map
         self._submit_cmd = submit_cmd
 
     def parse(self, options):
+        '''Parses given options
+
+        Parameters
+        ----------
+        `options` : dict
+           TODO docs
+
+
+
+        Returns
+        -------
+        `context` : dict
+           A dictionary with following keys:
+           `options` : list of strings
+               A list of strings representing the scheduler options
+               (e.g. the #SBACH or #PBS directives).
+           `script` : string
+               The body of the script of the jobcard.
+
+        '''
         options = options.copy()
 
         # create a new context_options, this will later get passed to the run method

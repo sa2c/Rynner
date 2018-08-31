@@ -11,6 +11,20 @@ class RunManager:
     key_filter = ['host', 'uploads']
 
     def __init__(self, plugin_id, config_options):
+        '''
+        Parameters
+        ----------
+        `plugin_id`: str
+           A string giving a globally unique name for the plugin. Clients on
+           different machines will use this name to associate jobs with a given
+           Plugin class. The recommended appraoach is to use a web URL (such as
+           a github repository URL) which is unique for this plugin. This
+           string is never displayed in the UI by default (see :func:`Plugin.__init__ method <rynner.plugin.Plugin.__init__>`).
+
+        `config_options` :
+ 
+
+        '''
         self.plugin_id = plugin_id
         self.config_options = config_options
         self.datastore = {}
@@ -21,14 +35,20 @@ class RunManager:
         Utility method for storing data (a dictionary) in a datastore
         (another dictionary) which will be automatically be made
         available to actions after the run has completed.
+
+        Parameters
+        ----------
+        `userdata`: dict,collections.Mapping
+            The data to be stored.
+
         '''
         if not isinstance(userdata, collections.Mapping):
             raise ValueError('arguments to store method should be a dict')
         self._userdata.update(userdata)
 
     def new(self, **options):
-        '''
-        This is should be called by plugin developers to create or run a new job. The keyword arguments are those given by the cluster configuration data.
+        '''This should be called by plugin developers to create or run a new job.
+
         '''
         run_id = str(uuid.uuid1())
 
@@ -69,10 +89,11 @@ class RunManager:
         return run_id
 
     def store(self):
-        '''
-        Store data about the runs contained in this RunManager. This method
-        is called by the Rynner framework to initialise storing of data, it
-        should not be called explicitly by a plugin developer.
+        '''Store data about the runs contained in this RunManager.
+
+        This method is called by the Rynner framework to initialise storing of
+        data, it should not be called explicitly by a plugin developer.
+
         '''
         for run_id, data in self.datastore.items():
             host = data['run-options'].pop('host')

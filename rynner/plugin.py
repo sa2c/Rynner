@@ -103,6 +103,15 @@ class Plugin(QObject):
         run_manager.store()
 
     def add_action(self, label, function):
+        ''' Adds a simple callable that can be executed after the job completes.
+
+        Parameters
+        ----------
+        `label` : string
+           A label for the function/callable.
+        `function` : callable
+           The callable representing the action to add.
+        '''
         action = RunAction(label, function)
         self.actions.append(action)
         return action
@@ -115,6 +124,17 @@ class Plugin(QObject):
             self.create_view.show()
 
     def config_accepted(self):
+        '''Takes configuration data from the view, checks it and creates a job.
+
+        Raises
+        ------
+        Exception
+            if configuration is invalid.
+
+        Returns
+        -------
+        None
+        '''
         if len(self.create_view.invalid()) == 0:
             data = self.create_view.data()
             self._run(data)
@@ -127,8 +147,12 @@ class Plugin(QObject):
     def manages(self, plugin_id):
         '''
         Checks if plugin_id is the id of this plugin instance.
-
         Implemented to maintain compatibility with PluginCollection.
+
+        Parameters
+        ----------
+        `plugin_id` :
+            see :func:`__init__`.
         '''
         return plugin_id == self.plugin_id
 
@@ -144,6 +168,18 @@ class PluginCollection(QObject):
 
     def __init__(self, name, plugins, view_keys=None, labels=None,
                  parent=None):
+        '''
+        Parameters
+        ----------
+        `plugins` : list
+           List of plugin objects.
+        `view_keys` :
+           TODO Docs
+        `labels`:
+           TODO Docs
+        `parent`:
+           TODO Docs
+        '''
         super().__init__(parent)
         self.name = name
         self.plugins = plugins
@@ -162,7 +198,11 @@ class PluginCollection(QObject):
 
     def manages(self, plugin_id):
         '''
-        Returns True if this plugin is managed by PluginCollection and False otherwise
+        Returns
+        -------
+
+        bool
+           True if this plugin is managed by PluginCollection and False otherwise
         '''
         for plugin in self.plugins:
             if plugin_id == plugin.plugin_id:

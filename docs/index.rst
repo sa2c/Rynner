@@ -34,19 +34,19 @@ Notes
 .. toctree::
    :maxdepth: 2
 
-   behaviour
    create_view
    datastore
+   host_patterns
    host
    index_view
    logs
    main
-   option_maps
+   pattern_parser
    plugin
    run
    template
    validator
-  
+ 
 
 
 

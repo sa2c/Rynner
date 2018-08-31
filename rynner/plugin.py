@@ -36,7 +36,6 @@ class Plugin(QObject):
         '''
         Parameters
         ----------
-
         `plugin_id`: str
            A string giving a globally unique name for the plugin. Clients on
            different machines will use this name to associate jobs with a given
@@ -72,9 +71,6 @@ class Plugin(QObject):
            not set, RynCreateView will be used. view keyword argument which can
            be used to override the default main/index view to render for a
            Plugin.
-
-        Attributes
-        ----------
 
         '''
         super().__init__(parent)

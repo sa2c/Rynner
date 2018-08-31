@@ -1,6 +1,6 @@
-behaviour
+host_patterns
 =============
 Write your description here
 
-.. automodule::  rynner.behaviour
+.. automodule::  rynner.host_patterns
    :members: 

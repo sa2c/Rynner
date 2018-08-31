@@ -1,6 +1,6 @@
-option_maps
+pattern_parser
 =============
 Write your description here
 
-.. automodule::  rynner.option_maps
+.. automodule::  rynner.pattern_parser
    :members: 

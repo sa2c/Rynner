@@ -21,8 +21,7 @@ defaults = []
 #---------------------------------------------------------
 
 # Create a fake run_create_view
-view1 = RunCreateView(
-    [TextField('Message', 'message', default='Hello, World!')])
+view1 = [TextField('Message', 'message', default='Hello, World!')]
 
 
 def runner(run_manager, data):
@@ -47,11 +46,11 @@ plugin1 = Plugin(
 # PLUGIN 2 SCRIPT
 #---------------------------------------------------------
 
-view2 = RunCreateView([
+view2 = [
     TextField('Velocity', 'velocity', default="10"),
     TextField('Altitude', 'altitude', default="40,000"),
     TextField('Angle', 'angle', default='10'),
-])
+]
 
 
 def runner2(run_manager, data):

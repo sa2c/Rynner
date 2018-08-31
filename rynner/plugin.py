@@ -93,11 +93,11 @@ class Plugin(QObject):
             raise ValueError(
                 'view_keys kwarg tuple or list expected, not string')
 
+        if not isinstance(self.create_view, RunCreateView):
+            self.create_view = RunCreateView(self.create_view)
+
         if create_view is not None:
             self.create_view.accepted.connect(self.config_accepted)
-
-        if not isinstance(create_view, RunCreateView):
-            create_view = RunCreateView(create_view)
 
     def _run(self, config):
         run_manager = RunManager(self.plugin_id, config)

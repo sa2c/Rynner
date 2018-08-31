@@ -3,12 +3,6 @@ from abc import ABC, abstractmethod
 from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox, QGroupBox, QCheckBox, QComboBox
 from PySide2.QtCore import QSize, Signal
 
-# an empty/blank QWidget wrapper?
-# TODO : validation
-# TODO : clis should do something sensible on exception (e.g. loop)
-# TODO some reset method to reset the value to default (so it doesn't maintain previous value)
-# TODO : cli should be implemented for checkboxes
-
 
 class DuplicateKeyException(Exception):
     pass
@@ -77,14 +71,10 @@ class BaseField(ABC):
     def __init__(self, key, label, default=None, remember=True):
         '''
         `key` : str
-           The key in the corresponding dictionary 
-           
+           The key in the corresponding dictionary
+
         `widget` : QWidget
            The underlying Qt widget (which contains a layout and the set of checkboxes.)
-
-
-
-
 
         '''
 

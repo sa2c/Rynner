@@ -24,13 +24,19 @@ class RunCreateView(QDialog):
         # check for duplicate keys
         seen = set()
         for field in fields:
-            if field.key in seen:
-                # raise an error if a duplicate key found
-                raise DuplicateKeyException(
-                    "duplicate entries for key '{}'".format(field.key))
-            else:
-                # collect seen keys, to check for duplicates
-                seen.add(field.key)
+            keys = field.key
+
+            if isinstance(keys, str):
+                keys = [keys]
+
+            for key in keys:
+                if key in seen:
+                    # raise an error if a duplicate key found
+                    raise DuplicateKeyException(
+                        "duplicate entries for key '{}'".format(field.key))
+                else:
+                    # collect seen keys, to check for duplicates
+                    seen.add(key)
 
         # layout fields
         container = QWidget()
@@ -131,18 +137,6 @@ class TextField(BaseField):
         self.widget.setText(value)
 
 
-class NumericField(TextField):
-    '''A simple text field accepting numeric values.
-
-    '''
-
-    def value(self):
-        pass
-
-    def set_value(self, value):
-        pass
-
-
 class CheckBoxesField():
     ''' A set of checkboxes which can be interacted with separately.
 
@@ -152,68 +146,58 @@ class CheckBoxesField():
 
     def __init__(
             self,
-            keys,  # list N
-            labels,  # list N
-            title=None,
-            defaults=None,  #list N
+            key,
+            label,  # list N
+            values,
+            default=None,  #list N
             remember=True):
         '''
         Parameters
         ----------
 
-        `keys` : list of strings
+        `key` : str
+           A identifier for value
 
-        `labels` : list of strings
-           Must have the same lenght as `keys`.
+        `label` : str
+           The label of the widget, which contains all the checkboxes.
 
-        `title` : str, optional
-           The title of the widget, which contains all the checkboxes.
+        `values` : list of strings
+           The label given to each individual check box.
 
-        `defaults` : List of bools, optional
-           Default values. If provided, it must have the same length as `keys`.
+        `default` : List of bools, optional
+           Default values. If provided, it must have the same length as values.
 
         `remember` : bool, optional
            When set to false, the field will reset to default when init() is called.
 
         '''
-        if defaults is None:
-            defaults = [False for k in keys]
+        if default is None:
+            default = [False for v in values]
 
-        if type(keys) != list:
-            raise TypeError('"keys" is not a list.')
-        if type(labels) != list:
-            raise TypeError('"labels" is not a list.')
-        if len(keys) != len(labels):
-            raise ValueError(
-                f'len(labels)[{len(labels)}] != len(keys)[{len(keys)}]')
+        if type(values) != list:
+            raise TypeError('"values" is not a list.')
 
-        if len(defaults) != len(keys):
-            raise ValueError(
-                f'len(defaults)[{len(defaults)}] != len(keys)[{len(keys)}]')
+        for value in values:
+            if type(value) is not str:
+                raise TypeError('values are not strings.')
+        for d in default:
+            if type(d) is not bool:
+                raise TypeError('default are not booleans.')
 
-        for key in keys:
-            if type(key) is not str:
-                raise TypeError('keys are not strings.')
-        for label in labels:
-            if type(label) is not str:
-                raise TypeError('labels are not strings.')
-        for default in defaults:
-            if type(default) is not bool:
-                raise TypeError('defaults are not booleans.')
-
-        self.widget = self._widget(keys, labels, title, defaults)
-        self.key = keys
-        self.label = labels
-        self.__default_value = dict(zip(keys, defaults))
+        self.widget = self._widget(key, values, label, default)
+        self.key = key
+        self.values = values
+        self.label = label
+        self.__default_value = dict(zip(values, default))
         self.__remember = remember
 
-    def _widget(self, keys, labels, title, defaults):
-        w = QGroupBox(title)
+    def _widget(self, key, values, label, default):
+        w = QGroupBox()
         layout = QVBoxLayout()
         self._optionwidgets = {}
         self._layout = layout
-        for key, label, default in zip(keys, labels, defaults):
-            checkbox = QCheckBox(label)
+        for value, default in zip(values, default):
+            checkbox = QCheckBox(value)
             checkbox.setChecked(default)
             self._optionwidgets[key] = checkbox
             layout.addWidget(checkbox)

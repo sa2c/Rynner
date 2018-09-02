@@ -25,6 +25,11 @@
 - there should be an "archive" button, which has some sensible behaviour but also a user-specified behaviour
 - some TextFields might have units...? and default value should be settable in a non-string form
 - labels should be translated to human-readable form
+- an empty/blank QWidget wrapper?
+- : validation
+- cli
+- cli should do something sensible on exception (e.g. loop)
+- some reset method to reset the value to default (so it doesn't maintain previous value)
 * build_index_view
 - Run creates Stop by default
 - probably easier if the end user will pass a QWidget rather than a factory

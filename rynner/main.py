@@ -93,7 +93,6 @@ def build_index_view(model, ui_file):
     # can probably set these in view
     view.table.setSelectionBehavior(QAbstractItemView.SelectRows)
     view.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-    view.actionComboBox.addItem("action")
 
     def stop_run():
         model.stop_run(view.table.selectionModel().selectedRows())

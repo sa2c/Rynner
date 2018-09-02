@@ -1,5 +1,7 @@
 from rynner.run import RunManager
 from PySide2.QtCore import Signal, QObject
+from rynner.create_view import RunCreateView
+from box import Box
 
 
 class RunAction:
@@ -46,7 +48,7 @@ class Plugin(QObject):
            A string giving the human readable Plugin name. This is the string
            which is displayed to the user in the UI to identify the runs of
            this plugin.
-        `create_view` : RynCreateView
+        `create_view` : RunCreateView / iterable of BaseField
            Defines the view used by the application user to configure a job,
            and the mapping of that configuration to a set of options which will
            be passed to Run.
@@ -94,6 +96,9 @@ class Plugin(QObject):
         if create_view is not None:
             self.create_view.accepted.connect(self.config_accepted)
 
+        if not isinstance(create_view, RunCreateView):
+            create_view = RunCreateView(create_view)
+
     def _run(self, config):
         run_manager = RunManager(self.plugin_id, config)
         if self.runner is None:
@@ -136,7 +141,7 @@ class Plugin(QObject):
         None
         '''
         if len(self.create_view.invalid()) == 0:
-            data = self.create_view.data()
+            data = Box(self.create_view.data())
             self._run(data)
         else:
             raise Exception()

@@ -266,7 +266,8 @@ class Host(QObject):
         self._cached_runs[plugin_id].update(new_runs)
 
         # get queue
-        queue = self.get_queue()
+        qids = [data['qid'] for data in self._cached_runs[plugin_id].values()]
+        queue = self.get_queue(qids)
 
         # merge queue info into all cached run data
         for run_data in self._cached_runs[plugin_id].values():
@@ -276,8 +277,9 @@ class Host(QObject):
 
         self.runs_updated.emit(self._cached_runs)
 
-    def get_queue(self):
-        return {}
+    def get_queue(self, jids):
+        raise NotImplementedError(
+            "method get_queue should be implemented in subclass")
 
 
 class GenericClusterHost(Host):
@@ -309,28 +311,27 @@ class SlurmHost(GenericClusterHost):
 
         super().__init__(domain, username, rsa_file, host_pattern, submit_cmd)
 
-    def get_queue(self):
-        exitstatus, stdout, stderr = self.connection.run_command('squeue')
+    def get_queue(self, jids):
+        fields = ['JobID', 'NCPUS', 'NNodes', 'State', 'TimeLimit', 'Elapsed']
+        delim = '|&|'
+
+        cmd = f"sacct -j {','.join(jids)} -n -o {','.join(fields)} -p --delimiter='{delim}'"
+        exitstatus, stdout, stderr = self.connection.run_command(cmd)
 
         data = {}
 
         for line in stdout.split('\n'):
-            line_split = line.split()
-            if len(line_split) == 0:
+            # skip empty lines
+            if len(line) == 0:
                 continue
 
-            jid, queue, name, user, state, time, nodes, nodelist = line.split()
+            field_values = line.split(delim)
+            jid = field_values[0]
 
-            if jid == 'JOBID':
-                continue
-
-            data[jid] = {}
-            data[jid]['queue'] = queue
-            data[jid]['name'] = name
-            data[jid]['user'] = user
-            data[jid]['state'] = state
-            data[jid]['time'] = time
-            data[jid]['nodes'] = nodes
+            if 'batch' not in jid and 'extern' not in jid:
+                data[jid] = {}
+                for index in range(1, len(fields)):
+                    data[jid][fields[index]] = field_values[index]
 
         return data
 

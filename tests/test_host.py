@@ -8,8 +8,8 @@ from rynner.run import RunManager
 from rynner.logs import Logger
 from rynner.datastore import Datastore
 from rynner.pattern_parser import PatternParser
-from tests.host_env import homedir, test_host, test_user, remote_homedir
-from rynner.host_patterns import slurm1711_host_pattern as host_pattern
+from tests.host_env import *
+from rynner.host_patterns import host_patterns
 
 
 @unittest.skip('Fabric changed to paramiko')
@@ -266,6 +266,9 @@ conn = Connection(
 
 
 class TestLiveConnection(unittest.TestCase):
+    def setUp(self):
+        self.plugin_id = 'swansea.ac.uk/1'
+
     def test_connect(self):
         remote_file = f'{remote_homedir}/conn_test'
         local_file = f'{homedir}/t'
@@ -346,8 +349,8 @@ class TestLiveConnection(unittest.TestCase):
     def test_update_jobs(self):
         datastore = Datastore(conn)
         defaults = []
-        pattern_parser = PatternParser(host_pattern, 'echo 12134 > jobid',
-                                       defaults)
+        pattern_parser = PatternParser(host_patterns['slurm'],
+                                       'echo 12134 > jobid', defaults)
         host = Host(pattern_parser, conn, datastore)
 
         plugin_id = 'test-plugin-id'
@@ -375,6 +378,14 @@ class TestLiveConnection(unittest.TestCase):
 
         assert jobs[run_id]['config-options'] == expected
 
+    def test_get_queue(self):
+        s = SlurmHost(test_host, test_user, rsa_file)
+        k = s.get_queue(['47803'])
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_host_update(self):
+        s = SlurmHost(test_host, test_user, rsa_file)
+        import timeit
+        timeit.timeit('s.update(self.plugin_id)')
+        runs = s.runs(self.plugin_id)
+        import pdb
+        pdb.set_trace()

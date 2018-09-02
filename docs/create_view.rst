@@ -1,6 +1,11 @@
-create_view
-=============
-Write your description here
+The `Create View` module
+========================
 
-.. automodule::  rynner.create_view
-   :members: 
+The `create_view` module contains a set of components that can be used to build
+an interface to *create* a job.
+
+.. toctree::
+   :maxdepth: 2
+
+   runcreateview_class
+   field_classes

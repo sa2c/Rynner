@@ -9,7 +9,26 @@ class DuplicateKeyException(Exception):
 
 
 class RunCreateView(QDialog):
+    '''A dialog composed by fields representing run settings.
+
+    '''
+
     def __init__(self, fields, title="Set up run"):
+        '''
+        Parameters
+        ----------
+        `fields` : list of BaseFields
+           a list of fields (see :class:`BaseField
+           and derived classes <rynner.create_view.BaseField>``).
+           Keys associated to fields must be unambiguous.
+        `title` : string
+           the title of the dialog.
+
+        Raises
+        ------
+        `DuplicateKeyException` if a duplicated  key is encountered.
+
+        '''
         super().__init__(None)
 
         # store fields in instance
@@ -48,14 +67,21 @@ class RunCreateView(QDialog):
         self.layout().addWidget(self._button_box)
 
     def show(self):
+        '''Calls :func:`init() <rynner.create_view.BaseField.init>` on all
+        fields and shows the dialog.'''
         # reset field values
         [field.init() for field in self.fields]
         super().show()
 
     def data(self):
+        '''Retruns a dictionary with the keys of the fields and the
+        corresponding values.'''
         return {field.key: field.value() for field in self.fields}
 
     def invalid(self):
+        ''' Returns list of the invalid fields.
+
+        '''
         return [field for field in self.fields if not field.valid()]
 
 
@@ -66,23 +92,32 @@ class BaseField(ABC):
     Object of this class interface themself with Rynner through a key
     (or set of keys). The value(s) of the fields can be retrieved through the value()
     method.
+
+    Attributes
+    ----------
+    key : string
+       The key passed to the constructor.
+    label : string
+       The label passed to the constructor.
+    widget : QWidget
+       The underlying Qt widget (which contains a layout and the set of checkboxes.)
+
     '''
 
     def __init__(self, key, label, default=None, remember=True):
         '''
         Parameters
         ----------
-        `key` : str
-           The key in the corresponding dictionary
-
-
-        Attributes
-        ----------
         `key` : string
-           The key passed to the constructor. 
-           
-        `widget` : QWidget
-           The underlying Qt widget (which contains a layout and the set of checkboxes.)
+           The key in the corresponding dictionary that will be passed to the plugin.
+        `label` : string
+           The label associated to the widget.
+        `default`: optional
+           The value the field will be set to initially
+        `remember` : bool, optional
+           Whether or not to remember the value set when the dialog is reoaded,
+           instead of resetting the the default value.
+
 
         '''
 
@@ -103,13 +138,17 @@ class BaseField(ABC):
 
     @abstractmethod
     def value(self):
+        ''' Returns the value contained in the field.'''
         pass
 
     @abstractmethod
     def set_value(self, value):
+        ''' Sets value in the field.'''
         pass
 
     def init(self):
+        '''Re-initialises the values if `remember` is not set to true.'''
+
         if not self.__remember:
             self.set_value(self.__default_value)
 
@@ -117,6 +156,9 @@ class BaseField(ABC):
         return input(self.label.text())
 
     def valid(self):
+        '''
+        Returns True if the field content is valid, False otherwise.
+        '''
         return True
 
 
@@ -211,6 +253,13 @@ class CheckBoxesField():
         return values
 
     def set_value(self, value_to_set):
+        '''
+        Parameters
+        ----------
+        `value_to_set`: dictionary of strings and booleans.
+           A dictionary containing the values to set.
+
+        '''
         if type(value_to_set) is not dict:
             raise TypeError('Input is not a dictionary.')
         for v in value_to_set.values():
@@ -234,7 +283,8 @@ class DropDownField(BaseField):
         '''
         Parameters
         ----------
-        `key`: 
+        `options` : list of strings
+           The list of possible options to choose from.
 
         '''
         self.__options = options

@@ -42,6 +42,7 @@
 - doesn't really do anything - and not integration tested
 * Host
 - shoud connection be contained entirely within Host (i.e. pass in user and host/domain name)
+- update downloads details of all jobs
 - should BASEDIR (i.e. id) be passed in when Host initialised?
 - how do I specify files for upload/download only once (i.e a dataset)?
 - implement download as: download(id, downloads):
@@ -77,6 +78,7 @@ or
 - the interpreter string in the jobcard should be customisable
 * Datastore
 - calls to datastore do not appear to be implemented
+- QID should be read from stdout and written to datastore, to avoid superfluous read/writes
 * Connection
 - lazily creates base directory, but does not create any subdirectories
 - make remote paths relative for u/l and d/l? what about local ones? Encoding them with id or pass in a directory name? Or should that be in pattern_parser?

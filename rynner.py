@@ -40,6 +40,9 @@ plugin1 = Plugin(
     runner,
     view_keys=[
         ('Message', 'config-options.Message'),
+        ('State', 'queue.State'),
+        ('Elapsed', 'queue.Elapsed'),
+        ('Time Limit', 'queue.TimeLimit'),
     ])
 
 #---------------------------------------------------------

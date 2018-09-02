@@ -384,8 +384,5 @@ class TestLiveConnection(unittest.TestCase):
 
     def test_host_update(self):
         s = SlurmHost(test_host, test_user, rsa_file)
-        import timeit
-        timeit.timeit('s.update(self.plugin_id)')
+        s.update(self.plugin_id)
         runs = s.runs(self.plugin_id)
-        import pdb
-        pdb.set_trace()

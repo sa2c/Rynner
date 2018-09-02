@@ -108,7 +108,7 @@ def update_plugins():
 
 timer = QTimer()
 timer.timeout.connect(update_plugins)
-secs = 10
+secs = 60
 timer.start(secs * 1000)
 QTimer.singleShot(10, update_plugins)
 

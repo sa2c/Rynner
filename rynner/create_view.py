@@ -100,7 +100,7 @@ class BaseField(ABC):
     label : string
        The label passed to the constructor.
     widget : QWidget
-       The underlying Qt widget (which contains a layout and the set of checkboxes.)
+       The underlying Qt widget.
 
     '''
 

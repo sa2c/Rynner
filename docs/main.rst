@@ -1,6 +1,11 @@
-main
-=============
-Write your description here
+The Main class
+==============
 
-.. automodule::  rynner.main
-   :members: 
+A class for the main window of the application, which will connect the
+user-defined plugins for the applications with the hosts.
+
+.. autoclass::  rynner.main.MainView
+   :members:
+
+.. autofun:: rynner.main.build_index_view
+

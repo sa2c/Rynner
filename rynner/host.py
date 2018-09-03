@@ -61,12 +61,14 @@ class Connection():
         return (exit_status, out, err)
 
     def put_file(self, local_path, remote_path):
+        '''Transfer file from `local_path` to `remote_path`'''
         self._ensure_connected()
         self._ensure_dir(remote_path)
         self.log(f'transferring file:\n{local_path} -> {remote_path}')
         self.sftp.put(local_path, remote_path)
 
     def get_file_content(self, remote_path):
+        '''Read remote file and return its content.'''
         self._ensure_connected()
         file = self.sftp.file(remote_path, mode='r')
         try:
@@ -78,6 +80,7 @@ class Connection():
         return contents
 
     def put_file_content(self, content, remote_path):
+        '''Write content to remote file.'''
         self._ensure_connected()
         self._ensure_dir(remote_path)
         self.log(
@@ -91,12 +94,14 @@ class Connection():
         self.log(f'File {remote_path} written')
 
     def get_file(self, remote_path, local_path):
+        '''Transfer file from `remote_path` to `local_path`.'''
         self._ensure_connected()
         self.log(f'Transfer remote file: {remote_path} -> {local_path}')
         self.sftp.get(remote_path, local_path)
         self.log(f'File {remote_path} transferred')
 
     def dir_exists(self, remote_path):
+        '''Returns True if `remote_path` exists, False otherwise.'''
         try:
             self.sftp.stat(remote_path)
             return True
@@ -104,9 +109,8 @@ class Connection():
             return False
 
     def list_dir(self, remote_path):
-        '''
-        Returns True if a remote directory exists and False otherwise
-        '''
+        '''Returns a list of directories at the `remote_path`.'''
+
         self._ensure_connected()
         self.log(f'listing directory: {remote_path}')
         if self.dir_exists(remote_path):
@@ -161,9 +165,8 @@ class Connection():
 
 
 class Host(QObject):
-    '''
-    Host object abstracts the interface between the plugin
-    and a remote machine.
+    '''An abstraction of the interface between the plugin and a remote machine.
+
     '''
 
     runs_updated = Signal(dict)
@@ -172,10 +175,12 @@ class Host(QObject):
         '''
         Parameters
         ----------
-            `connection` : rynner Connection
-                See :class:`Connection <rynner.host.Connection>`
             `pattern_parser` : rynner PatternParser
+                See :class:`PatternParser<rynner.pattern_parser.PatternParser>`.
+            `connection` : rynner Connection
+                See :class:`Connection <rynner.host.Connection>`.
             `datastore` : rynner Datastore
+                See :class:`Datastore<rynner.datastore.Datastore>`.
         '''
         self.connection = connection
         self.pattern_parser = pattern_parser
@@ -304,6 +309,9 @@ class GenericClusterHost(Host):
 
 
 class SlurmHost(GenericClusterHost):
+    ''' A convenient subclass of :class:`GenericClusterHost<rynner.host.GenericClusterHost>`
+    for a Slurm-managed cluster frontend.'''
+
     def __init__(self, domain, username, rsa_file):
 
         submit_cmd = 'sbatch jobcard | sed "s/Submitted batch job//" > qid'
@@ -337,6 +345,9 @@ class SlurmHost(GenericClusterHost):
 
 
 class PBSHost(GenericClusterHost):
+    ''' A convenient subclass of :class:`GenericClusterHost<rynner.host.GenericClusterHost>`
+    for a PBS-managed cluster frontend.'''
+
     def __init__(self, domain, username, rsa_file):
 
         submit_cmd = 'qsub jobcard > qid'

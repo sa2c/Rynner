@@ -19,9 +19,11 @@ enough to allow the developer to add any operation on the local machine.
 It works through `SSH` and `SFTP`, using the library `paramiko`.
 
 
-
 Usage
 -----
+
+The Rynner framework provides some classes that should do most of the work in
+managing and monitoring jobs on the cluster, i.e. the :class:`Main`. A developer 
 
 
 Notes
@@ -34,16 +36,16 @@ Notes
 .. toctree::
    :maxdepth: 2
 
-   create_view
-   datastore
-   host_patterns
-   host
-   index_view
-   logs
    main
-   pattern_parser
+   index_view
    plugin
    run
+   create_view
+   host
+   host_patterns
+   pattern_parser
+   datastore
+   logs
    template
    validator
  

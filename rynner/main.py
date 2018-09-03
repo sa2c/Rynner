@@ -17,7 +17,9 @@ class InvalidDuplicateWidget(Exception):
 
 
 class MainView(QMainWindow):
-    '''
+    '''The Main Window of the application.
+
+    TODO : Fix this
     Periodically, for each host, we should fetch a job list of the data visible
     (e.g. from the datastore of the job) for all jobs of the currently visible
     type. Jobs of a given type can be deduced by using their entry in Plugin
@@ -25,9 +27,24 @@ class MainView(QMainWindow):
 
     Upshot -> Plugin needs a URL + a label
     jobs = [ host.get_jobs(type=plugin.uid) for host in hosts ].flatten()
+
     '''
 
     def __init__(self, hosts, plugins):
+        '''
+        Attaches a :class:`RunListModel<rynner.index_view.RunListModel>` object
+        to each plugin passed in, whose data will be displayed in a separate tab,
+        and updates the :class:`RunListModel<rynner.index_view.RunListModel>` object 
+        with data from all the hosts.
+
+        Parameters
+        ----------
+        `hosts` : list of hosts
+            A list of :class:`host objects<rynner.host.Host>`
+        `plugins` : list of plugins
+            A list of :class:`plugin objects<rynner.plugin.Plugin>`
+
+        '''
         super().__init__(None)
 
         self._check_for_duplicate_widgets(plugins)
@@ -83,6 +100,10 @@ class MainView(QMainWindow):
 # takes in the table model and returns a view widget! with links signals?
 # contains plugin so that signals can be linked?? Maybe I need a run type proxy??
 def build_index_view(model, ui_file):
+    ''''
+    A function that creates a 
+
+    '''
     # could potentially also just put it in the right place??
     view = load_ui(ui_file)
 
@@ -92,7 +113,7 @@ def build_index_view(model, ui_file):
 
     # can probably set these in view
     view.table.setSelectionBehavior(QAbstractItemView.SelectRows)
-    view.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+    view.table.setEndexditTriggers(QAbstractItemView.NoEditTriggers)
 
     def stop_run():
         model.stop_run(view.table.selectionModel().selectedRows())

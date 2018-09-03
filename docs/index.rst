@@ -23,7 +23,11 @@ Usage
 -----
 
 The Rynner framework provides some classes that should do most of the work in
-managing and monitoring jobs on the cluster, i.e. the :class:`Main`. A developer 
+managing and monitoring jobs on the cluster, e.g. the
+:class:`MainView class<rynner.main.MainView>`. A developer who wants to run use Rynner to run
+an application on the cluster must create a :class:`Plugin
+object<rynner.plugin.Plugin>`, which is configured passing the appropriate
+parameters or callables to the constructor. 
 
 
 Notes

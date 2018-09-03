@@ -192,6 +192,11 @@ class Host(QObject):
     def upload(self, plugin_id, run_id, uploads):
         '''
         Uploads files using connection.
+
+        Parameters
+        ----------
+        `plugin_id` :
+           Plugin identifier (see :func:`Plugin constructor<rynner.plugin.Plugin.__init__>`)
         '''
         for upload in uploads:
             if len(upload) != 2:

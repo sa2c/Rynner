@@ -3,10 +3,6 @@ import uuid
 
 
 class RunManager:
-    '''
-    This object is created by a 'setup' function, or 'runner'
-    (see design.org example)
-    '''
     allowed_types = [int, str]
     key_filter = ['host', 'uploads']
 

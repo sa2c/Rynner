@@ -64,10 +64,10 @@ class Plugin(QObject):
            directly to keyword arguments of Run.
         `view_keys`: iterable of strings
            A list of keys to show in the (default) main/index view
-        `labels`: dict ,optional
+        `labels`: dict
            Dictionary giving a human readable name for each label. If not
            specified, the values of the key of each entry in  is used.
-        `view`: callable
+        `view`: callable returning QWidget
            A callable that when called returns a QWidget object (this should be
            a QWidget class or a function which returns a QWidget instance). If
            not set, RynCreateView will be used. view keyword argument which can
@@ -176,6 +176,8 @@ class PluginCollection(QObject):
         '''
         Parameters
         ----------
+        `name` : string
+           TODO Docs 
         `plugins` : list
            List of plugin objects.
         `view_keys` :
@@ -206,8 +208,9 @@ class PluginCollection(QObject):
         Returns
         -------
 
-        bool
-           True if this plugin is managed by PluginCollection and False otherwise
+        bool True if the plugin identified by `plugin_id` is managed by
+           PluginCollection and False otherwise
+
         '''
         for plugin in self.plugins:
             if plugin_id == plugin.plugin_id:

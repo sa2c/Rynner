@@ -7,5 +7,5 @@ user-defined plugins for the applications with the hosts.
 .. autoclass::  rynner.main.MainView
    :members:
 
-.. autofun:: rynner.main.build_index_view
+.. autofunction:: rynner.main.build_index_view
 

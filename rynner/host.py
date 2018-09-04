@@ -18,11 +18,14 @@ class Connection():
         '''
         Parameters
         ----------
-        `logger` : TODO docs
-        `host` : TODO docs
-        `user` : string, optional
-           TODO docs
-        `rsa_file` : TODO docs
+        `logger` : 
+           A :class:`Logger object<rynner.log.Logger>`.
+        `host` : string
+           A string containing the name of the host.
+        `user` : string
+           User name for the SSH connection.
+        `rsa_file` : string
+           Name of the file of the private SSH key.
 
         '''
         self.logger = logger
@@ -165,7 +168,7 @@ class Connection():
 
 
 class Host(QObject):
-    '''An abstraction of the interface between the plugin and a remote machine.
+    '''A representation of a remote host and a connection to it.
 
     '''
 
@@ -191,7 +194,7 @@ class Host(QObject):
 
     def upload(self, plugin_id, run_id, uploads):
         '''
-        Uploads files using connection.
+        Uploads files using the connection to the remote host.
 
         Parameters
         ----------
@@ -211,7 +214,7 @@ class Host(QObject):
     def parse(self, plugin_id, run_id, options):
         '''
         Ask pattern_parser to build a context object from the options supplied by
-        calls to RunManager.
+        calls to :class:`~rynner.run.RunManager`.
         '''
         context = self.pattern_parser.parse(options)
 
@@ -293,6 +296,9 @@ class Host(QObject):
 
 
 class GenericClusterHost(Host):
+    ''' A representation of a cluster frontend.
+
+    '''
     def __init__(self,
                  host,
                  username,
@@ -314,7 +320,7 @@ class GenericClusterHost(Host):
 
 
 class SlurmHost(GenericClusterHost):
-    ''' A convenient subclass of :class:`GenericClusterHost<rynner.host.GenericClusterHost>`
+    ''' A convenient subclass of :class:`~rynner.host.GenericClusterHost`
     for a Slurm-managed cluster frontend.'''
 
     def __init__(self, domain, username, rsa_file):
@@ -350,7 +356,7 @@ class SlurmHost(GenericClusterHost):
 
 
 class PBSHost(GenericClusterHost):
-    ''' A convenient subclass of :class:`GenericClusterHost<rynner.host.GenericClusterHost>`
+    ''' A convenient subclass of :class:`~rynner.host.GenericClusterHost`
     for a PBS-managed cluster frontend.'''
 
     def __init__(self, domain, username, rsa_file):

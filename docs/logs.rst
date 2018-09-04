@@ -1,6 +1,6 @@
-logs
-=============
-Write your description here
+Logger
+======
+A simple logger class.
 
 .. automodule::  rynner.logs
    :members: 

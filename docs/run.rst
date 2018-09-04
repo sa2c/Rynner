@@ -1,6 +1,6 @@
-run
-=============
-Write your description here
+The run module
+==============
+
 
 .. automodule::  rynner.run
    :members: 

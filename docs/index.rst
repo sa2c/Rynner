@@ -52,6 +52,7 @@ Notes
    logs
    template
    validator
+   class_table
  
 
 

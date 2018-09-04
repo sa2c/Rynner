@@ -3,6 +3,8 @@ import uuid
 
 
 class RunManager:
+    '''A class to manage runs related to a given plugin.
+    '''
     allowed_types = [int, str]
     key_filter = ['host', 'uploads']
 

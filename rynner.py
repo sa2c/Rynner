@@ -13,6 +13,7 @@ from rynner.run import RunManager
 from rynner.host_patterns import host_patterns
 from rynner.logs import Logger
 from tests.host_env import *
+from PySide2.QtGui import QIcon
 
 defaults = []
 
@@ -113,5 +114,19 @@ timer.start(secs * 1000)
 QTimer.singleShot(10, update_plugins)
 
 main = MainView(hosts, plugins)
+
+#---------------------------------------------------------
+# Icon
+#---------------------------------------------------------
+
+icon = QIcon("icons/Rynner-icon-256.png")
+icon.addFile("icons/Rynner-icon-32.png")
+main.setWindowIcon(icon)
+main.setWindowTitle("Rynner")
+
+#---------------------------------------------------------
+# Start
+#---------------------------------------------------------
+
 main.show()
 app.exec_()

@@ -1,28 +1,41 @@
 import os, glob
+import sys
 import yaml
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
+import rynner.host as host_module
 from tests.qtest_helpers import *
-import rynner.host
-from rynner.datastore import Datastore
-from rynner.pattern_parser import PatternParser
-from rynner.main import MainView
-from rynner.create_view import RunCreateView, TextField
-from rynner.plugin import Plugin, PluginCollection, RunAction
-from rynner.run import RunManager
-from rynner.host_patterns import host_patterns
-from rynner.logs import Logger
+from rynner import *
+from rynner.plugin import PluginCollection
 from tests.host_env import *
 from PySide2.QtGui import QIcon
 
 defaults = []
+allplugins = []
+hosts = []
+
+def update_plugins():
+    print('update plugins..')
+    for plugin in allplugins:
+        print(f'update {plugin}..')
+        sys.stdout.flush()
+        plugin_id = plugin.plugin_id
+        for host in hosts:
+            host.update(plugin_id)
+
 
 #---------------------------------------------------------
 # PLUGIN SCRIPT
 #---------------------------------------------------------
 
+
 # Create a fake run_create_view
-view1 = [TextField('Message', 'message', default='Hello, World!')]
+view1 = [
+    TextField('size', 'Temporal Size', default=''),
+    TextField('volume', 'Spatial Size', default=''),
+    TextField('beta', 'Beta', default=''),
+    TextField('m', 'M', default='')
+    ]
 
 
 def runner(run_manager, data):
@@ -31,12 +44,13 @@ def runner(run_manager, data):
         memory_per_task_MB=10000,
         host=hosts[0],
         script='echo "Hello from Sunbird!" > "my-job-output"')
+    update_plugins()
 
 
 # create Plugin objects
 plugin1 = Plugin(
     'swansea.ac.uk/1',
-    'Hello, World!',
+    'Lattice Submission',
     view1,
     runner,
     view_keys=[
@@ -84,7 +98,7 @@ hosts = []
 for filename in host_config_files:
     with open(filename, 'r') as file:
         host_config = yaml.load(file)
-    host_class = getattr(rynner.host, host_config['classname'])
+    host_class = getattr(host_module, host_config['classname'])
     host = host_class(host_config['domain'], host_config['username'],
                       host_config['rsa_file'])
     hosts.append(host)
@@ -99,14 +113,11 @@ plugins = [PluginCollection("All Runs", [plugin1, plugin2]), plugin1, plugin2]
 # Run application
 #---------------------------------------------------------
 
+allplugins.append(plugin1)
+allplugins.append(plugin2)
 
-def update_plugins():
-    for plugin in [plugin1, plugin2]:
-        plugin_id = plugin.plugin_id
-        for host in hosts:
-            host.update(plugin_id)
-
-
+print('start timer')
+sys.stdout.flush()
 timer = QTimer()
 timer.timeout.connect(update_plugins)
 secs = 60

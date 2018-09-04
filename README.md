@@ -9,6 +9,12 @@ There are a large number of open issues, in particular on Windows platforms.
 
 People interested in the future or progress of this project, contributing to development, and updates on API changes:
 
-https://gitter.im/rynner-framework/
+https://gitter.im/rynner-framework/Lobby
 
 or by email to Mark Dawson at Swansea University.
+
+# Documentation
+
+Current documentation may be found at:
+
+https://rynner.readthedocs.io/

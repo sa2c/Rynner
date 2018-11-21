@@ -2,7 +2,35 @@ from libsubmit import SSHChannel
 from libsubmit.providers.slurm.slurm import SlurmProvider
 from rynner.rynner import Rynner
 
-provider = SlurmProvider(
+
+class MySlurmProvider(SlurmProvider):
+    def info(self, jids):
+        fields = ['JobID', 'NCPUS', 'NNodes', 'State', 'TimeLimit', 'Elapsed']
+        delim = '|&libsubmit&|'
+
+        cmd = f"sacct -j {','.join(jids)} -n -o {','.join(fields)} -p --delimiter='{delim}'"
+        exitstatus, stdout, stderr = self.channel.execute_wait(cmd)
+
+        data = []
+
+        for line in stdout.split('\n'):
+            # skip empty lines
+            if len(line) == 0:
+                continue
+
+            field_values = line.split(delim)
+            jid = field_values[0]
+
+            if 'batch' not in jid and 'extern' not in jid:
+                data.append({
+                    fields[index]: field_values[index]
+                    for index in range(1, len(fields))
+                })
+
+        return data
+
+
+provider = MySlurmProvider(
     'compute',
     channel=SSHChannel(
         hostname='sunbird.swansea.ac.uk',
@@ -16,7 +44,7 @@ provider = SlurmProvider(
 )
 
 datastore = None
-rynner = Rynner(provider, datastore)
+rynner = Rynner(provider)
 run = rynner.create_run(
     script='cat Makefile > tmps', uploads=['Makefile'], downloads=['tmps'])
 rynner.upload(run)
@@ -26,7 +54,8 @@ rynner.submit(run)
 print('submit')
 print(run)
 
-runs = rynner.runs()
+runs = [run]
+rynner.update(runs)
 print('runs')
 print(runs)
 

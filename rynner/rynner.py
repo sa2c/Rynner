@@ -4,15 +4,16 @@ import os
 
 class Rynner:
 
+    StatusPending = 'PENDING'
     StatusRunning = 'RUNNING'
-    StatusCreated = 'CREATED'
-    StatusSubmitted = 'SUBMITTED'
     StatusCancelled = 'CANCELLED'
+    StatusCompleted = 'COMPLETED'
 
-    def __init__(self, provider, datastore):
+    StatesPreComplete = [StatusPending, StatusRunning]
+    StatesPostComplete = [StatusCompleted, StatusCancelled]
+
+    def __init__(self, provider):
         self.provider = provider
-        self.datastore = datastore
-        self._runs = []
 
     def create_run(self, script, uploads=None, downloads=None, namespace=None):
         if not uploads:
@@ -29,10 +30,8 @@ class Rynner:
             'uploads': uploads,
             'downloads': downloads,
             'script': script,
-            'status': Rynner.StatusSubmitted
+            'status': Rynner.StatusPending
         }
-
-        self._runs.append(run)
 
         return run
 
@@ -63,7 +62,7 @@ class Rynner:
 
     def upload(self, run):
         '''
-        Uploads files using connection.
+        Uploads files using provider channel.
         '''
 
         uploads = run['uploads']
@@ -75,7 +74,7 @@ class Rynner:
 
     def download(self, run):
         '''
-        Uploads files using connection.
+        Download files using provider channel.
         '''
 
         downloads = run['downloads']
@@ -87,60 +86,59 @@ class Rynner:
 
     def submit(self, run):
         run['qid'] = self.provider.submit(run['script'], 1)
-        run['status'] = Rynner.StatusSubmitted
+        run['status'] = Rynner.StatusPending
 
     def cancel(self, run):
         run['qid'] = self.provider.cancel(run['script'], 1)
         run['status'] = Rynner.StatusCancelled
 
-    def _finished_since_last_update(self):
+    def _finished_since_last_update(self, runs):
 
-        qids = [r['qid'] for r in self._runs]
+        qids = [r['qid'] for r in runs]
         status = self.provider.status(qids)
 
-        return [
-            run for index, run in enumerate(self._runs)
-            if run['status'] == Rynner.StatusRunning
+        needs_update = [
+            run['status'] == Rynner.StatusRunning
             and status[index] == Rynner.StatusRunning
+            for index, run in enumerate(runs)
         ]
 
-    def runs(self):
-        self.update_runs(self._runs)
-        return self._runs
+        return needs_update, status
 
-    def update_runs(self, runs):
+    def update(self, runs):
         '''
-        Triggers an update of job data from datastore
+        Performs an in-place update of run information. Only information in info and status keys are changed. Status is changed to reflect the current state of the job. Info is updated with the output of self.provider.info every time the job state has changed. The method returns True when any run has been changes, and false otherwise.
         '''
 
-        runs = self._finished_since_last_update()
-        #infos = self.provider.info(runs)
-        infos = runs
+        changed = False
+
+        # find current status of all runs
+
+        qids = [r['qid'] for r in runs]
+        status = self.provider.status(qids)
+
+        # find runs which have finished since last update
+
+        needs_update = []
 
         for index, run in enumerate(runs):
+            old_status = run['status']
+            new_status = status[index]
+            if new_status != old_status:
+                # finished since last check
+                needs_update.append(run)
+                changed = True
+
+        # update status of all runs
+
+        for index, run in enumerate(runs):
+            run['status'] = status[index]
+
+        # get info on remaining runs (not implemented)
+        qids = [run['qid'] for run in needs_update]
+        infos = self.provider.info(qids)
+
+        for index, run in enumerate(needs_update):
             run['info'] = infos[index]
 
-
-#def get_info_slurm(self, jids):
-#    fields = ['JobID', 'NCPUS', 'NNodes', 'State', 'TimeLimit', 'Elapsed']
-#    delim = '|&|'
-#
-#    cmd = f"sacct -j {','.join(jids)} -n -o {','.join(fields)} -p --delimiter='{delim}'"
-#    exitstatus, stdout, stderr = self.connection.run_command(cmd)
-#
-#    data = {}
-#
-#    for line in stdout.split('\n'):
-#        # skip empty lines
-#        if len(line) == 0:
-#            continue
-#
-#        field_values = line.split(delim)
-#        jid = field_values[0]
-#
-#        if 'batch' not in jid and 'extern' not in jid:
-#            data[jid] = {}
-#            for index in range(1, len(fields)):
-#                data[jid][fields[index]] = field_values[index]
-#
-#    return data
+        return changed

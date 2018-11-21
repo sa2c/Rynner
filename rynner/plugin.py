@@ -102,7 +102,7 @@ class Plugin(QObject):
     def _run(self, config):
         run_manager = RunManager(self.plugin_id, config)
         if self.runner is None:
-            run = run_manager.new(**data)
+            run = run_manager.new(**config)
         else:
             self.runner(run_manager, config)
         run_manager.store()

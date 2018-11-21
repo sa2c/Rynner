@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-paramiko = "*"
 "pyside2" = "*"
 ipython = "*"
 pytest = "*"
@@ -12,6 +11,7 @@ pytest-qt = "*"
 pytest-xdist = "*"
 pyyaml = "*"
 python-box = "*"
+libsubmit = "*"
 
 [dev-packages]
 

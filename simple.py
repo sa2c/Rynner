@@ -15,8 +15,8 @@ provider = SlurmProvider(
     max_blocks=1,
 )
 
-datastore = None
 rynner = Rynner(provider)
+
 run = rynner.create_run(
     script='cat Makefile > tmps', uploads=['Makefile'], downloads=['tmps'])
 rynner.upload(run)

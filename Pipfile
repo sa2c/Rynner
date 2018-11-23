@@ -11,7 +11,7 @@ pytest-qt = "*"
 pytest-xdist = "*"
 pyyaml = "*"
 python-box = "*"
-libsubmit = "*"
+libsubmit = {ref = "master", git = "https://github.com/M4rkD/libsubmit.git"}
 
 [dev-packages]
 

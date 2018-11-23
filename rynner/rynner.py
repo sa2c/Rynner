@@ -112,7 +112,7 @@ class Rynner:
 
         submit_script = f'cd {run.remote_dir}; \
 {self._record_time("start", run)}; \
-exec {runscript_name}; \
+{runscript_name}; \
 {self._record_time("end", run)}'
 
         run['qid'] = self.provider.submit(run['script'], 1)

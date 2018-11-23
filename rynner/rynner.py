@@ -1,5 +1,6 @@
 import uuid
 import os
+from box import Box
 
 
 class Rynner:
@@ -15,7 +16,12 @@ class Rynner:
     def __init__(self, provider):
         self.provider = provider
 
-    def create_run(self, script, uploads=None, downloads=None, namespace=None):
+    def create_run(self,
+                   script,
+                   uploads=None,
+                   downloads=None,
+                   namespace=None,
+                   jobname='rynner'):
         if not uploads:
             uploads = []
 
@@ -24,14 +30,15 @@ class Rynner:
 
         uid = str(uuid.uuid1())
 
-        run = {
+        run = Box({
             'id': uid,
-            'remote-dir': self._remote_dir(namespace, uid),
+            'job_name': jobname,
+            'remote_dir': self._remote_dir(namespace, uid),
             'uploads': uploads,
             'downloads': downloads,
             'script': script,
             'status': Rynner.StatusPending
-        }
+        })
 
         return run
 
@@ -41,7 +48,7 @@ class Rynner:
         else:
             path = str(uid)
 
-        return path
+        return os.path.join('rynner', path)
 
     def _parse_paths(self, file_transfers):
         for file_transfer in file_transfers:
@@ -85,12 +92,43 @@ class Rynner:
             self.provider.channel.pull_file(src, dest)
 
     def submit(self, run):
+        # copy execution script to remote
+
+        runscript_name = f'rynner_exec_{run.job_name}'
+        script_dir = self.provider.channel.script_dir
+        local_script_path = f'{script_dir}/{runscript_name}'
+
+        with open(local_script_path, "w") as file:
+            file.write(run['script'])
+
+        remote_script_path = os.path.join(run.remote_dir, runscript_name)
+        self.provider.channel.push_file(local_script_path, run.remote_dir)
+
+        # record submission times on remote
+
+        self._record_time('submit', run, execute=True)
+
+        # submit run
+
+        submit_script = f'cd {run.remote_dir}; \
+{self._record_time("start", run)}; \
+exec {runscript_name}; \
+{self._record_time("end", run)}'
+
         run['qid'] = self.provider.submit(run['script'], 1)
         run['status'] = Rynner.StatusPending
 
     def cancel(self, run):
+        self._record_time('cancel', run)
         run['qid'] = self.provider.cancel(run['script'], 1)
         run['status'] = Rynner.StatusCancelled
+
+    def _record_time(self, label, run, execute=False):
+        remote_cmd = f'echo "{label}: $(date +%s)" >> rynner.times'
+        if execute:
+            self.provider.channel.execute_wait(remote_cmd)
+
+        return remote_cmd
 
     def _finished_since_last_update(self, runs):
 

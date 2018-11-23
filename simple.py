@@ -47,7 +47,7 @@ datastore = None
 rynner = Rynner(provider)
 run = rynner.create_run(
     script='cat Makefile > tmps', uploads=['Makefile'], downloads=['tmps'])
-rynner.upload(run)
+ryner.upload(run)
 print('upload')
 print(run)
 rynner.submit(run)

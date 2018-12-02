@@ -1,6 +1,7 @@
 # -*- coding: future_fstrings -*-
 import uuid
 import os
+import pickle
 from box import Box
 
 from future import *
@@ -43,6 +44,13 @@ class Rynner:
             'status': Rynner.StatusPending
         })
 
+        pickle_name = f'rynner_data_{run.job_name}.pkl'
+        script_dir = self.provider.channel.script_dir
+        local_pickle_path = os.path.join(script_dir, pickle_name)
+        with open(local_pickle_path, "w") as file:
+            pickle.dump( run, file )
+        run['uploads'] += [[local_pickle_path,'.']]
+
         return run
 
     def _remote_dir(self, namespace, uid):
@@ -55,15 +63,15 @@ class Rynner:
         return path
 
     def _parse_path(self, file_transfer):
-            if type(file_transfer) == str:
-                src = file_transfer
-                dest, _ = os.path.split(file_transfer)
+        if type(file_transfer) == str:
+            src = file_transfer
+            dest, _ = os.path.split(file_transfer)
 
-            elif len(file_transfer):
-                src, dest = file_transfer
-            else:
-                raise InvalidContextOption(
-                    'invalid format for uploads options: {uploads}')
+        elif len(file_transfer):
+            src, dest = file_transfer
+        else:
+            raise InvalidContextOption(
+                'invalid format for uploads options: {uploads}')
 
         if dest == '':
             dest = '.'

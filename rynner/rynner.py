@@ -1,7 +1,9 @@
+# -*- coding: future_fstrings -*-
 import uuid
 import os
 from box import Box
 
+from future import *
 
 class Rynner:
 
@@ -174,9 +176,5 @@ class Rynner:
 
         # get info on remaining runs (not implemented)
         qids = [run['qid'] for run in needs_update]
-        infos = self.provider.info(qids)
-
-        for index, run in enumerate(needs_update):
-            run['info'] = infos[index]
 
         return changed

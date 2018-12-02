@@ -4,6 +4,7 @@ import os
 from box import Box
 
 from future import *
+from pathlib import Path, PurePosixPath
 
 class Rynner:
 
@@ -45,15 +46,15 @@ class Rynner:
         return run
 
     def _remote_dir(self, namespace, uid):
+        path = PurePosixPath( 'rynner' )
         if namespace:
-            path = os.path.join(namespace, uid)
+            path = path.joinpath( namespace, uid )
         else:
-            path = str(uid)
+            path = path.joinpath( uid )
 
-        return os.path.join('rynner', path)
+        return path
 
-    def _parse_paths(self, file_transfers):
-        for file_transfer in file_transfers:
+    def _parse_path(self, file_transfer):
             if type(file_transfer) == str:
                 src = file_transfer
                 dest, _ = os.path.split(file_transfer)
@@ -76,10 +77,11 @@ class Rynner:
 
         uploads = run['uploads']
 
-        if len(uploads) > 0:
-            src, dest = self._parse_paths(uploads)
+        for upload in uploads:
+            src, dest = self._parse_path(upload)
+            dest = run.remote_dir.joinpath( dest ).as_posix()
 
-            self.provider.channel.push_file(src, dest)
+            self.provider.channel.push_directory(src, dest)
 
     def download(self, run):
         '''
@@ -88,23 +90,30 @@ class Rynner:
 
         downloads = run['downloads']
 
-        if len(downloads) > 0:
-            src, dest = self._parse_paths(downloads)
+        for download in downloads:
+            src, dest = self._parse_path(download)
+            src = run.remote_dir.joinpath( src ).as_posix()
 
-            self.provider.channel.pull_file(src, dest)
+            # Libsubmit will refuse to overwrite an existing file.
+            # We want overwriting as default behaviour and remove
+            # the file here
+            dest_file = os.path.join(dest, os.path.basename(src))
+            if os.path.isfile(dest_file):
+                os.remove(dest_file)
+
+            self.provider.channel.pull_directory(src, dest)
 
     def submit(self, run):
         # copy execution script to remote
 
         runscript_name = f'rynner_exec_{run.job_name}'
         script_dir = self.provider.channel.script_dir
-        local_script_path = f'{script_dir}/{runscript_name}'
+        local_script_path = os.path.join(script_dir, runscript_name)
 
         with open(local_script_path, "w") as file:
             file.write(run['script'])
 
-        remote_script_path = os.path.join(run.remote_dir, runscript_name)
-        self.provider.channel.push_file(local_script_path, run.remote_dir)
+        self.provider.channel.push_file(local_script_path, run.remote_dir.as_posix())
 
         # record submission times on remote
 
@@ -112,12 +121,12 @@ class Rynner:
 
         # submit run
 
-        submit_script = f'cd {run.remote_dir}; \
+        submit_script = f'cd {run.remote_dir.as_posix()}; \
 {self._record_time("start", run)}; \
-{runscript_name}; \
+./{runscript_name}; \
 {self._record_time("end", run)}'
 
-        run['qid'] = self.provider.submit(run['script'], 1)
+        run['qid'] = self.provider.submit(submit_script, 1)
         run['status'] = Rynner.StatusPending
 
     def cancel(self, run):
@@ -126,7 +135,8 @@ class Rynner:
         run['status'] = Rynner.StatusCancelled
 
     def _record_time(self, label, run, execute=False):
-        remote_cmd = f'echo "{label}: $(date +%s)" >> rynner.times'
+        times_file = run.remote_dir.joinpath('rynner.times').as_posix()
+        remote_cmd = f'echo "{label}: $(date +%s)" >> {times_file}'
         if execute:
             self.provider.channel.execute_wait(remote_cmd)
 

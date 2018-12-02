@@ -44,13 +44,6 @@ class Rynner:
             'status': Rynner.StatusPending
         })
 
-        pickle_name = f'rynner_data_{run.job_name}.pkl'
-        script_dir = self.provider.channel.script_dir
-        local_pickle_path = os.path.join(script_dir, pickle_name)
-        with open(local_pickle_path, "w") as file:
-            pickle.dump( run, file )
-        run['uploads'] += [[local_pickle_path,'.']]
-
         return run
 
     def _remote_dir(self, namespace, uid):
@@ -78,12 +71,31 @@ class Rynner:
 
         return src, dest
 
+    def save_run_config(self, run):
+        '''
+        Saves the run configuration into a temporary file and 
+        returns the path to the file
+        '''
+
+        filename = f'rynner_data_{run.job_name}.pkl'
+        script_dir = self.provider.channel.script_dir
+        filepath = os.path.join(script_dir, filename)
+        with open(filepath, "w") as file:
+            pickle.dump( run, file )
+
+        return filepath
+
     def upload(self, run):
         '''
         Uploads files using provider channel.
         '''
 
         uploads = run['uploads']
+
+        # Write the run configuration into a file and include
+        # it in uploads
+        run_config_file = self.save_run_config(run)
+        uploads += [[run_config_file,'.']]
 
         for upload in uploads:
             src, dest = self._parse_path(upload)

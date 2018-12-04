@@ -3,6 +3,7 @@ import uuid
 import os
 import pickle
 from box import Box
+from stat import S_ISDIR
 
 from future import *
 from pathlib import Path, PurePosixPath
@@ -71,31 +72,12 @@ class Rynner:
 
         return src, dest
 
-    def save_run_config(self, run):
-        '''
-        Saves the run configuration into a temporary file and 
-        returns the path to the file
-        '''
-
-        filename = f'rynner_data_{run.job_name}.pkl'
-        script_dir = self.provider.channel.script_dir
-        filepath = os.path.join(script_dir, filename)
-        with open(filepath, "w") as file:
-            pickle.dump( run, file )
-
-        return filepath
-
     def upload(self, run):
         '''
         Uploads files using provider channel.
         '''
 
         uploads = run['uploads']
-
-        # Write the run configuration into a file and include
-        # it in uploads
-        run_config_file = self.save_run_config(run)
-        uploads += [[run_config_file,'.']]
 
         for upload in uploads:
             src, dest = self._parse_path(upload)
@@ -208,3 +190,55 @@ class Rynner:
         qids = [run['qid'] for run in needs_update]
 
         return changed
+
+    def save_run_config(self, run):
+        '''
+        Saves the run configuration on the cluster
+        '''
+
+        filename = f'rynner_data_{run.job_name}.pkl'
+        filepath = run.remote_dir.joinpath( filename ).as_posix()
+
+        sftp_client = self.provider.channel.sftp_client
+        with sftp_client.open(filepath, "wb") as f:
+            pickle.dump( run, f )
+
+        return filepath
+
+    def get_runs(self, namespace = ''):
+        '''
+        Read pickled run files from the cluster
+        '''
+
+        sftp_client = self.provider.channel.sftp_client
+        basedir = self._remote_dir(namespace=namespace, uid='')
+
+        runs = []
+        try:
+            rynner_folder_exists = S_ISDIR( sftp_client.stat(basedir.as_posix()).st_mode )
+        except:
+            rynner_folder_exists = False
+
+        if rynner_folder_exists:
+            dir_list = sftp_client.listdir(path=basedir.as_posix())
+
+            for dirname in dir_list:
+                subdir = basedir.joinpath(dirname)
+
+                if S_ISDIR( sftp_client.stat(subdir.as_posix()).st_mode ):
+                    file_list = sftp_client.listdir(path=subdir.as_posix())
+
+                    for filename in file_list:
+                        if 'rynner_data_' in filename and '.pkl' in filename:
+                            remote_path = subdir.joinpath(filename).as_posix()
+                            try:
+                                with sftp_client.open(remote_path, 'rb') as f:
+                                    run = pickle.load( f )
+                                self.provider._test_add_resource( run['qid'] )
+                                runs += [ run ]
+                            except:
+                                pass
+                            
+        return runs
+                        
+                

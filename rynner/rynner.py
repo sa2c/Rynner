@@ -4,6 +4,7 @@ import os
 import pickle
 from box import Box
 from stat import S_ISDIR
+import tempfile
 
 from future import *
 from pathlib import Path, PurePosixPath
@@ -111,8 +112,8 @@ class Rynner:
         # copy execution script to remote
 
         runscript_name = f'rynner_exec_{run.job_name}'
-        script_dir = self.provider.channel.script_dir
-        local_script_path = os.path.join(script_dir, runscript_name)
+        script_dir = self.provider.script_dir
+        local_script_path = os.path.join(self.provider.script_dir, runscript_name)
 
         with open(local_script_path, "w") as file:
             file.write(run['script'])

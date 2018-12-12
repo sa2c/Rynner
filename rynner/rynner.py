@@ -111,8 +111,8 @@ class Rynner:
         # copy execution script to remote
 
         runscript_name = f'rynner_exec_{run.job_name}'
-        script_dir = self.provider.channel.script_dir
-        local_script_path = os.path.join(script_dir, runscript_name)
+        script_dir = self.provider.script_dir
+        local_script_path = os.path.join(self.provider.script_dir, runscript_name)
 
         with open(local_script_path, "w") as file:
             file.write(run['script'])

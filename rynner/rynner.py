@@ -85,6 +85,8 @@ class Rynner:
 
             self.provider.channel.push_directory(src, dest)
 
+        self.save_run_config( run )
+
     def download(self, run):
         '''
         Download files using provider channel.
@@ -131,10 +133,13 @@ class Rynner:
         run['qid'] = self.provider.submit(submit_script, 1)
         run['status'] = Rynner.StatusPending
 
+        self.save_run_config( run )
+
     def cancel(self, run):
         self._record_time('cancel', run)
         run['qid'] = self.provider.cancel(run['script'], 1)
         run['status'] = Rynner.StatusCancelled
+        self.save_run_config( run )
 
     def _record_time(self, label, run, execute=False):
         times_file = run.remote_dir.joinpath('rynner.times').as_posix()

@@ -4,6 +4,7 @@ import os
 import pickle
 from box import Box
 from stat import S_ISDIR
+import time
 
 from future import *
 from pathlib import Path, PurePosixPath
@@ -85,6 +86,7 @@ class Rynner(object):
 
             self.provider.channel.push_directory(src, dest)
 
+        run['upload_time'] = time.time()
         self.save_run_config( run )
 
     def download(self, run):

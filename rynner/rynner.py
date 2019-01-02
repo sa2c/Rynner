@@ -8,7 +8,7 @@ from stat import S_ISDIR
 from future import *
 from pathlib import Path, PurePosixPath
 
-class Rynner:
+class Rynner(object):
 
     StatusPending = 'PENDING'
     StatusRunning = 'RUNNING'

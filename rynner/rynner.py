@@ -8,6 +8,7 @@ import time
 
 from future import *
 from pathlib import Path, PurePosixPath
+import threading, queue
 
 class Rynner(object):
 
@@ -88,6 +89,62 @@ class Rynner(object):
 
         run['upload_time'] = time.time()
         self.save_run_config( run )
+
+    def list_remote_files(self, run, remote_source, local_dir):
+        '''
+        Build a list of files a remote folder
+        '''
+        expanded_downloads = []
+        sftp_client = self.provider.channel.sftp_client
+        src = run.remote_dir.joinpath( remote_source ).as_posix()
+
+        try:
+            if S_ISDIR( sftp_client.stat(src).st_mode ):
+                _, directory_name = os.path.split(src)
+                dest = os.path.join(local_dir, directory_name)
+                
+                if not os.path.exists(directory_name):
+                    os.makedirs(directory_name)
+                
+                file_list = sftp_client.listdir(path=src)
+                for filename in file_list:
+                    src = remote_source + '/' + filename
+                    expanded_downloads += self.list_remote_files( run, src, dest )
+            else:
+                expanded_downloads = [ [remote_source, local_dir] ]
+        except Exception as e:
+            print(e)
+            print("No such file")
+        return expanded_downloads
+    
+    def start_download(self, run):
+        '''
+        Spawn a thread to download the files in the download list.
+        Update a report of the current state of the process.
+        '''
+        downloads = []
+        for download in run['downloads']:
+            downloads +=  self.list_remote_files( run, download[0], download[1] )
+
+        def download_thread(run):
+            '''
+            The function executed by the download thread
+            '''
+            run = run.copy()
+            for i, download in enumerate(downloads):
+                self.state = (float(i)/len(downloads))
+                run['downloads'] = [download]
+                self.download( run )
+                
+            self.state = 1.0
+            return
+        
+        self.state = 0
+        downloadthread = threading.Thread( target=download_thread, args=(run,) )
+        downloadthread.start()
+
+    def get_download_completion(self, run):
+        return self.state
 
     def download(self, run):
         '''

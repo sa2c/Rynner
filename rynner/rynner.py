@@ -130,21 +130,18 @@ class Rynner(object):
             '''
             The function executed by the download thread
             '''
-            run = run.copy()
+            run_copy = run.copy()
             for i, download in enumerate(downloads):
-                self.state = (float(i)/len(downloads))
-                run['downloads'] = [download]
-                self.download( run )
+                run['download_status'] = (float(i)/len(downloads))
+                run_copy['downloads'] = [download]
+                self.download( run_copy )
                 
-            self.state = 1.0
+            run['download_status'] = 1.0
             return
         
-        self.state = 0
+        run['download_status'] = 0
         downloadthread = threading.Thread( target=download_thread, args=(run,) )
         downloadthread.start()
-
-    def get_download_completion(self, run):
-        return self.state
 
     def download(self, run):
         '''

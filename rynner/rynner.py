@@ -74,6 +74,54 @@ class Rynner(object):
 
         return src, dest
 
+    def list_local_files(self, run, local_source, remote_dir):
+        '''
+        Build a list of files a remote folder
+        '''
+        expanded_uploads = []
+
+        try:
+            if os.path.isdir(local_source):
+                _, directory_name = os.path.split(local_source)
+                dest = remote_dir + '/' + directory_name
+                
+                file_list = os.listdir(directory_name)
+                for filename in file_list:
+                    src = os.path.join(local_source, filename)
+                    expanded_uploads += self.list_remote_files( run, src, dest )
+            else:
+                expanded_uploads = [ [local_source, remote_dir] ]
+        except Exception as e:
+            print(e)
+            print("No such file")
+        return expanded_uploads
+    
+    def start_upload(self, run):
+        '''
+        Spawn a thread to upload the files in the upload list.
+        Update a report of the current state of the process.
+        '''
+        uploads = []
+        for upload in run['uploads']:
+            uploads +=  self.list_local_files( run, upload[0], upload[1] )
+
+        def upload_thread(run):
+            '''
+            The function executed by the download thread
+            '''
+            run_copy = run.copy()
+            for i, upload in enumerate(uploads):
+                run['upload_status'] = (float(i)/len(uploads))
+                run_copy['uploads'] = [upload]
+                self.upload( run_copy )
+                
+            run['upload_status'] = 1.0
+            return
+        
+        run['upload_status'] = 0
+        thread = threading.Thread( target=upload_thread, args=(run,) )
+        thread.start()
+
     def upload(self, run):
         '''
         Uploads files using provider channel.
@@ -88,7 +136,6 @@ class Rynner(object):
             self.provider.channel.push_directory(src, dest)
 
         run['upload_time'] = time.time()
-        self.save_run_config( run )
 
     def list_remote_files(self, run, remote_source, local_dir):
         '''
@@ -103,9 +150,6 @@ class Rynner(object):
                 _, directory_name = os.path.split(src)
                 dest = os.path.join(local_dir, directory_name)
                 
-                if not os.path.exists(directory_name):
-                    os.makedirs(directory_name)
-                
                 file_list = sftp_client.listdir(path=src)
                 for filename in file_list:
                     src = remote_source + '/' + filename
@@ -114,6 +158,7 @@ class Rynner(object):
                 expanded_downloads = [ [remote_source, local_dir] ]
         except Exception as e:
             print(e)
+            print()
             print("No such file")
         return expanded_downloads
     
@@ -140,8 +185,8 @@ class Rynner(object):
             return
         
         run['download_status'] = 0
-        downloadthread = threading.Thread( target=download_thread, args=(run,) )
-        downloadthread.start()
+        thread = threading.Thread( target=download_thread, args=(run,) )
+        thread.start()
 
     def download(self, run):
         '''

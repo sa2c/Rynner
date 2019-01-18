@@ -158,7 +158,7 @@ class Rynner(object):
                 expanded_downloads = [ [remote_source, local_dir] ]
         except Exception as e:
             print(e)
-            print()
+            print(src)
             print("No such file")
         return expanded_downloads
     

@@ -20,8 +20,9 @@ class Rynner(object):
     StatesPreComplete = [StatusPending, StatusRunning]
     StatesPostComplete = [StatusCompleted, StatusCancelled]
 
-    def __init__(self, provider):
+    def __init__(self, provider, path = 'rynner'):
         self.provider = provider
+        self.path = path
 
     def create_run(self,
                    script,
@@ -50,7 +51,7 @@ class Rynner(object):
         return run
 
     def _remote_dir(self, namespace, uid):
-        path = PurePosixPath( 'rynner' )
+        path = PurePosixPath( self.path )
         if namespace:
             path = path.joinpath( namespace, uid )
         else:

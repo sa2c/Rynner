@@ -1,4 +1,3 @@
-# -*- coding: future_fstrings -*-
 import uuid
 import os
 import pickle
@@ -212,7 +211,7 @@ class Rynner(object):
     def submit(self, run):
         # copy execution script to remote
 
-        runscript_name = f'rynner_exec_{run.job_name}'
+        runscript_name = 'rynner_exec_{}'.format((run.job_name))
         script_dir = self.provider.script_dir
         local_script_path = os.path.join(self.provider.script_dir, runscript_name)
 
@@ -227,16 +226,24 @@ class Rynner(object):
 
         # submit run
 
-        submit_script = f'{self._record_time("start", run)}; \
-cd {run.remote_dir.as_posix()}; \
-./{runscript_name}; \
+        submit_script = '{}; \
+cd {}; \
+./{}; \
 cd ; \
-{self._record_time("end", run)}'
+{}'.format((self._record_time("start", run)), (run.remote_dir.as_posix()), (runscript_name), (self._record_time("end", run)))
 
-        run['qid'] = self.provider.submit(submit_script, 1)
-        run['status'] = Rynner.StatusPending
+        qid = self.provider.submit(submit_script, 1)
+        
+        if qid == None:
+            # Failed to submit
+            return False
+        else :
+            # Succesfully submitted
+            run['qid'] = qid
+            run['status'] = Rynner.StatusPending
 
-        self.save_run_config( run )
+            self.save_run_config( run )
+            return True
 
     def cancel(self, run):
         self._record_time('cancel', run)
@@ -246,7 +253,7 @@ cd ; \
 
     def _record_time(self, label, run, execute=False):
         times_file = run.remote_dir.joinpath('rynner.times').as_posix()
-        remote_cmd = f'echo "{label}: $(date +%s)" >> {times_file}'
+        remote_cmd = 'echo "{}: $(date +%s)" >> {}'.format((label), (times_file))
         if execute:
             self.provider.channel.execute_wait(remote_cmd)
 
@@ -318,7 +325,7 @@ cd ; \
         Saves the run configuration on the cluster
         '''
 
-        filename = f'rynner_data_{run.job_name}.pkl'
+        filename = 'rynner_data_{}.pkl'.format((run.job_name))
         filepath = run.remote_dir.joinpath( filename ).as_posix()
 
         sftp_client = self.provider.channel.sftp_client
@@ -363,4 +370,3 @@ cd ; \
                             
         return runs
                         
-                

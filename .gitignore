@@ -3,4 +3,4 @@
 /tests/.pytest_cache/
 /.pytest_cache/
 *.pyc
-rynner_logs.txt
+/.idea/

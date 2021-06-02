@@ -6,7 +6,7 @@ provider = SlurmProvider(
     'compute',
     channel=SSHChannel(
         hostname='sunbird.swansea.ac.uk',
-        username='s.mark.dawson',
+        username='s.user.name',
         script_dir='/tmp'
     ),
     nodes_per_block=1,

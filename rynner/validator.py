@@ -9,18 +9,18 @@ class RynnerValidatorException(Exception):
 class Validator(ABC):
     @abstractmethod
     def validate():
-        '''
+        """
         Returns the value passed when it is ok, raises RynnerValidatorException
         otherwise.
-        '''
+        """
         pass
 
 
 class IntValidator(Validator):
-    '''
+    """
     Checks that input to validate method is an integer.
     If min or max are specified, it also checks against these constraints.
-    '''
+    """
 
     def __init__(self, min=None, max=None):
         self.min = min
@@ -45,11 +45,11 @@ class IntValidator(Validator):
 
 
 class TimeHMSStringValidator(Validator):
-    '''
+    """
     Checks that input to validate method is a valid H:M:S time duration.
     M and S must be integers between 0 and 59, while H must be an integer
     greater or equal than 0.
-    '''
+    """
 
     def validate(self, value):
         if type(value) is not str:
@@ -75,10 +75,10 @@ class TimeHMSStringValidator(Validator):
 
 
 class SimpleTypeValidator(Validator):
-    '''
+    """
     Only checks that the input to validate is of the type passed to the
     constructor.
-    '''
+    """
 
     def __init__(self, t):
         self.mytype = t

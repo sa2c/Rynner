@@ -11,14 +11,14 @@ class RunAction:
 
 
 class Plugin(QObject):
-    '''
+    """
     The runner object (function) is the thing that is responsible for running
     the job, usually by creating a Run object.
     Links the GUI/UI and the 'run' logic.
     (see design.org example)
 
 
-   '''
+   """
 
     build_index_view = None
 
@@ -35,7 +35,7 @@ class Plugin(QObject):
                  labels=None,
                  build_index_view=None,
                  parent=None):
-        '''
+        """
         Parameters
         ----------
         `plugin_id`: str
@@ -74,7 +74,7 @@ class Plugin(QObject):
            be used to override the default main/index view to render for a
            Plugin.
 
-        '''
+        """
         super().__init__(parent)
         self.name = name
         self.plugin_id = plugin_id
@@ -90,8 +90,8 @@ class Plugin(QObject):
             self.view_keys = view_keys
 
         if isinstance(view_keys, str):
-            raise ValueError(
-                'view_keys kwarg tuple or list expected, not string')
+            raise ValueError('view_keys kwarg tuple or list expected, '
+                             'not string')
 
         if not isinstance(self.create_view, RunCreateView):
             self.create_view = RunCreateView(self.create_view)
@@ -102,7 +102,7 @@ class Plugin(QObject):
     def _run(self, config):
         run_manager = RunManager(self.plugin_id, config)
         if self.runner is None:
-            run = run_manager.new(**config)
+            run_manager.new(**config)
         else:
             self.runner(run_manager, config)
         run_manager.store()
@@ -130,18 +130,19 @@ class Plugin(QObject):
         raise NotImplementedError()
 
     def manages(self, plugin_id):
-        '''
+        """
         Checks if plugin_id is the id of this plugin instance.
 
         Implemented to maintain compatibility with PluginCollection.
-        '''
+        """
         return plugin_id == self.plugin_id
 
 
 class PluginCollection(QObject):
-    '''
-    This class allows a collection of Plugin objects to be used with the same API as a single object.
-    '''
+    """
+    This class allows a collection of Plugin objects to be used with the same
+    API as a single object.
+    """
 
     build_index_view = None
 
@@ -166,9 +167,10 @@ class PluginCollection(QObject):
         raise NotImplementedError()
 
     def manages(self, plugin_id):
-        '''
-        Returns True if this plugin is managed by PluginCollection and False otherwise
-        '''
+        """
+        Returns True if this plugin is managed by PluginCollection and False
+        otherwise
+        """
         for plugin in self.plugins:
             if plugin_id == plugin.plugin_id:
                 return True

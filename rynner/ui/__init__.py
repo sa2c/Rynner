@@ -1,4 +1,4 @@
-import sys, os
+import os
 import types
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QFile

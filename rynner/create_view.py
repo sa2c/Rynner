@@ -1,7 +1,6 @@
-import sys
 from abc import ABC, abstractmethod
-from PySide2.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QDialogButtonBox, QGroupBox, QCheckBox, QComboBox
-from PySide2.QtCore import QSize, Signal
+from PySide2.QtWidgets import QLabel, QWidget, QLineEdit, QVBoxLayout, \
+    QFormLayout, QDialog, QDialogButtonBox, QGroupBox, QCheckBox, QComboBox
 
 
 class DuplicateKeyException(Exception):
@@ -26,8 +25,8 @@ class RunCreateView(QDialog):
             for key in keys:
                 if key in seen:
                     # raise an error if a duplicate key found
-                    raise DuplicateKeyException(
-                        "duplicate entries for key '{}'".format(field.key))
+                    raise DuplicateKeyException(f"duplicate entries for "
+                                                f"key '{field.key}'")
                 else:
                     # collect seen keys, to check for duplicates
                     seen.add(key)
@@ -60,23 +59,23 @@ class RunCreateView(QDialog):
 
 
 class BaseField(ABC):
-    '''
-    A base class for input fields.
+    """A base class for input fields.
 
     Object of this class interface themself with Rynner through a key
-    (or set of keys). The value(s) of the fields can be retrieved through the value()
+    (or set of keys). The value(s) of the fields can be retrieved through the
+    value()
     method.
-    '''
+    """
 
     def __init__(self, key, label, default=None, remember=True):
-        '''
+        """
         `key` : str
            The key in the corresponding dictionary
 
         `widget` : QWidget
-           The underlying Qt widget (which contains a layout and the set of checkboxes.)
-
-        '''
+           The underlying Qt widget (which contains a layout and the set of
+           checkboxes.)
+        """
 
         self.__default_value = default
         self.__remember = remember
@@ -113,9 +112,8 @@ class BaseField(ABC):
 
 
 class TextField(BaseField):
-    '''A simple Text field.
-
-    '''
+    """A simple Text field.
+    """
 
     def _widget(self):
         return QLineEdit()
@@ -127,12 +125,11 @@ class TextField(BaseField):
         self.widget.setText(value)
 
 
-class CheckBoxesField():
-    ''' A set of checkboxes which can be interacted with separately.
+class CheckBoxesField:
+    """ A set of checkboxes which can be interacted with separately.
 
     The dictionary of statuses (checked or not) can be retrieved with value().
-
-    '''
+    """
 
     def __init__(
             self,
@@ -141,7 +138,7 @@ class CheckBoxesField():
             values,
             default=None,  #list N
             remember=True):
-        '''
+        """
         Parameters
         ----------
 
@@ -158,11 +155,12 @@ class CheckBoxesField():
            Default values. If provided, it must have the same length as values.
 
         `remember` : bool, optional
-           When set to false, the field will reset to default when init() is called.
+           When set to false, the field will reset to default when init() is
+           called.
+        """
 
-        '''
         if default is None:
-            default = [False for v in values]
+            default = [False for _ in values]
 
         if type(values) != list:
             raise TypeError('"values" is not a list.')
@@ -170,6 +168,7 @@ class CheckBoxesField():
         for value in values:
             if type(value) is not str:
                 raise TypeError('values are not strings.')
+
         for d in default:
             if type(d) is not bool:
                 raise TypeError('default are not booleans.')
@@ -195,16 +194,15 @@ class CheckBoxesField():
         return w
 
     def value(self):
-        ''' Returns a dictionary containing the statuses for the checkboxes.'''
-        values = {}
-        for k in self.key:
-            values[k] = self._optionwidgets[k].isChecked()
+        """ Returns a dictionary containing the statuses for the checkboxes.
+        """
 
-        return values
+        return {k: self._optionwidgets[k].isChecked() for k in self.key}
 
     def set_value(self, value_to_set):
         if type(value_to_set) is not dict:
             raise TypeError('Input is not a dictionary.')
+
         for v in value_to_set.values():
             if type(v) is not bool:
                 raise TypeError('Input dict values are not booleans.')
@@ -218,14 +216,13 @@ class CheckBoxesField():
 
 
 class DropDownField(BaseField):
-    '''A field representing a choice amongst a number of options.
-
-    '''
+    """A field representing a choice amongst a number of options.
+    """
 
     def __init__(self, key, label, options, default=None, remember=True):
-        '''
+        """
+        """
 
-        '''
         self.__options = options
 
         super().__init__(key, label, default, remember)

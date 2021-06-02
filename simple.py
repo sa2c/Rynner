@@ -1,5 +1,5 @@
-from libsubmit import SSHChannel
-from libsubmit.providers.slurm.slurm import SlurmProvider
+from parsl.channels import SSHChannel
+from parsl.providers.slurm.slurm import SlurmProvider
 from rynner.rynner import Rynner
 
 provider = SlurmProvider(
@@ -7,10 +7,10 @@ provider = SlurmProvider(
     channel=SSHChannel(
         hostname='sunbird.swansea.ac.uk',
         username='s.mark.dawson',
-        script_dir='/tmp',
+        script_dir='/tmp'
     ),
     nodes_per_block=1,
-    tasks_per_node=1,
+    # tasks_per_node=1,  # fixme doesnt exist anymore?
     init_blocks=1,
     max_blocks=1,
 )

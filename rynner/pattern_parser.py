@@ -1,6 +1,3 @@
-import re
-
-
 class InvalidContextOption(Exception):
     pass
 
@@ -10,38 +7,39 @@ class ScriptNotSpecifiedException(Exception):
 
 
 class PatternParser:
-    '''
+    """
     This models a scheduler (slurm, pbs, lsf,...)
-    The information about how the scheduler works is stored in a 'host_pattern' object,
+    The information about how the scheduler works is stored in a 'host_pattern'
+    object,
+    """
 
-    '''
-
-    def __init__(self, parameter_map, submit_cmd, defaults):
+    def __init__(self, parameter_map, submit_cmd):
         self._map = parameter_map
         self._submit_cmd = submit_cmd
 
     def parse(self, options):
         options = options.copy()
 
-        # create a new context_options, this will later get passed to the run method
+        # create a new context_options, this will later get passed to the run
+        # method
         context_options = []
 
         # script is handled differently, it lives in a seperate key
         if 'script' in options.keys():
             script = options.pop('script')
         else:
-            raise ScriptNotSpecifiedException(
-                "script key/argument is mandatory")
+            raise ScriptNotSpecifiedException("script key/argument is "
+                                              "mandatory")
 
         curr_len = len(options.keys()) + 1
 
-        # parse the options based on the option map, whilst there are still elements left
+        # parse the options based on the option map, whilst there are still
+        # elements left
         while len(options.keys()) > 0:
             # array length unchanged implies elements which are not in the map
             if curr_len == len(options.keys()):
                 invalid_keys = ', '.join(list(options.keys()))
-                raise InvalidContextOption(
-                    'invalid option(s): {}'.format(invalid_keys))
+                raise InvalidContextOption(f'invalid option(s): {invalid_keys}')
             curr_len = len(options.keys())
 
             for option in self._map:
@@ -55,13 +53,12 @@ class PatternParser:
 
                 # match if all keys in tuple are options keys
                 if set(keys) <= set(options.keys()):
-                    # format the template string using the list of keys (in order)
+                    # format the template string using the list of keys
+                    # (in order)
                     value_list = [options[key] for key in keys]
                     if value_list != [False]:
-                        if callable(template):
-                            out = template(options, keys)
-                        else:
-                            out = template.format(*value_list)
+                        out = template(options, keys) if callable(template) \
+                            else template.format(*value_list)
                         # append formatted string to output
                         context_options.append(out)
 

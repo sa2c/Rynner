@@ -1,4 +1,5 @@
-import os, glob
+import os
+import glob
 import yaml
 from unittest.mock import patch, call, ANY
 from unittest.mock import MagicMock as MM
@@ -73,7 +74,7 @@ plugin2 = Plugin(
 # LOAD HOSTS
 #---------------------------------------------------------
 
-globdir = f'{homedir}/.rynner/hosts/*'
+globdir = f'{homedir}/.rynner/hosts/*'  # fixme how did this folder appear here?
 host_config_files = glob.glob(globdir)
 
 if len(host_config_files) == 0:

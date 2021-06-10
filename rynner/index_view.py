@@ -8,11 +8,10 @@ class InvalidModelIndex(Exception):
 
 
 class RunListModel(QStandardItemModel):
-    '''
-    Public API:
+    """Public API:
     self.plugin : the plugin instance to display
     self.view_keys : the keys from the plugin to display
-    '''
+    """
 
     def __init__(self, plugin, parent=None):
         super().__init__(parent)
@@ -30,10 +29,10 @@ class RunListModel(QStandardItemModel):
         self.plugin.runs_changed.connect(self.update_runs)
 
     def update_runs(self, all_runs):
-        '''
-        Update the run data according to data made available in all_runs. Note that currently the order is arbitrarily.
+        """Update the run data according to data made available in all_runs.
+        Note that currently the order is arbitrarily.
         Some sorting method should be implemented here.
-        '''
+        """
 
         relevant_runs = {}
 

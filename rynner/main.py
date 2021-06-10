@@ -1,11 +1,5 @@
-from abc import ABC, abstractmethod
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QTableView, QTableWidgetItem, QDialog, QAbstractItemView, QTabWidget, QPushButton, QHBoxLayout, QAbstractItemView, QComboBox, QLabel, QSpacerItem, QSizePolicy, QItemDelegate, QMainWindow
-import collections
-from PySide2.QtCore import QAbstractTableModel, Qt, QObject, Signal
-from PySide2.QtGui import QStandardItemModel, QStandardItem
-from PySide2.QtQuick import QQuickView
-from PySide2.QtCore import QUrl, Slot
-from rynner.plugin import Plugin, RunAction
+from PySide2.QtWidgets import QTabWidget, QAbstractItemView, QMainWindow
+from PySide2.QtCore import QObject
 from rynner.index_view import RunListModel
 from rynner.ui import load_ui
 
@@ -17,7 +11,7 @@ class InvalidDuplicateWidget(Exception):
 
 
 class MainView(QMainWindow):
-    '''
+    """
     Periodically, for each host, we should fetch a job list of the data visible
     (e.g. from the datastore of the job) for all jobs of the currently visible
     type. Jobs of a given type can be deduced by using their entry in Plugin
@@ -25,7 +19,7 @@ class MainView(QMainWindow):
 
     Upshot -> Plugin needs a URL + a label
     jobs = [ host.get_jobs(type=plugin.uid) for host in hosts ].flatten()
-    '''
+    """
 
     def __init__(self, hosts, plugins):
         super().__init__(None)
@@ -59,12 +53,14 @@ class MainView(QMainWindow):
             for host in hosts:
                 host.runs_updated.connect(model.update_runs)
 
-    def _check_for_duplicate_widgets(self, plugins):
+    @staticmethod
+    def _check_for_duplicate_widgets(plugins):
         all_widgets = set()
 
         for plugin in plugins:
             if plugin.create_view is not None:
-                # maintain a global database of used widgets (to prevent second use)
+                # maintain a global database of used widgets
+                # (to prevent second use)
                 plugin_widgets = {
                     id(child)
                     for child in plugin.create_view.findChildren(QObject)
@@ -74,14 +70,15 @@ class MainView(QMainWindow):
 
                 ndups = len(intersection)
                 if ndups > 0:
-                    raise InvalidDuplicateWidget(
-                        f'{ndups} duplicate QWidgets found in different plugin instances'
-                    )
+                    raise InvalidDuplicateWidget(f'{ndups} duplicate QWidgets '
+                                                 f'found in different plugin '
+                                                 f'instances')
                 all_widgets = plugin_widgets | all_widgets
 
 
 # takes in the table model and returns a view widget! with links signals?
-# contains plugin so that signals can be linked?? Maybe I need a run type proxy??
+# contains plugin so that signals can be linked?? Maybe I need a run type
+# proxy??
 def build_index_view(model, ui_file):
     # could potentially also just put it in the right place??
     view = load_ui(ui_file)

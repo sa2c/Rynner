@@ -4,11 +4,8 @@ from distutils.core import setup
 
 setup(
         name='Rynner',
-        version='0.0.0',
-        url='https://github.com/M4rkD/Rynner/',
+        version='0.0.1',
+        url='https://github.com/sa2c/Rynner',
         py_modules=['rynner'],
-        install_requires =['libsubmit','pathlib','python-box','paramiko'],
-        dependency_links=[
-            "git+ssh://git@github.com/M4rkD/libsubmit.git"
-        ]
+        install_requires=['parsl', 'python-box', 'paramiko']  # todo improve setup
     )

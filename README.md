@@ -52,3 +52,10 @@ if [ $? -ge 2 ]; then
 fi
 export SSH_AGENT_PID=$(pgrep ssh-agent)
 ```
+
+# Install
+We do not provide ready-to-install packages at the moment, 
+but you can use the following command to install the latest version of Rynner:
+```shell
+pip install git+https://github.com/sa2c/Rynner.git
+```

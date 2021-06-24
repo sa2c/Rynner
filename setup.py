@@ -7,5 +7,5 @@ setup(
         version='0.0.1',
         url='https://github.com/sa2c/Rynner',
         py_modules=['rynner'],
-        install_requires=['parsl', 'python-box', 'paramiko']  # todo improve setup
+        install_requires=['parsl', 'paramiko']  # todo improve setup
     )

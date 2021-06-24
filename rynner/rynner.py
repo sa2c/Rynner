@@ -38,13 +38,14 @@ class Rynner:
         uid = str(uuid.uuid1())
 
         run = Box({
-            'id': uid,
+            'uid': uid,
             'job_name': jobname,
             'remote_dir': self._remote_dir(namespace, uid),
             'uploads': uploads,
             'downloads': downloads,
             'script': script,
-            'status': Rynner.StatusPending
+            'status': Rynner.StatusPending,
+            'namespace': 'rynner'  # FIXME temp fix
         })
 
         return run
@@ -195,16 +196,19 @@ class Rynner:
             if os.path.isfile(dest_file):
                 os.remove(dest_file)
 
-            self.provider.channel.pull_directory(src, dest)
+            self.provider.channel.pull_file(src, dest)
 
     def submit(self, run):
         # copy execution script to remote
 
         runscript_name = f'rynner_exec_{run.job_name}'
 
-        local_script_path = os.path.join(self.provider.channel.script_dir,
-                                         runscript_name)
-
+        local_script_path = os.path.expanduser("~")
+        local_script_path = os.path.join(local_script_path, run.namespace,
+                                         run.uid) if run.namespace else os.path.join(local_script_path, run.uid)
+        local_script_path = os.path.join(local_script_path, runscript_name)
+        if not os.path.isdir(os.path.split(local_script_path)[0]):
+            os.makedirs(os.path.split(local_script_path)[0])
         with open(local_script_path, "w") as file:
             file.write(run['script'])
 
@@ -223,6 +227,9 @@ class Rynner:
                          f'cd ; '
                          f'{self._record_time("end", run)}')  # todo verify this
 
+        p_ = os.path.join(run.namespace, run.uid) if run.namespace else run.uid
+        self.provider.channel.script_dir = p_
+        self.provider.script_dir = os.path.split(local_script_path)[0]
         qid = self.provider.submit(submit_script, tasks_per_node=1)
         
         if qid is None:

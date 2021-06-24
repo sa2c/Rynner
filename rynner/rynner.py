@@ -5,8 +5,9 @@ from stat import S_ISDIR
 import time
 
 from pathlib import PurePosixPath
-from box import Box  # this warning is a PyCharm bug
+from rynner.data_classes import Run
 import threading
+from copy import deepcopy
 
 
 class Rynner:
@@ -37,16 +38,11 @@ class Rynner:
 
         uid = str(uuid.uuid1())
 
-        run = Box({
-            'uid': uid,
-            'job_name': jobname,
-            'remote_dir': self._remote_dir(namespace, uid),
-            'uploads': uploads,
-            'downloads': downloads,
-            'script': script,
-            'status': Rynner.StatusPending,
-            'namespace': 'rynner'  # FIXME temp fix
-        })
+        run = Run(submission_id=uid, job_name=jobname, upload_time=0,
+                  remote_dir=self._remote_dir(namespace, uid), uploads=uploads,
+                  downloads=downloads, script=script, upload_status=0,
+                  job_status=self.StatusPending, namespace='rynner',
+                  download_status=0, job_id=None)
 
         return run
 
@@ -92,27 +88,27 @@ class Rynner:
             print("No such file")
         return expanded_uploads
     
-    def start_upload(self, run):
+    def start_upload(self, run: Run):
         """Spawn a thread to upload the files in the upload list.
         Update a report of the current state of the process.
         """
         uploads = []  # todo consolidation
-        for upload in run['uploads']:
+        for upload in run.uploads:
             uploads += self.list_local_files(run, upload[0], upload[1])
 
         def upload_thread(run_):  # fixme remove this nest?, verify name changes
             """The function executed by the download thread
             """
-            run_copy = run_.copy()
+            run_copy = deepcopy(run_)
             for i, upload_ in enumerate(uploads):
-                run_['upload_status'] = (float(i)/len(uploads))
-                run_copy['uploads'] = [upload_]
+                run_.upload_status = float(i)/len(uploads)
+                run_copy.uploads = [upload_]
                 self.upload(run_copy)
                 
-            run_['upload_status'] = 1.0
+            run_.upload_status = 1.0
             return
         
-        run['upload_status'] = 0
+        run.upload_status = 0
         thread = threading.Thread(target=upload_thread, args=(run,))
         thread.start()
 
@@ -120,7 +116,7 @@ class Rynner:
         """Uploads files using provider channel.
         """
 
-        uploads = run['uploads']
+        uploads = run.uploads
 
         for upload in uploads:
             src, dest = self._parse_path(upload)
@@ -128,7 +124,7 @@ class Rynner:
 
             self.provider.channel.push_file(src, dest)
 
-        run['upload_time'] = time.time()
+        run.upload_time = time.time()
 
     def list_remote_files(self, run, remote_source, local_dir):
         """Build a list of files a remote folder
@@ -160,22 +156,22 @@ class Rynner:
         Update a report of the current state of the process.
         """
         downloads = []
-        for download in run['downloads']:
+        for download in run.downloads:
             downloads += self.list_remote_files(run, download[0], download[1])
 
         def download_thread(run_):
             """The function executed by the download thread
             """
-            run_copy = run_.copy()
+            run_copy = deepcopy(run_)
             for i, download_ in enumerate(downloads):
-                run_['download_status'] = (float(i)/len(downloads))
-                run_copy['downloads'] = [download_]
+                run_.download_status = float(i)/len(downloads)
+                run_copy.downloads = [download_]
                 self.download(run_copy)
                 
-            run_['download_status'] = 1.0
+            run_.download_status = 1.0
             return
         
-        run['download_status'] = 0
+        run.download_status = 0
         thread = threading.Thread(target=download_thread, args=(run,))
         thread.start()
 
@@ -183,7 +179,7 @@ class Rynner:
         """Download files using provider channel.
         """
 
-        downloads = run['downloads']
+        downloads = run.downloads
 
         for download in downloads:
             src, dest = self._parse_path(download)
@@ -205,12 +201,12 @@ class Rynner:
 
         local_script_path = os.path.expanduser("~")
         local_script_path = os.path.join(local_script_path, run.namespace,
-                                         run.uid) if run.namespace else os.path.join(local_script_path, run.uid)
+                                         run.submission_id) if run.namespace else os.path.join(local_script_path, run.submission_id)
         local_script_path = os.path.join(local_script_path, runscript_name)
         if not os.path.isdir(os.path.split(local_script_path)[0]):
             os.makedirs(os.path.split(local_script_path)[0])
         with open(local_script_path, "w") as file:
-            file.write(run['script'])
+            file.write(run.script)
 
         self.provider.channel.push_file(local_script_path,
                                         run.remote_dir.as_posix())
@@ -227,26 +223,26 @@ class Rynner:
                          f'cd ; '
                          f'{self._record_time("end", run)}')  # todo verify this
 
-        p_ = os.path.join(run.namespace, run.uid) if run.namespace else run.uid
+        p_ = os.path.join(run.namespace, run.submission_id) if run.namespace else run.submission_id
         self.provider.channel.script_dir = p_
         self.provider.script_dir = os.path.split(local_script_path)[0]
-        qid = self.provider.submit(submit_script, tasks_per_node=1)
+        job_id = self.provider.submit(submit_script, tasks_per_node=1)
         
-        if qid is None:
+        if job_id is None:
             # Failed to submit
             return False
         else:
             # Succesfully submitted
-            run['qid'] = qid
-            run['status'] = Rynner.StatusPending
+            run.job_id = job_id
+            run.job_status = self.StatusPending
 
             self.save_run_config(run)
             return True
 
     def cancel(self, run):
         self._record_time('cancel', run)
-        run['qid'] = self.provider.cancel(run['script'], 1)
-        run['status'] = Rynner.StatusCancelled
+        run.job_id = self.provider.cancel(run.script, 1)
+        run.job_status = self.StatusCancelled
         self.save_run_config(run)
 
     def _record_time(self, label, run, execute=False):
@@ -259,12 +255,12 @@ class Rynner:
 
     def _finished_since_last_update(self, runs):
 
-        qids = [r['qid'] for r in runs]
-        status = self.provider.status(qids)
+        job_ids = [run.job_id for run in runs]
+        status = self.provider.status(job_ids)
 
         needs_update = [
-            run['status'] == Rynner.StatusRunning
-            and status[index] == Rynner.StatusRunning
+            run.job_status == self.StatusRunning
+            and status[index] == self.StatusRunning
             for index, run in enumerate(runs)
         ]
 
@@ -297,15 +293,15 @@ class Rynner:
 
         # find current status of all runs
 
-        qids = [r['qid'] for r in runs]
-        status = self.provider.status(qids)
+        job_ids = [run.job_id for run in runs]
+        status = self.provider.status(job_ids)
 
         # find runs which have finished since last update
 
         needs_update = []
 
         for index, run in enumerate(runs):
-            old_status = run['status']
+            old_status = run.job_status
             new_status = status[index]
             if new_status != old_status:
                 # finished since last check
@@ -315,10 +311,10 @@ class Rynner:
         # update status of all runs
 
         for index, run in enumerate(runs):
-            run['status'] = status[index]
+            run.job_status = status[index]
 
         # get info on remaining runs (not implemented)
-        qids = [run['qid'] for run in needs_update]  # todo finish?
+        job_ids = [run.job_id for run in needs_update]  # todo finish?
 
         return changed
 
@@ -366,7 +362,7 @@ class Rynner:
                             try:
                                 with sftp_client.open(remote_path, 'rb') as f:
                                     run = pickle.load(f)
-                                self.provider._test_add_resource(run['qid'])
+                                self.provider._test_add_resource(run.job_id)
                                 runs += [run]
                             except Exception as e:
                                 print(e)  # todo finish this

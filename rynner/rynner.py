@@ -64,7 +64,7 @@ class Rynner:
             src, dest = file_transfer
         else:
             raise InvalidContextOption('invalid format for uploads options: '
-                                       '{uploads}')  # FIXME need a parameter
+                                       '{uploads}')
 
         if dest == '':
             dest = '.'
@@ -80,7 +80,7 @@ class Rynner:
         try:
             if os.path.isdir(local_source):
                 _, directory_name = os.path.split(local_source)
-                dest = remote_dir + '/' + directory_name  # FIXME os independent
+                dest = remote_dir + '/' + directory_name
                 
                 file_list = os.listdir(directory_name)
                 for filename in file_list:
@@ -97,11 +97,11 @@ class Rynner:
         """Spawn a thread to upload the files in the upload list.
         Update a report of the current state of the process.
         """
-        uploads = []  # todo consolidation
+        uploads = []
         for upload in run.uploads:
             uploads += self.list_local_files(run, upload[0], upload[1])
 
-        def upload_thread(run_: Run) -> None:  # fixme remove this nest?, verify name changes
+        def upload_thread(run_: Run) -> None:
             """The function executed by the download thread
             """
             run_copy = deepcopy(run_)
@@ -146,7 +146,6 @@ class Rynner:
                 file_list = sftp_client.listdir(path=src)
                 for filename in file_list:
                     src = remote_source + '/' + filename
-                    # fixme posixpath
                     expanded_downloads += self.list_remote_files(run, src, dest)
             else:
                 expanded_downloads = [[remote_source, local_dir]]
@@ -156,7 +155,7 @@ class Rynner:
             print("No such file")
         return expanded_downloads
     
-    def start_download(self, run: Run) -> None:  # fixme download and upload are identical?
+    def start_download(self, run: Run) -> None:
         """Spawn a thread to download the files in the download list.
         Update a report of the current state of the process.
         """
@@ -179,7 +178,7 @@ class Rynner:
         thread = threading.Thread(target=download_thread, args=(run,))
         thread.start()
 
-    def download(self, run: Run) -> None:  # fixme same for download/upload
+    def download(self, run: Run) -> None:
         """Download files using provider channel.
         """
 
@@ -225,7 +224,7 @@ class Rynner:
                          f'cd {run.remote_dir.as_posix()}; '
                          f'./{runscript_name}; '
                          f'cd ; '
-                         f'{self._record_time("end", run)}')  # todo verify this
+                         f'{self._record_time("end", run)}')
 
         p_ = os.path.join(run.namespace, run.submission_id) if run.namespace else run.submission_id
         self.provider.channel.script_dir = p_
@@ -320,7 +319,7 @@ class Rynner:
             run.job_status = status[index]
 
         # get info on remaining runs (not implemented)
-        job_ids = [run.job_id for run in needs_update]  # todo finish?
+        job_ids = [run.job_id for run in needs_update]
 
         return changed
 
@@ -333,7 +332,6 @@ class Rynner:
 
         sftp_client = self.provider.channel.sftp_client
         with sftp_client.open(filepath, "wb") as f:
-            # todo do we need binary flag?
             pickle.dump(run, f)
 
         return filepath
@@ -371,7 +369,7 @@ class Rynner:
                                 self.provider._test_add_resource(run.job_id)
                                 runs += [run]
                             except Exception as e:
-                                print(e)  # todo finish this
+                                print(e)
                                 pass
                             
         return runs

@@ -1,0 +1,4 @@
+domain: login.cluster.example.ac.uk
+username: a.human
+rsa_file: /home/a.human/.ssh/id_rsa
+classname: SlurmHost
